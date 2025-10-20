@@ -88,7 +88,7 @@ const BrowseGrid = () => {
     <section className="py-24 px-6 bg-background">
       <div className="max-w-7xl mx-auto">
         <h2 className="text-center mb-12">
-          Find job application examples
+          Study Applications That Got Hired
         </h2>
         
         {/* Filter Tabs */}
@@ -112,7 +112,7 @@ const BrowseGrid = () => {
         <div className="text-center mt-12">
           <Link to="/auth">
             <Button size="lg" className="rounded-full font-medium px-10 h-14 shadow-lg hover:shadow-xl transition-shadow">
-              Sign-up to view all samples
+              Get access to all samples
             </Button>
           </Link>
         </div>

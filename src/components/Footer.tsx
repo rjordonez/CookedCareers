@@ -10,16 +10,9 @@ const Footer = () => {
             <span className="text-lg font-bold">CSLibrary</span>
           </div>
           
-          <div className="flex items-center gap-8 text-sm text-muted-foreground">
-            <a href="#" className="hover:text-foreground transition-colors">About</a>
-            <a href="#" className="hover:text-foreground transition-colors">Contact</a>
-            <a href="#" className="hover:text-foreground transition-colors">Privacy</a>
-            <a href="#" className="hover:text-foreground transition-colors">Terms</a>
-          </div>
           
-          <p className="text-sm text-muted-foreground">
-            © 2025 CSLibrary. All rights reserved.
-          </p>
+          
+          <p className="text-sm text-muted-foreground">© 2025 CSLibrary. All rights reserved.</p>
         </div>
       </div>
     </footer>

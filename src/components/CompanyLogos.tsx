@@ -24,27 +24,24 @@ const companies = [
 
 const CompanyLogos = () => {
   return (
-    <section className="py-16 px-6 bg-secondary/50">
-      <div className="max-w-7xl mx-auto">
-        <div className="text-center mb-12">
-          <p className="text-lg text-foreground font-semibold">
-            Our candidates have been hired at:
-          </p>
-        </div>
+    <section className="pt-6 pb-8 px-6">
+      <div className="max-w-6xl mx-auto">
+        <p className="text-center text-xs md:text-sm font-medium tracking-wide text-muted-foreground mb-4">
+          Our candidates have been hired at
+        </p>
 
-        <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-8 items-center justify-items-center">
-          {companies.map((company) => (
-            <div
-              key={company.name}
-              className="group flex items-center justify-center p-6 rounded-xl bg-background hover:shadow-lg transition-all duration-300 w-full h-32"
-            >
-              <img 
-                src={company.logo} 
-                alt={`${company.name} logo`}
-                className="max-h-12 w-auto object-contain opacity-60 group-hover:opacity-100 transition-opacity duration-300"
-              />
-            </div>
-          ))}
+        <div className="overflow-x-auto">
+          <div className="flex items-center gap-8 md:gap-10 lg:gap-12 snap-x">
+            {companies.map((company) => (
+              <div key={company.name} className="shrink-0 snap-start">
+                <img
+                  src={company.logo}
+                  alt={`${company.name} logo`}
+                  className="h-8 md:h-10 w-auto object-contain opacity-70 grayscale hover:opacity-100 hover:grayscale-0 transition-all duration-200"
+                />
+              </div>
+            ))}
+          </div>
         </div>
       </div>
     </section>

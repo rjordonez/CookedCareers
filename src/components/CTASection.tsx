@@ -7,18 +7,23 @@ const CTASection = () => {
     <section className="py-24 px-6 bg-background">
       <div className="max-w-4xl mx-auto text-center">
         <h2 className="mb-6">
-          Learn from 1,000+ successful examples.
+          1,000+ proven resumes that get offers
         </h2>
-        
+
         <p className="text-muted-foreground mb-10">
-          Stop guessing what works, see what actually got people hired.
+          Stop guessing, see what actually lands interviews at top tech companies
         </p>
-        
-        <Link to="/auth">
-          <Button size="lg" className="rounded-full font-medium px-10 h-14 shadow-lg hover:shadow-xl transition-shadow">
-            Join Now →
+
+        <div className="flex items-center justify-center gap-4 flex-wrap">
+          <Link to="/auth">
+            <Button size="lg" className="rounded-full font-medium px-10 h-14 shadow-lg hover:shadow-xl transition-shadow">
+              Join Now →
+            </Button>
+          </Link>
+          <Button size="lg" variant="outline" className="rounded-full font-medium px-10 h-14">
+            Book a consultation call
           </Button>
-        </Link>
+        </div>
       </div>
     </section>
   );
