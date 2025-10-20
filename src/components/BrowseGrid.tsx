@@ -1,4 +1,5 @@
 import ItemCard from "./ItemCard";
+import FilterTabs from "./FilterTabs";
 import resumeBlur1 from "@/assets/resume-blur-1.jpg";
 import resumeBlur2 from "@/assets/resume-blur-2.jpg";
 import resumeBlur3 from "@/assets/resume-blur-3.jpg";
@@ -82,30 +83,47 @@ const items = [
 
 const BrowseGrid = () => {
   return (
-    <section className="py-16 px-6" id="browse">
+    <section className="py-20 px-6 bg-background">
       <div className="max-w-7xl mx-auto">
-        <h2 className="text-5xl font-bold text-center mb-4">
-          Find job application<br />examples in seconds.
+        <h2 className="text-4xl md:text-5xl font-bold text-center mb-12">
+          Find job application examples
         </h2>
-        <p className="text-center text-muted-foreground mb-12 text-lg">
-          Browse through our curated collection of successful applications
-        </p>
         
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-          {items.map((item) => (
-            <ItemCard key={item.id} {...item} />
-          ))}
+        {/* Filter Tabs */}
+        <div className="mb-12">
+          <FilterTabs />
         </div>
-        
-        <div className="mt-12 text-center">
-          <p className="text-muted-foreground mb-4">
-            Showing 9 of 1,000+ items
-          </p>
-          <button className="text-foreground font-medium hover:underline">
-            Load more →
+
+        {/* Horizontal scrolling container */}
+        <div className="relative">
+          <div className="overflow-x-auto scrollbar-hide -mx-6 px-6">
+            <div className="flex gap-6 pb-4" style={{ minWidth: 'max-content' }}>
+              {items.map((item) => (
+                <div key={item.id} className="w-80 shrink-0">
+                  <ItemCard {...item} />
+                </div>
+              ))}
+            </div>
+          </div>
+        </div>
+
+        <div className="text-center mt-12">
+          <button className="text-accent font-semibold hover:underline">
+            View all 1,000+ examples →
           </button>
         </div>
       </div>
+
+      <style>{`
+        .scrollbar-hide::-webkit-scrollbar {
+          display: none;
+        }
+        
+        .scrollbar-hide {
+          -ms-overflow-style: none;
+          scrollbar-width: none;
+        }
+      `}</style>
     </section>
   );
 };

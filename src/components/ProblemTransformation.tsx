@@ -9,8 +9,8 @@ const ProblemTransformation = () => {
         </h2>
         
         <div className="grid md:grid-cols-2 gap-8">
-          {/* Problem */}
-          <div className="p-8 rounded-2xl border-2 border-destructive/20 bg-background">
+          {/* Problem - Clickable */}
+          <button className="p-8 rounded-2xl border-2 border-destructive/20 bg-background hover:border-destructive/40 hover:shadow-xl transition-all duration-300 text-left w-full">
             <div className="flex items-center gap-3 mb-6">
               <XCircle className="h-8 w-8 text-destructive" />
               <h3 className="text-2xl font-bold">Without CSLibrary</h3>
@@ -33,10 +33,10 @@ const ProblemTransformation = () => {
                 <span className="text-muted-foreground">Watching others land offers while you struggle</span>
               </li>
             </ul>
-          </div>
+          </button>
 
-          {/* Success */}
-          <div className="p-8 rounded-2xl border-2 border-accent bg-accent/5">
+          {/* Success - Clickable */}
+          <button className="p-8 rounded-2xl border-2 border-accent bg-accent/5 hover:bg-accent/10 hover:border-accent/70 hover:shadow-xl transition-all duration-300 text-left w-full">
             <div className="flex items-center gap-3 mb-6">
               <CheckCircle className="h-8 w-8 text-accent" />
               <h3 className="text-2xl font-bold">With CSLibrary</h3>
@@ -59,7 +59,7 @@ const ProblemTransformation = () => {
                 <span className="text-foreground font-medium">Join a community of successful CS students</span>
               </li>
             </ul>
-          </div>
+          </button>
         </div>
       </div>
     </section>

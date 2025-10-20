@@ -1,46 +1,51 @@
-import { Quote } from "lucide-react";
+import sarahChenPhoto from "@/assets/testimonials/sarah-chen.jpg";
+import marcusJohnsonPhoto from "@/assets/testimonials/marcus-johnson.jpg";
+import priyaPatelPhoto from "@/assets/testimonials/priya-patel.jpg";
+import alexKimPhoto from "@/assets/testimonials/alex-kim.jpg";
+import jordanTaylorPhoto from "@/assets/testimonials/jordan-taylor.jpg";
+import samRiveraPhoto from "@/assets/testimonials/sam-rivera.jpg";
 
 const testimonials = [
   {
     name: "Sarah Chen",
     role: "Software Engineer",
     company: "Google",
-    avatar: "SC",
+    photo: sarahChenPhoto,
     quote: "I went from 0 interviews to 5 offers in 3 months. CSLibrary showed me exactly what top companies look for."
   },
   {
     name: "Marcus Johnson",
     role: "Frontend Developer", 
     company: "Meta",
-    avatar: "MJ",
+    photo: marcusJohnsonPhoto,
     quote: "The project examples were game-changing. I rebuilt my portfolio using their templates and landed my dream job."
   },
   {
     name: "Priya Patel",
     role: "ML Engineer",
     company: "Amazon",
-    avatar: "PP",
+    photo: priyaPatelPhoto,
     quote: "As an international student, I had no idea what US tech companies wanted. CSLibrary gave me the blueprint to success."
   },
   {
     name: "Alex Kim",
     role: "Backend Engineer",
     company: "Microsoft",
-    avatar: "AK",
+    photo: alexKimPhoto,
     quote: "Every resume I looked at taught me something new. Now I'm at Microsoft building products that millions use."
   },
   {
     name: "Jordan Taylor",
     role: "Full Stack Developer",
     company: "Netflix",
-    avatar: "JT",
+    photo: jordanTaylorPhoto,
     quote: "CSLibrary is like having a mentor who already went through the entire hiring process. Absolutely invaluable resource."
   },
   {
     name: "Sam Rivera",
     role: "Data Scientist",
     company: "Apple",
-    avatar: "SR",
+    photo: samRiveraPhoto,
     quote: "Studying successful resumes helped me understand what actually matters. Landed my dream role at Apple in 4 months."
   },
 ];
@@ -60,9 +65,11 @@ const Testimonials = () => {
               className="flex flex-col"
             >
               <div className="flex items-center gap-3 mb-4">
-                <div className="w-12 h-12 rounded-full bg-accent/20 flex items-center justify-center font-semibold text-accent flex-shrink-0">
-                  {testimonial.avatar}
-                </div>
+                <img 
+                  src={testimonial.photo} 
+                  alt={testimonial.name}
+                  className="w-12 h-12 rounded-full object-cover flex-shrink-0"
+                />
                 <div>
                   <p className="font-semibold text-foreground">{testimonial.name}</p>
                   <p className="text-sm text-muted-foreground">{testimonial.company}</p>

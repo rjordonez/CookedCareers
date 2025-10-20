@@ -1,7 +1,6 @@
 import Navigation from "@/components/Navigation";
 import Hero from "@/components/Hero";
 import ProblemTransformation from "@/components/ProblemTransformation";
-import FilterTabs from "@/components/FilterTabs";
 import BrowseGrid from "@/components/BrowseGrid";
 import CompanyLogos from "@/components/CompanyLogos";
 import UniversityLogos from "@/components/UniversityLogos";
@@ -20,9 +19,6 @@ const Index = () => {
         <Hero />
         <CompanyLogos />
         <ProblemTransformation />
-        <div className="max-w-7xl mx-auto px-6">
-          <FilterTabs />
-        </div>
         <BrowseGrid />
         <UniversityLogos />
         <Testimonials />
