@@ -6,19 +6,19 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { mockAuth } from "@/lib/mockAuth";
-import { mockResumes, Resume } from "@/lib/mockData";
-import { Search, LogOut, Crown } from "lucide-react";
+import { mockProjects, Project } from "@/lib/mockProjectData";
+import { Search, LogOut, Crown, Code } from "lucide-react";
 
 const ITEMS_PER_PAGE = 20;
 const FREE_PREVIEW_COUNT = 3;
 
-const Dashboard = () => {
+const ProjectsDashboard = () => {
   const navigate = useNavigate();
   const user = mockAuth.getSession();
   const [searchQuery, setSearchQuery] = useState("");
   const [companyFilter, setCompanyFilter] = useState("all");
-  const [schoolFilter, setSchoolFilter] = useState("all");
-  const [experienceFilter, setExperienceFilter] = useState("all");
+  const [typeFilter, setTypeFilter] = useState("all");
+  const [complexityFilter, setComplexityFilter] = useState("all");
   const [currentPage, setCurrentPage] = useState(1);
 
   useEffect(() => {
@@ -28,32 +28,29 @@ const Dashboard = () => {
   }, [user, navigate]);
 
   const companies = useMemo(() => 
-    ["all", ...new Set(mockResumes.map(r => r.company))].sort(),
+    ["all", ...new Set(mockProjects.map(p => p.company))].sort(),
     []
   );
   
-  const schools = useMemo(() => 
-    ["all", ...new Set(mockResumes.map(r => r.school))].sort(),
+  const types = useMemo(() => 
+    ["all", ...new Set(mockProjects.map(p => p.type))].sort(),
     []
   );
 
-  const filteredResumes = useMemo(() => {
-    return mockResumes.filter(resume => {
+  const filteredProjects = useMemo(() => {
+    return mockProjects.filter(project => {
       const matchesSearch = searchQuery === "" || 
-        resume.keywords.toLowerCase().includes(searchQuery.toLowerCase());
-      const matchesCompany = companyFilter === "all" || resume.company === companyFilter;
-      const matchesSchool = schoolFilter === "all" || resume.school === schoolFilter;
-      const matchesExperience = experienceFilter === "all" || 
-        (experienceFilter === "0-3" && resume.yearsOfExperience <= 3) ||
-        (experienceFilter === "4-7" && resume.yearsOfExperience >= 4 && resume.yearsOfExperience <= 7) ||
-        (experienceFilter === "8+" && resume.yearsOfExperience >= 8);
+        project.keywords.toLowerCase().includes(searchQuery.toLowerCase());
+      const matchesCompany = companyFilter === "all" || project.company === companyFilter;
+      const matchesType = typeFilter === "all" || project.type === typeFilter;
+      const matchesComplexity = complexityFilter === "all" || project.complexity === complexityFilter;
       
-      return matchesSearch && matchesCompany && matchesSchool && matchesExperience;
+      return matchesSearch && matchesCompany && matchesType && matchesComplexity;
     });
-  }, [searchQuery, companyFilter, schoolFilter, experienceFilter]);
+  }, [searchQuery, companyFilter, typeFilter, complexityFilter]);
 
-  const totalPages = Math.ceil(filteredResumes.length / ITEMS_PER_PAGE);
-  const paginatedResumes = filteredResumes.slice(
+  const totalPages = Math.ceil(filteredProjects.length / ITEMS_PER_PAGE);
+  const paginatedProjects = filteredProjects.slice(
     (currentPage - 1) * ITEMS_PER_PAGE,
     currentPage * ITEMS_PER_PAGE
   );
@@ -75,12 +72,15 @@ const Dashboard = () => {
       <header className="border-b border-border bg-card/50 backdrop-blur-sm sticky top-0 z-10">
         <div className="max-w-7xl mx-auto px-6 py-4 flex items-center justify-between">
           <div className="flex items-center gap-6">
-            <h1 className="text-2xl font-bold">Resume Library</h1>
+            <h1 className="text-2xl font-bold flex items-center gap-2">
+              <Code className="w-6 h-6" />
+              Project Library
+            </h1>
             <nav className="flex gap-2">
-              <Button variant="default" size="sm">
+              <Button variant="ghost" size="sm" onClick={() => navigate("/dashboard")}>
                 Resumes
               </Button>
-              <Button variant="ghost" size="sm" onClick={() => navigate("/projects")}>
+              <Button variant="default" size="sm">
                 Projects
               </Button>
             </nav>
@@ -106,7 +106,7 @@ const Dashboard = () => {
           <div className="relative">
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
             <Input
-              placeholder="Search resumes by keywords..."
+              placeholder="Search projects by keywords..."
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
               className="pl-10"
@@ -127,28 +127,29 @@ const Dashboard = () => {
               </SelectContent>
             </Select>
 
-            <Select value={schoolFilter} onValueChange={setSchoolFilter}>
+            <Select value={typeFilter} onValueChange={setTypeFilter}>
               <SelectTrigger>
-                <SelectValue placeholder="School" />
+                <SelectValue placeholder="Project Type" />
               </SelectTrigger>
               <SelectContent>
-                {schools.map(school => (
-                  <SelectItem key={school} value={school}>
-                    {school === "all" ? "All Schools" : school}
+                {types.map(type => (
+                  <SelectItem key={type} value={type}>
+                    {type === "all" ? "All Types" : type}
                   </SelectItem>
                 ))}
               </SelectContent>
             </Select>
 
-            <Select value={experienceFilter} onValueChange={setExperienceFilter}>
+            <Select value={complexityFilter} onValueChange={setComplexityFilter}>
               <SelectTrigger>
-                <SelectValue placeholder="Experience" />
+                <SelectValue placeholder="Complexity" />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="all">All Experience</SelectItem>
-                <SelectItem value="0-3">0-3 years</SelectItem>
-                <SelectItem value="4-7">4-7 years</SelectItem>
-                <SelectItem value="8+">8+ years</SelectItem>
+                <SelectItem value="all">All Levels</SelectItem>
+                <SelectItem value="Beginner">Beginner</SelectItem>
+                <SelectItem value="Intermediate">Intermediate</SelectItem>
+                <SelectItem value="Advanced">Advanced</SelectItem>
+                <SelectItem value="Expert">Expert</SelectItem>
               </SelectContent>
             </Select>
           </div>
@@ -160,7 +161,7 @@ const Dashboard = () => {
               <div>
                 <h3 className="font-semibold mb-1">Unlock Full Access</h3>
                 <p className="text-sm text-muted-foreground">
-                  You're viewing {FREE_PREVIEW_COUNT} of {filteredResumes.length} resumes. Upgrade to see them all.
+                  You're viewing {FREE_PREVIEW_COUNT} of {filteredProjects.length} projects. Upgrade to see them all.
                 </p>
               </div>
               <Button size="lg" className="gap-2">
@@ -172,13 +173,13 @@ const Dashboard = () => {
         )}
 
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
-          {paginatedResumes.map((resume, index) => (
-            <div key={resume.id} className="relative">
+          {paginatedProjects.map((project, index) => (
+            <div key={project.id} className="relative">
               <Card className="group overflow-hidden border border-border hover:shadow-lg transition-all duration-300 cursor-pointer bg-card">
                 <div className="aspect-[3/4] bg-muted overflow-hidden relative">
                   <img
-                    src={resume.imageUrl}
-                    alt={resume.title}
+                    src={project.imageUrl}
+                    alt={project.title}
                     className={`w-full h-full object-cover group-hover:scale-105 transition-transform duration-300 ${
                       isBlurred(index) ? 'blur-md' : ''
                     }`}
@@ -195,15 +196,15 @@ const Dashboard = () => {
                 </div>
                 <div className="p-4">
                   <div className="flex items-start justify-between gap-2 mb-2">
-                    <h3 className="font-semibold text-sm leading-tight">{resume.title}</h3>
+                    <h3 className="font-semibold text-sm leading-tight">{project.title}</h3>
                     <Badge variant="secondary" className="text-xs shrink-0">
-                      {resume.yearsOfExperience}y
+                      {project.complexity}
                     </Badge>
                   </div>
-                  <p className="text-sm text-muted-foreground mb-1">{resume.company}</p>
-                  <p className="text-xs text-muted-foreground mb-3">{resume.school}</p>
+                  <p className="text-sm text-muted-foreground mb-1">{project.company}</p>
+                  <p className="text-xs text-muted-foreground mb-3">{project.type}</p>
                   <div className="flex flex-wrap gap-1.5">
-                    {resume.tags.slice(0, 3).map((tag) => (
+                    {project.tags.slice(0, 3).map((tag) => (
                       <span
                         key={tag}
                         className="text-xs px-2 py-1 rounded-md bg-secondary text-foreground"
@@ -242,4 +243,4 @@ const Dashboard = () => {
   );
 };
 
-export default Dashboard;
+export default ProjectsDashboard;
