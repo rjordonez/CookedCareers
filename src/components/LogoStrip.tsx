@@ -1,13 +1,26 @@
 import { useState } from "react";
+import googleLogo from "@/assets/google-logo.png";
+import metaLogo from "@/assets/meta-logo.png";
+import amazonLogo from "@/assets/amazon-logo.png";
+import nvidiaLogo from "@/assets/nvidia-logo.svg";
+import microsoftLogo from "@/assets/microsoft-logo.png";
+import netflixLogo from "@/assets/netflix-logo.png";
+import appleLogo from "@/assets/apple-logo.svg";
+import lyftLogo from "@/assets/lyft-logo.png";
+import doordashLogo from "@/assets/doordash-logo.png";
+import twosigmaLogo from "@/assets/twosigma-logo.png";
 
 const companies = [
-  { name: "Google", color: "#4285F4" },
-  { name: "Meta", color: "#0081FB" },
-  { name: "Amazon", color: "#FF9900" },
-  { name: "NVIDIA", color: "#76B900" },
-  { name: "Microsoft", color: "#00A4EF" },
-  { name: "Netflix", color: "#E50914" },
-  { name: "Apple", color: "#000000" },
+  { name: "Google", logo: googleLogo },
+  { name: "Meta", logo: metaLogo },
+  { name: "Amazon", logo: amazonLogo },
+  { name: "NVIDIA", logo: nvidiaLogo },
+  { name: "Microsoft", logo: microsoftLogo },
+  { name: "Netflix", logo: netflixLogo },
+  { name: "Apple", logo: appleLogo },
+  { name: "Lyft", logo: lyftLogo },
+  { name: "DoorDash", logo: doordashLogo },
+  { name: "Two Sigma", logo: twosigmaLogo },
 ];
 
 const LogoStrip = () => {
@@ -16,12 +29,12 @@ const LogoStrip = () => {
   return (
     <section className="py-16 px-6 border-y border-border bg-secondary/30">
       <div className="max-w-7xl mx-auto">
-        <p className="text-center text-sm text-muted-foreground mb-8 font-medium">
-          Students using CSLibrary got jobs at
+        <p className="text-center text-lg text-foreground mb-12 font-semibold">
+          Our candidates have been hired at:
         </p>
         
         {/* Desktop: Grid layout */}
-        <div className="hidden md:grid md:grid-cols-4 lg:grid-cols-7 gap-8 items-center justify-items-center">
+        <div className="hidden md:grid md:grid-cols-5 lg:grid-cols-5 gap-12 items-center justify-items-center">
           {companies.map((company, index) => (
             <div
               key={company.name}
@@ -35,64 +48,18 @@ const LogoStrip = () => {
             >
               <div
                 className={`
-                  flex items-center justify-center h-12 px-6 rounded-xl
+                  flex items-center justify-center h-16 px-6 rounded-xl
                   transition-all duration-300
                   ${hoveredIndex === index ? 'scale-110' : 'scale-100'}
                 `}
               >
-                <span
-                  className="text-2xl font-bold transition-all duration-300"
-                  style={{
-                    color: hoveredIndex === index ? company.color : undefined,
-                  }}
-                >
-                  {company.name === "Meta" && (
-                    <svg width="80" height="32" viewBox="0 0 80 32" fill="none" className="transition-colors duration-300">
-                      <path
-                        d="M15 8C12 8 10 11 10 16C10 21 12 24 15 24C18 24 20 21 20 16C20 11 18 8 15 8Z"
-                        fill="currentColor"
-                        className={hoveredIndex === index ? "" : "opacity-40"}
-                      />
-                      <text x="28" y="20" className="font-bold text-lg" fill="currentColor" opacity={hoveredIndex === index ? "1" : "0.4"}>
-                        Meta
-                      </text>
-                    </svg>
-                  )}
-                  {company.name === "Google" && (
-                    <span className={`font-bold text-xl ${hoveredIndex === index ? '' : 'opacity-40'}`}>
-                      Google
-                    </span>
-                  )}
-                  {company.name === "Amazon" && (
-                    <span className={`font-bold text-xl ${hoveredIndex === index ? '' : 'opacity-40'}`}>
-                      amazon
-                    </span>
-                  )}
-                  {company.name === "NVIDIA" && (
-                    <span className={`font-bold text-xl ${hoveredIndex === index ? '' : 'opacity-40'}`}>
-                      NVIDIA
-                    </span>
-                  )}
-                  {company.name === "Microsoft" && (
-                    <span className={`font-bold text-xl ${hoveredIndex === index ? '' : 'opacity-40'}`}>
-                      Microsoft
-                    </span>
-                  )}
-                  {company.name === "Netflix" && (
-                    <span className={`font-bold text-xl ${hoveredIndex === index ? '' : 'opacity-40'}`}>
-                      NETFLIX
-                    </span>
-                  )}
-                  {company.name === "Apple" && (
-                    <svg width="32" height="32" viewBox="0 0 32 32" fill="none" className="transition-colors duration-300">
-                      <path
-                        d="M22 10C21 10 20 11 19 11C18 11 17 10 16 10C14 10 12 11 11 13C10 15 10 18 12 21C13 22 14 23 15 23C16 23 16 22 17 22C18 22 18 23 19 23C20 23 21 22 22 21C23 19 23 18 23 17C23 14 21 13 20 13C20 12 21 11 22 10ZM18 8C18 7 19 6 20 6C20 7 20 8 19 9C18 9 18 9 18 8Z"
-                        fill="currentColor"
-                        className={hoveredIndex === index ? "" : "opacity-40"}
-                      />
-                    </svg>
-                  )}
-                </span>
+                <img 
+                  src={company.logo} 
+                  alt={`${company.name} logo`} 
+                  className={`h-10 w-auto object-contain transition-all duration-300 ${
+                    hoveredIndex === index ? 'opacity-100 grayscale-0' : 'opacity-50 grayscale'
+                  }`}
+                />
               </div>
             </div>
           ))}
@@ -100,7 +67,7 @@ const LogoStrip = () => {
 
         {/* Mobile: Horizontal scroll */}
         <div className="md:hidden overflow-x-auto scrollbar-hide -mx-6 px-6">
-          <div className="flex gap-8 pb-2" style={{ minWidth: 'max-content' }}>
+          <div className="flex gap-12 pb-2" style={{ minWidth: 'max-content' }}>
             {companies.map((company, index) => (
               <div
                 key={company.name}
@@ -110,9 +77,11 @@ const LogoStrip = () => {
                   animationDelay: `${index * 0.2}s`,
                 }}
               >
-                <span className="text-xl font-bold opacity-40" style={{ color: company.color }}>
-                  {company.name}
-                </span>
+                <img 
+                  src={company.logo} 
+                  alt={`${company.name} logo`} 
+                  className="h-8 w-auto object-contain opacity-50 grayscale"
+                />
               </div>
             ))}
           </div>
