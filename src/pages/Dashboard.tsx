@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, useRef } from "react";
 import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -7,38 +7,79 @@ import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Search, Crown, Loader2, X } from "lucide-react";
 import { useUser, UserButton } from "@clerk/clerk-react";
-import { useAppDispatch, useAppSelector } from "@/store/hooks";
-import {
-  setSearchQuery,
-  setSeniority,
-  setSchool,
-  setExperienceRange,
-  setCurrentPage,
-  resetFilters,
-  selectResumeSearchParams,
-} from "@/features/resumes/resumeSlice";
+import { useResumeFilters } from "@/hooks/useResumeFilters";
 import { useSearchResumesQuery } from "@/features/resumes/resumeService";
+import { useGetSubscriptionStatusQuery } from "@/features/subscription/subscriptionService";
 import { ResumeDetailModal } from "@/components/ResumeDetailModal";
+import { UpgradeButton } from "@/components/UpgradeButton";
+import { ProBadge } from "@/components/ProBadge";
 import type { Resume } from "@/features/resumes/resumeTypes";
 
 const FREE_PREVIEW_COUNT = 3;
 
 const Dashboard = () => {
+  console.log('🔄 Dashboard component rendered');
+
   const navigate = useNavigate();
-  const { user, isLoaded } = useUser();
-  const dispatch = useAppDispatch();
+  const { user, isLoaded, isSignedIn } = useUser();
   const [selectedResume, setSelectedResume] = useState<Resume | null>(null);
   const [localSearchQuery, setLocalSearchQuery] = useState("");
+  const [authReady, setAuthReady] = useState(false);
 
-  // Get filters from Redux state
-  const filters = useAppSelector((state) => state.resumeFilters);
-  const searchParams = useAppSelector(selectResumeSearchParams);
+  useEffect(() => {
+    console.log('🎬 Dashboard mounted');
+    return () => console.log('💀 Dashboard unmounted');
+  }, []);
+
+  // Get filters from URL search params
+  const {
+    filters,
+    apiParams,
+    setSearchQuery: updateSearchQuery,
+    setSeniority: updateSeniority,
+    setSchool: updateSchool,
+    setExperienceRange: updateExperienceRange,
+    setCurrentPage: updateCurrentPage,
+    resetFilters: clearFilters,
+    hasActiveFilters,
+  } = useResumeFilters();
+
+  console.log('📊 Render - apiParams:', apiParams);
+  console.log('📊 Render - authReady:', authReady);
+
+  // Wait for auth to be fully ready (give AuthProvider time to set token getter)
+  useEffect(() => {
+    if (isLoaded && isSignedIn) {
+      // Wait for next tick to ensure AuthProvider effect has run
+      const timer = setTimeout(() => {
+        console.log('🟢 Setting authReady to true');
+        setAuthReady(true);
+      }, 50);
+      return () => clearTimeout(timer);
+    } else {
+      console.log('🔴 Setting authReady to false');
+      setAuthReady(false);
+    }
+  }, [isLoaded, isSignedIn]);
 
   // Fetch resumes from API
-  const { data, isLoading, isError, error } = useSearchResumesQuery(searchParams);
+  const { data, isLoading, isError, error } = useSearchResumesQuery(apiParams, {
+    skip: !authReady,
+  });
 
-  // Check if user has premium (from Clerk public metadata)
-  const isPremium = user?.publicMetadata?.isPremium === true;
+  // Fetch subscription status separately (only once on mount)
+  const { data: subscriptionData } = useGetSubscriptionStatusQuery(undefined, {
+    skip: !authReady,
+    refetchOnMountOrArgChange: false,
+    refetchOnFocus: false,
+    refetchOnReconnect: false,
+  });
+  const isPro = subscriptionData?.is_pro || false;
+
+  // Sync local search with URL params on mount
+  useEffect(() => {
+    setLocalSearchQuery(filters.searchQuery);
+  }, [filters.searchQuery]);
 
   useEffect(() => {
     if (isLoaded && !user) {
@@ -46,42 +87,34 @@ const Dashboard = () => {
     }
   }, [isLoaded, user, navigate]);
 
-  // Debounce search query - only dispatch to Redux after 500ms of no typing
+  // Debounce search query - only update URL after 500ms of no typing
+  // Skip if local query matches URL (prevents resetting page on pagination)
   useEffect(() => {
+    if (localSearchQuery === filters.searchQuery) {
+      return;
+    }
+
     const timer = setTimeout(() => {
-      dispatch(setSearchQuery(localSearchQuery));
+      updateSearchQuery(localSearchQuery);
     }, 500);
 
     return () => clearTimeout(timer);
-  }, [localSearchQuery, dispatch]);
-
-  const handleUpgrade = async () => {
-    // TODO: Implement upgrade logic with Clerk metadata
-    // This would typically involve a backend call to update user metadata
-    console.log("Upgrade to premium");
-  };
+  }, [localSearchQuery, filters.searchQuery, updateSearchQuery]);
 
   const handleClearFilters = () => {
     setLocalSearchQuery("");
-    dispatch(resetFilters());
+    clearFilters();
   };
-
-  const hasActiveFilters =
-    filters.searchQuery ||
-    filters.seniority ||
-    filters.school ||
-    filters.minExperience !== undefined ||
-    filters.maxExperience !== undefined;
 
   const handleExperienceChange = (value: string) => {
     if (value === "all") {
-      dispatch(setExperienceRange({ min: undefined, max: undefined }));
+      updateExperienceRange({ min: undefined, max: undefined });
     } else if (value === "0-3") {
-      dispatch(setExperienceRange({ min: 0, max: 3 }));
+      updateExperienceRange({ min: 0, max: 3 });
     } else if (value === "4-7") {
-      dispatch(setExperienceRange({ min: 4, max: 7 }));
+      updateExperienceRange({ min: 4, max: 7 });
     } else if (value === "8+") {
-      dispatch(setExperienceRange({ min: 8, max: undefined }));
+      updateExperienceRange({ min: 8, max: undefined });
     }
   };
 
@@ -99,8 +132,8 @@ const Dashboard = () => {
   };
 
   const isBlurred = (index: number) => {
-    const globalIndex = (filters.currentPage - 1) * filters.itemsPerPage + index;
-    return !isPremium && globalIndex >= FREE_PREVIEW_COUNT;
+    const globalIndex = (filters.currentPage - 1) * 20 + index;
+    return !isPro && globalIndex >= FREE_PREVIEW_COUNT;
   };
 
   if (!isLoaded || !user) return null;
@@ -124,11 +157,10 @@ const Dashboard = () => {
             <span className="text-sm text-muted-foreground">
               {user.primaryEmailAddress?.emailAddress}
             </span>
-            {isPremium && (
-              <Badge variant="default" className="gap-1">
-                <Crown className="w-3 h-3" />
-                Premium
-              </Badge>
+            {isPro ? (
+              <ProBadge />
+            ) : (
+              <UpgradeButton variant="outline" size="sm" />
             )}
             <UserButton
               appearance={{
@@ -166,7 +198,7 @@ const Dashboard = () => {
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-            <Select value={filters.seniority || "all"} onValueChange={(value) => dispatch(setSeniority(value === "all" ? "" : value))}>
+            <Select value={filters.seniority || "all"} onValueChange={(value) => updateSeniority(value === "all" ? "" : value)}>
               <SelectTrigger>
                 <SelectValue placeholder="Seniority" />
               </SelectTrigger>
@@ -181,7 +213,7 @@ const Dashboard = () => {
               </SelectContent>
             </Select>
 
-            <Select value={filters.school || "all"} onValueChange={(value) => dispatch(setSchool(value === "all" ? "" : value))}>
+            <Select value={filters.school || "all"} onValueChange={(value) => updateSchool(value === "all" ? "" : value)}>
               <SelectTrigger>
                 <SelectValue placeholder="School" />
               </SelectTrigger>
@@ -209,19 +241,16 @@ const Dashboard = () => {
           </div>
         </div>
 
-        {!isPremium && data && (
+        {!isPro && data && (
           <Card className="mb-8 p-6 bg-primary/5 border-primary/20">
             <div className="flex items-center justify-between">
               <div>
                 <h3 className="font-semibold mb-1">Unlock Full Access</h3>
                 <p className="text-sm text-muted-foreground">
-                  You're viewing {FREE_PREVIEW_COUNT} of {data.pagination.total} resumes. Upgrade to see them all.
+                  You're viewing {FREE_PREVIEW_COUNT} of {data.pagination.total} resumes. Upgrade to see them all for just $4.99/month.
                 </p>
               </div>
-              <Button size="lg" className="gap-2" onClick={handleUpgrade}>
-                <Crown className="w-4 h-4" />
-                Upgrade to Premium
-              </Button>
+              <UpgradeButton size="lg" />
             </div>
           </Card>
         )}
@@ -373,7 +402,7 @@ const Dashboard = () => {
           <div className="flex items-center justify-center gap-2">
             <Button
               variant="outline"
-              onClick={() => dispatch(setCurrentPage(Math.max(1, filters.currentPage - 1)))}
+              onClick={() => updateCurrentPage(Math.max(1, filters.currentPage - 1))}
               disabled={filters.currentPage === 1}
             >
               Previous
@@ -383,7 +412,7 @@ const Dashboard = () => {
             </span>
             <Button
               variant="outline"
-              onClick={() => dispatch(setCurrentPage(Math.min(data.pagination.total_pages, filters.currentPage + 1)))}
+              onClick={() => updateCurrentPage(Math.min(data.pagination.total_pages, filters.currentPage + 1))}
               disabled={filters.currentPage === data.pagination.total_pages}
             >
               Next
@@ -396,8 +425,7 @@ const Dashboard = () => {
         resume={selectedResume}
         isOpen={selectedResume !== null}
         onClose={() => setSelectedResume(null)}
-        isPremium={isPremium}
-        onUpgrade={handleUpgrade}
+        isPremium={isPro}
       />
     </div>
   );

@@ -5,16 +5,16 @@ import { Separator } from "@/components/ui/separator";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Resume } from "@/features/resumes/resumeTypes";
 import { Download, Mail, Phone, MapPin, Building, GraduationCap, Briefcase, Code, Award, ExternalLink, Crown } from "lucide-react";
+import { UpgradeButton } from "./UpgradeButton";
 
 interface ResumeDetailModalProps {
   resume: Resume | null;
   isOpen: boolean;
   onClose: () => void;
   isPremium: boolean;
-  onUpgrade?: () => void;
 }
 
-export const ResumeDetailModal = ({ resume, isOpen, onClose, isPremium, onUpgrade }: ResumeDetailModalProps) => {
+export const ResumeDetailModal = ({ resume, isOpen, onClose, isPremium }: ResumeDetailModalProps) => {
   if (!resume) return null;
 
   const handleDownload = () => {
@@ -28,14 +28,11 @@ export const ResumeDetailModal = ({ resume, isOpen, onClose, isPremium, onUpgrad
       return (
         <div className="bg-primary/5 border border-primary/20 rounded-lg p-6 text-center">
           <Crown className="w-8 h-8 mx-auto mb-3 text-primary" />
-          <h4 className="font-semibold mb-2">Contact Info - Premium Only</h4>
+          <h4 className="font-semibold mb-2">Contact Info - Pro Only</h4>
           <p className="text-sm text-muted-foreground mb-4">
-            Upgrade to access email, phone, and other contact details
+            Upgrade to access email, phone, and other contact details for just $4.99/month
           </p>
-          <Button className="gap-2" onClick={onUpgrade}>
-            <Crown className="w-4 h-4" />
-            Upgrade to Premium
-          </Button>
+          <UpgradeButton />
         </div>
       );
     }
