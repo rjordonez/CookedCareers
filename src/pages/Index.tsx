@@ -5,6 +5,7 @@ import BrowseGrid from "@/components/BrowseGrid";
 import CompanyLogos from "@/components/CompanyLogos";
 import UniversityLogos from "@/components/UniversityLogos";
 import Testimonials from "@/components/Testimonials";
+import CTASection from "@/components/CTASection";
 import Footer from "@/components/Footer";
 import { useSmoothScroll } from "@/hooks/useSmoothScroll";
 
@@ -21,6 +22,7 @@ const Index = () => {
         <BrowseGrid />
         <UniversityLogos />
         <Testimonials />
+        <CTASection />
       </main>
       <Footer />
     </div>
