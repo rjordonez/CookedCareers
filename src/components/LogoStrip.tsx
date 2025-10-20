@@ -1,4 +1,3 @@
-import { useState } from "react";
 import googleLogo from "@/assets/google-logo.png";
 import metaLogo from "@/assets/meta-logo.png";
 import amazonLogo from "@/assets/amazon-logo.png";
@@ -23,88 +22,83 @@ const companies = [
   { name: "Two Sigma", logo: twosigmaLogo },
 ];
 
-const LogoStrip = () => {
-  const [hoveredIndex, setHoveredIndex] = useState<number | null>(null);
+// Split into 3 rows for the marquee effect
+const row1 = companies.slice(0, 4);
+const row2 = companies.slice(4, 7);
+const row3 = companies.slice(7, 10);
 
+const MarqueeRow = ({ companies, reverse = false }: { companies: typeof row1; reverse?: boolean }) => {
   return (
-    <section className="py-16 px-6 border-y border-border bg-secondary/30">
-      <div className="max-w-7xl mx-auto">
+    <div className="relative flex overflow-hidden">
+      <div 
+        className={`flex gap-8 animate-marquee ${reverse ? 'animate-marquee-reverse' : ''}`}
+        style={{ animationDuration: '40s' }}
+      >
+        {[...companies, ...companies, ...companies].map((company, index) => (
+          <div
+            key={`${company.name}-${index}`}
+            className="flex items-center gap-3 px-6 py-3 bg-background border border-border rounded-2xl hover:border-accent/50 hover:shadow-lg transition-all duration-300 whitespace-nowrap shrink-0"
+          >
+            <div className="w-10 h-10 rounded-xl overflow-hidden flex items-center justify-center bg-muted shrink-0">
+              <img 
+                src={company.logo} 
+                alt={`${company.name} logo`}
+                className="w-8 h-8 object-contain"
+              />
+            </div>
+            <span className="text-base font-semibold text-foreground">{company.name}</span>
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+};
+
+const LogoStrip = () => {
+  return (
+    <section className="py-16 px-6 border-y border-border bg-secondary/30 overflow-hidden">
+      <div className="max-w-full mx-auto">
         <p className="text-center text-lg text-foreground mb-12 font-semibold">
           Our candidates have been hired at:
         </p>
         
-        {/* Desktop: Grid layout */}
-        <div className="hidden md:grid md:grid-cols-5 lg:grid-cols-5 gap-12 items-center justify-items-center">
-          {companies.map((company, index) => (
-            <div
-              key={company.name}
-              onMouseEnter={() => setHoveredIndex(index)}
-              onMouseLeave={() => setHoveredIndex(null)}
-              className="group relative transition-all duration-300"
-              style={{
-                animation: `float ${3 + index * 0.5}s ease-in-out infinite`,
-                animationDelay: `${index * 0.2}s`,
-              }}
-            >
-              <div
-                className={`
-                  flex items-center justify-center h-16 px-6 rounded-xl
-                  transition-all duration-300
-                  ${hoveredIndex === index ? 'scale-110' : 'scale-100'}
-                `}
-              >
-                <img 
-                  src={company.logo} 
-                  alt={`${company.name} logo`} 
-                  className={`h-10 w-auto object-contain transition-all duration-300 ${
-                    hoveredIndex === index ? 'opacity-100 grayscale-0' : 'opacity-50 grayscale'
-                  }`}
-                />
-              </div>
-            </div>
-          ))}
-        </div>
-
-        {/* Mobile: Horizontal scroll */}
-        <div className="md:hidden overflow-x-auto scrollbar-hide -mx-6 px-6">
-          <div className="flex gap-12 pb-2" style={{ minWidth: 'max-content' }}>
-            {companies.map((company, index) => (
-              <div
-                key={company.name}
-                className="flex items-center justify-center shrink-0"
-                style={{
-                  animation: `float ${3 + index * 0.5}s ease-in-out infinite`,
-                  animationDelay: `${index * 0.2}s`,
-                }}
-              >
-                <img 
-                  src={company.logo} 
-                  alt={`${company.name} logo`} 
-                  className="h-8 w-auto object-contain opacity-50 grayscale"
-                />
-              </div>
-            ))}
-          </div>
+        <div className="flex flex-col gap-6">
+          <MarqueeRow companies={row1} />
+          <MarqueeRow companies={row2} reverse />
+          <MarqueeRow companies={row3} />
         </div>
       </div>
 
       <style>{`
-        @keyframes float {
-          0%, 100% {
-            transform: translateY(0px);
+        @keyframes marquee {
+          0% {
+            transform: translateX(0);
           }
-          50% {
-            transform: translateY(-8px);
+          100% {
+            transform: translateX(-33.333%);
           }
         }
         
-        .scrollbar-hide::-webkit-scrollbar {
-          display: none;
+        @keyframes marquee-reverse {
+          0% {
+            transform: translateX(-33.333%);
+          }
+          100% {
+            transform: translateX(0);
+          }
         }
         
-        .scrollbar-hide {
-          -ms-overflow-style: none;
-          scrollbar-width: none;
+        .animate-marquee {
+          animation: marquee 40s linear infinite;
+        }
+        
+        .animate-marquee-reverse {
+          animation: marquee-reverse 40s linear infinite;
+        }
+        
+        .animate-marquee:hover,
+        .animate-marquee-reverse:hover {
+          animation-play-state: paused;
         }
       `}</style>
     </section>
