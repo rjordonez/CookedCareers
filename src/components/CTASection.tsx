@@ -10,7 +10,7 @@ const CTASection = () => {
         </h2>
         
         <p className="text-xl text-muted-foreground mb-10">
-          Stop guessing what works — see what actually got people hired.
+          Stop guessing what works, see what actually got people hired.
         </p>
         
         <Button size="lg" className="rounded-full text-lg font-medium px-10 h-14">
