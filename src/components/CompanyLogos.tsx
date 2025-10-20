@@ -25,15 +25,26 @@ const companies = [
 const CompanyLogos = () => {
   return (
     <section className="pt-6 pb-8 px-6">
-      <div className="max-w-6xl mx-auto">
+      <div className="max-w-full mx-auto">
         <p className="text-center text-xs md:text-sm font-medium tracking-wide text-muted-foreground mb-4">
           Our candidates have been hired at
         </p>
 
-        <div className="overflow-x-auto">
-          <div className="flex items-center gap-8 md:gap-10 lg:gap-12 snap-x">
-            {companies.map((company) => (
-              <div key={company.name} className="shrink-0 snap-start">
+        <div className="relative overflow-hidden">
+          <div className="flex animate-scroll-logos">
+            {/* First set of logos */}
+            {companies.map((company, index) => (
+              <div key={`${company.name}-1-${index}`} className="flex-none mx-8">
+                <img
+                  src={company.logo}
+                  alt={`${company.name} logo`}
+                  className="h-8 md:h-10 w-auto object-contain opacity-70 grayscale hover:opacity-100 hover:grayscale-0 transition-all duration-200"
+                />
+              </div>
+            ))}
+            {/* Duplicate set for seamless loop */}
+            {companies.map((company, index) => (
+              <div key={`${company.name}-2-${index}`} className="flex-none mx-8">
                 <img
                   src={company.logo}
                   alt={`${company.name} logo`}
@@ -44,6 +55,25 @@ const CompanyLogos = () => {
           </div>
         </div>
       </div>
+
+      <style>{`
+        @keyframes scroll-logos {
+          0% {
+            transform: translateX(0);
+          }
+          100% {
+            transform: translateX(-50%);
+          }
+        }
+
+        .animate-scroll-logos {
+          animation: scroll-logos 30s linear infinite;
+        }
+
+        .animate-scroll-logos:hover {
+          animation-play-state: paused;
+        }
+      `}</style>
     </section>
   );
 };

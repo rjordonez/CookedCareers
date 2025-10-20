@@ -1,47 +1,94 @@
+import { useEffect, useRef } from "react";
 import twoSigmaScreenshot from "@/assets/testimonials/two-sigma-interview.png";
+import lyftScreenshot from "@/assets/testimonials/lyft-interview.png";
+import dexcomScreenshot from "@/assets/testimonials/dexcom-interview.png";
+import rippleScreenshot from "@/assets/testimonials/ripple-interview.png";
 
 const testimonials = [
   {
-    name: "Sarah Chen",
-    school: "Stanford University",
+    name: "Emily R.",
+    school: "University of Illinois Urbana-Champaign (Master's, International)",
     image: "https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=150&h=150&fit=crop&q=80",
-    quote: "The resume examples helped me understand what top companies actually look for. I landed interviews at Google, Meta, and Amazon.",
+    quote: "I kept getting ghosted after sending dozens of resumes. I was desperate for a strategy. Seeing real resumes that actually got interviews gave me hope. I finally got one and now just waiting for the final call!",
   },
   {
-    name: "Marcus Johnson",
-    school: "University of Washington",
+    name: "Jason L.",
+    school: "University of Texas at Austin",
     image: "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=150&h=150&fit=crop&q=80",
-    quote: "This library showed me real examples from people who got hired. As an international student, it made all the difference.",
+    quote: "I had no idea why I wasn't getting replies. I needed feedback from someone who'd been there. This platform showed me what works, and suddenly recruiters started noticing me.",
   },
   {
-    name: "Priya Patel",
-    school: "Caltech",
+    name: "Priya K.",
+    school: "University of Washington",
     image: "https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?w=150&h=150&fit=crop&q=80",
-    quote: "Seeing how others structured their technical descriptions helped me get my first offer at Tesla.",
+    quote: "Every application felt like throwing resumes into a black hole. Using examples from people who actually got interviews finally gave me a clear path and I landed an interview invite immediately.",
   },
   {
-    name: "David Kim",
-    school: "USC",
+    name: "Daniel M.",
+    school: "Georgia Tech (Master's, International)",
     image: "https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=150&h=150&fit=crop&q=80",
-    quote: "I found resumes from students at my level who still landed great internships. It gave me a realistic roadmap to follow.",
+    quote: "Months of silence made me feel stuck and hopeless. I needed a new approach. Following guidance from successful candidates, I finally started getting responses.",
   },
   {
-    name: "Emily Rodriguez",
-    school: "University of Maryland",
+    name: "Sofia T.",
+    school: "Purdue University",
     image: "https://images.unsplash.com/photo-1580489944761-15a19d654956?w=150&h=150&fit=crop&q=80",
-    quote: "We can't imagine our job search process without this. The quality, clarity and precision it provides make it just as valuable as it is intuitive.",
+    quote: "I was desperate for real feedback and examples. Seeing what actually worked helped me rewrite my resume and finally feel confident sending applications again.",
   },
 ];
 
 const successScreenshots = [
   {
+    company: "Dexcom",
+    alt: "Dexcom interview invitation",
+    image: dexcomScreenshot,
+  },
+  {
+    company: "Lyft",
+    alt: "Lyft final interview invitation",
+    image: lyftScreenshot,
+  },
+  {
     company: "Two Sigma",
     alt: "Two Sigma interview confirmation",
     image: twoSigmaScreenshot,
   },
+  {
+    company: "Ripple",
+    alt: "Ripple technical assessment invitation",
+    image: rippleScreenshot,
+  },
 ];
 
 const UniversityLogos = () => {
+  const testimonialsScrollRef = useRef<HTMLDivElement>(null);
+  const scrollIntervalRef = useRef<number | null>(null);
+
+  useEffect(() => {
+    return () => {
+      if (scrollIntervalRef.current) {
+        clearInterval(scrollIntervalRef.current);
+      }
+    };
+  }, []);
+
+  const startScrolling = (direction: 'left' | 'right') => {
+    const container = testimonialsScrollRef.current;
+    if (!container) return;
+
+    scrollIntervalRef.current = window.setInterval(() => {
+      const scrollAmount = direction === 'left' ? -3 : 3;
+      container.scrollBy({ left: scrollAmount });
+    }, 10);
+  };
+
+  const stopScrolling = () => {
+    if (scrollIntervalRef.current) {
+      clearInterval(scrollIntervalRef.current);
+      scrollIntervalRef.current = null;
+    }
+  };
+
   return (
     <section className="py-24 px-6 bg-gray-50">
       <div className="max-w-7xl mx-auto">
@@ -53,7 +100,10 @@ const UniversityLogos = () => {
 
         {/* Horizontal Scrolling Testimonials */}
         <div className="relative mb-16">
-          <div className="flex gap-6 overflow-x-auto pb-4 snap-x snap-mandatory scrollbar-hide">
+          <div
+            ref={testimonialsScrollRef}
+            className="flex gap-6 overflow-x-auto pb-4 snap-x snap-mandatory scrollbar-hide"
+          >
             {testimonials.map((testimonial, index) => (
               <div
                 key={index}
@@ -83,34 +133,20 @@ const UniversityLogos = () => {
               </div>
             ))}
           </div>
+
+          {/* Hover zones for scrolling */}
+          <div
+            className="hidden md:block absolute left-0 top-0 bottom-0 w-32 z-10 cursor-w-resize"
+            onMouseEnter={() => startScrolling('left')}
+            onMouseLeave={stopScrolling}
+          />
+          <div
+            className="hidden md:block absolute right-0 top-0 bottom-0 w-32 z-10 cursor-e-resize"
+            onMouseEnter={() => startScrolling('right')}
+            onMouseLeave={stopScrolling}
+          />
         </div>
 
-        {/* Success Screenshots */}
-        <div className="mt-16">
-          <div className="mb-8 text-center">
-            <h3 className="text-2xl md:text-3xl font-bold tracking-tight mb-3">
-              Real results from real students
-            </h3>
-            <p className="text-gray-600 max-w-2xl mx-auto">
-              See the actual interview invitations our users received after using our library
-            </p>
-          </div>
-
-          <div className="flex justify-center">
-            {successScreenshots.map((screenshot, index) => (
-              <div
-                key={index}
-                className="bg-white rounded-2xl p-6 border border-gray-200 shadow-lg hover:shadow-xl transition-shadow duration-300 max-w-4xl"
-              >
-                <img
-                  src={screenshot.image}
-                  alt={screenshot.alt}
-                  className="w-full h-auto rounded-lg"
-                />
-              </div>
-            ))}
-          </div>
-        </div>
       </div>
 
       <style>{`

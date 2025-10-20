@@ -6,7 +6,7 @@ const CTASection = () => {
   return (
     <section className="py-24 px-6 bg-background">
       <div className="max-w-4xl mx-auto text-center">
-        <h2 className="mb-6">
+        <h2 className="mb-3">
           1,000+ proven resumes that get offers
         </h2>
 
