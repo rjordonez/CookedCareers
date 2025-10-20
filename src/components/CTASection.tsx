@@ -1,5 +1,6 @@
 import { Button } from "@/components/ui/button";
 import { ArrowRight } from "lucide-react";
+import { Link } from "react-router-dom";
 
 const CTASection = () => {
   return (
@@ -13,9 +14,11 @@ const CTASection = () => {
           Stop guessing what works, see what actually got people hired.
         </p>
         
-        <Button size="lg" className="rounded-full font-medium px-10 h-14 shadow-lg hover:shadow-xl transition-shadow">
-          Join Now →
-        </Button>
+        <Link to="/auth">
+          <Button size="lg" className="rounded-full font-medium px-10 h-14 shadow-lg hover:shadow-xl transition-shadow">
+            Join Now →
+          </Button>
+        </Link>
       </div>
     </section>
   );

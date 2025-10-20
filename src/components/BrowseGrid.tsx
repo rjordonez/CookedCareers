@@ -1,6 +1,7 @@
 import ItemCard from "./ItemCard";
 import FilterTabs from "./FilterTabs";
 import { Button } from "@/components/ui/button";
+import { Link } from "react-router-dom";
 import resumeBlur1 from "@/assets/resume-blur-1.jpg";
 import resumeBlur2 from "@/assets/resume-blur-2.jpg";
 import resumeBlur3 from "@/assets/resume-blur-3.jpg";
@@ -109,9 +110,11 @@ const BrowseGrid = () => {
         </div>
 
         <div className="text-center mt-12">
-          <Button size="lg" className="rounded-full font-medium px-10 h-14 shadow-lg hover:shadow-xl transition-shadow">
-            Sign-up to view all samples
-          </Button>
+          <Link to="/auth">
+            <Button size="lg" className="rounded-full font-medium px-10 h-14 shadow-lg hover:shadow-xl transition-shadow">
+              Sign-up to view all samples
+            </Button>
+          </Link>
         </div>
       </div>
 
