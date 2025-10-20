@@ -5,8 +5,11 @@ import FilterTabs from "@/components/FilterTabs";
 import BrowseGrid from "@/components/BrowseGrid";
 import CTASection from "@/components/CTASection";
 import Footer from "@/components/Footer";
+import { useSmoothScroll } from "@/hooks/useSmoothScroll";
 
 const Index = () => {
+  useSmoothScroll();
+  
   return (
     <div className="min-h-screen">
       <Navigation />
