@@ -50,7 +50,7 @@ const UniversityLogos = () => {
         </div>
 
         <p className="text-center text-muted-foreground max-w-2xl mx-auto">
-          Whether you're studying in the US, Canada, or Asia — our library helps you level up your resume and land interviews.
+          Whether you're an international student or from a non-target school, our library helps you level up your resume to land your next interview.
         </p>
       </div>
 
