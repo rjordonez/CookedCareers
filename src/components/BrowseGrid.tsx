@@ -83,9 +83,9 @@ const items = [
 
 const BrowseGrid = () => {
   return (
-    <section className="py-20 px-6 bg-background">
+    <section className="py-24 px-6 bg-background">
       <div className="max-w-7xl mx-auto">
-        <h2 className="text-4xl md:text-5xl font-bold text-center mb-12">
+        <h2 className="text-center mb-12">
           Find job application examples
         </h2>
         
@@ -108,7 +108,7 @@ const BrowseGrid = () => {
         </div>
 
         <div className="text-center mt-12">
-          <button className="text-accent font-semibold hover:underline">
+          <button className="text-accent font-semibold hover:underline transition-all">
             View all 1,000+ examples →
           </button>
         </div>

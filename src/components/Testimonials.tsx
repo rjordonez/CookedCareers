@@ -52,9 +52,9 @@ const testimonials = [
 
 const Testimonials = () => {
   return (
-    <section className="py-24 px-6 bg-background">
+    <section className="py-24 px-6 bg-muted/50">
       <div className="max-w-7xl mx-auto">
-        <h2 className="text-4xl md:text-5xl font-bold text-center mb-16">
+        <h2 className="text-center mb-16">
           What our users are saying.
         </h2>
 
@@ -62,7 +62,7 @@ const Testimonials = () => {
           {testimonials.map((testimonial) => (
             <div
               key={testimonial.name}
-              className="flex flex-col"
+              className="flex flex-col p-6 bg-background rounded-xl hover:shadow-lg transition-all duration-300"
             >
               <div className="flex items-center gap-3 mb-4">
                 <img 

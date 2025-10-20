@@ -24,10 +24,10 @@ const companies = [
 
 const CompanyLogos = () => {
   return (
-    <section className="py-16 px-6 border-y border-border bg-secondary/30">
+    <section className="py-16 px-6 bg-secondary/50">
       <div className="max-w-7xl mx-auto">
         <div className="text-center mb-12">
-          <p className="text-lg text-foreground font-semibold mb-12">
+          <p className="text-lg text-foreground font-semibold">
             Our candidates have been hired at:
           </p>
         </div>
@@ -36,7 +36,7 @@ const CompanyLogos = () => {
           {companies.map((company) => (
             <div
               key={company.name}
-              className="group flex items-center justify-center p-6 rounded-2xl bg-background border border-border hover:border-accent/50 hover:shadow-2xl hover:scale-110 transition-all duration-300 w-full h-32"
+              className="group flex items-center justify-center p-6 rounded-xl bg-background hover:shadow-lg transition-all duration-300 w-full h-32"
             >
               <img 
                 src={company.logo} 

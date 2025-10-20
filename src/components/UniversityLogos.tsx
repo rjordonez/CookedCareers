@@ -20,13 +20,13 @@ const universities = [
 
 const UniversityLogos = () => {
   return (
-    <section className="py-24 px-6 bg-muted/30 overflow-hidden">
+    <section className="py-24 px-6 bg-muted/50 overflow-hidden">
       <div className="max-w-full mx-auto">
         <div className="text-center mb-16">
-          <h2 className="text-4xl md:text-5xl font-bold mb-6">
+          <h2 className="mb-6">
             Trusted by Students from Top Universities
           </h2>
-          <p className="text-xl text-muted-foreground max-w-3xl mx-auto">
+          <p className="text-muted-foreground max-w-3xl mx-auto">
             Join thousands of learners from universities around the world
           </p>
         </div>
@@ -37,7 +37,7 @@ const UniversityLogos = () => {
             {[...universities, ...universities, ...universities].map((university, index) => (
               <div
                 key={`${university.name}-${index}`}
-                className="flex items-center justify-center px-8 py-6 bg-background border border-border rounded-2xl hover:border-accent/50 hover:shadow-lg transition-all duration-300 shrink-0"
+                className="flex items-center justify-center px-8 py-6 bg-background rounded-xl hover:shadow-lg transition-all duration-300 shrink-0"
               >
                 <img 
                   src={university.logo} 
