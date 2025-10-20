@@ -253,7 +253,7 @@ const Dashboard = () => {
               return (
               <div key={resume.id} className="relative">
                 <Card
-                  className="group overflow-hidden border border-border hover:shadow-lg transition-all duration-300 cursor-pointer bg-card"
+                  className="group overflow-hidden border border-border hover:shadow-xl hover:scale-105 hover:-translate-y-2 transition-all duration-300 cursor-pointer bg-card"
                   onClick={() => !isResumeBlurred && setSelectedResume(resume)}
                 >
                   <div className="aspect-[3/4] bg-gradient-to-br from-white to-gray-50 overflow-hidden relative border-b">

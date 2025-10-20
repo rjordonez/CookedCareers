@@ -1,4 +1,4 @@
-import { createSlice, PayloadAction } from '@reduxjs/toolkit';
+import { createSlice, PayloadAction, createSelector } from '@reduxjs/toolkit';
 import type { ResumeSearchParams } from './resumeTypes';
 
 interface ResumeFiltersState {
@@ -78,12 +78,13 @@ export const {
 
 export default resumeSlice.reducer;
 
-// Selector to convert state to API params
-export const selectResumeSearchParams = (
-  state: { resumeFilters: ResumeFiltersState }
-): ResumeSearchParams => {
-  const filters = state.resumeFilters;
-  return {
+// Memoized selector to convert state to API params
+const selectResumeFilters = (state: { resumeFilters: ResumeFiltersState }) =>
+  state.resumeFilters;
+
+export const selectResumeSearchParams = createSelector(
+  [selectResumeFilters],
+  (filters): ResumeSearchParams => ({
     q: filters.searchQuery || undefined,
     seniority: filters.seniority || undefined,
     skills: filters.skills || undefined,
@@ -92,5 +93,5 @@ export const selectResumeSearchParams = (
     max_experience: filters.maxExperience,
     page: filters.currentPage,
     limit: filters.itemsPerPage,
-  };
-};
+  })
+);

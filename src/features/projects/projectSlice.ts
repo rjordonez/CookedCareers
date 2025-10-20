@@ -1,4 +1,4 @@
-import { createSlice, PayloadAction } from '@reduxjs/toolkit';
+import { createSlice, PayloadAction, createSelector } from '@reduxjs/toolkit';
 import type { ProjectsParams } from './projectTypes';
 
 interface ProjectPaginationState {
@@ -37,13 +37,14 @@ export const {
 
 export default projectSlice.reducer;
 
-// Selector to convert state to API params
-export const selectProjectParams = (
-  state: { projectPagination: ProjectPaginationState }
-): ProjectsParams => {
-  const pagination = state.projectPagination;
-  return {
+// Memoized selector to convert state to API params
+const selectProjectPagination = (state: { projectPagination: ProjectPaginationState }) =>
+  state.projectPagination;
+
+export const selectProjectParams = createSelector(
+  [selectProjectPagination],
+  (pagination): ProjectsParams => ({
     page: pagination.currentPage,
     limit: pagination.itemsPerPage,
-  };
-};
+  })
+);
