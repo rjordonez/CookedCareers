@@ -1,14 +1,21 @@
+import stanfordLogo from "@/assets/universities/stanford.png";
+import uscLogo from "@/assets/universities/usc.png";
+import uwLogo from "@/assets/universities/uw.png";
+import umdLogo from "@/assets/universities/umd.jpeg";
+import caltechLogo from "@/assets/universities/caltech.png";
+import purdueLogo from "@/assets/universities/purdue.png";
+import sfsuLogo from "@/assets/universities/sfsu.png";
+import sjsuLogo from "@/assets/universities/sjsu.png";
+
 const universities = [
-  { name: "Stanford University", abbr: "Stanford" },
-  { name: "MIT", abbr: "MIT" },
-  { name: "UC Berkeley", abbr: "Berkeley" },
-  { name: "Carnegie Mellon", abbr: "CMU" },
-  { name: "UCLA", abbr: "UCLA" },
-  { name: "USC", abbr: "USC" },
-  { name: "University of Waterloo", abbr: "Waterloo" },
-  { name: "Georgia Tech", abbr: "GT" },
-  { name: "UT Austin", abbr: "UT" },
-  { name: "UIUC", abbr: "UIUC" },
+  { name: "Stanford University", logo: stanfordLogo },
+  { name: "University of Southern California", logo: uscLogo },
+  { name: "University of Washington", logo: uwLogo },
+  { name: "University of Maryland", logo: umdLogo },
+  { name: "Caltech", logo: caltechLogo },
+  { name: "Purdue University", logo: purdueLogo },
+  { name: "San Francisco State University", logo: sfsuLogo },
+  { name: "San José State University", logo: sjsuLogo },
 ];
 
 const UniversityLogos = () => {
@@ -17,25 +24,24 @@ const UniversityLogos = () => {
       <div className="max-w-7xl mx-auto">
         <div className="text-center mb-16">
           <h2 className="text-4xl md:text-5xl font-bold mb-6">
-            🎓 Trusted by Students from Top Universities
+            Trusted by Students from Top Universities
           </h2>
-          <p className="text-xl text-muted-foreground max-w-3xl mx-auto mb-8">
-            Join thousands of learners from universities like:
+          <p className="text-xl text-muted-foreground max-w-3xl mx-auto">
+            Join thousands of learners from universities around the world
           </p>
         </div>
 
-        <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-6 mb-12">
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-8 items-center justify-items-center mb-12">
           {universities.map((university) => (
             <div
               key={university.name}
-              className="group flex items-center justify-center p-6 rounded-2xl bg-background border border-border hover:border-accent/50 hover:shadow-xl hover:scale-105 transition-all duration-300"
+              className="group flex items-center justify-center p-6 w-full h-24"
             >
-              <div className="text-center">
-                <div className="w-16 h-16 mx-auto mb-3 rounded-full bg-accent/10 flex items-center justify-center group-hover:bg-accent/20 transition-colors">
-                  <span className="text-2xl font-bold text-accent">{university.abbr.charAt(0)}</span>
-                </div>
-                <span className="text-sm font-semibold text-foreground">{university.abbr}</span>
-              </div>
+              <img 
+                src={university.logo} 
+                alt={`${university.name} logo`}
+                className="max-h-16 w-auto object-contain opacity-60 hover:opacity-100 transition-opacity duration-300 grayscale hover:grayscale-0"
+              />
             </div>
           ))}
         </div>
