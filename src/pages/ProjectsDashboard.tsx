@@ -5,18 +5,21 @@ import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Crown, Code, Loader2, ExternalLink } from "lucide-react";
 import { useUser, UserButton } from "@clerk/clerk-react";
+import { useAuthReady } from "@/components/AuthProvider";
 import { useAppDispatch, useAppSelector } from "@/store/hooks";
 import {
   setCurrentPage,
   selectProjectParams,
 } from "@/features/projects/projectSlice";
 import { useGetProjectsQuery } from "@/features/projects/projectService";
+import { useGetSubscriptionStatusQuery } from "@/features/subscription/subscriptionService";
 
 const FREE_PREVIEW_COUNT = 3;
 
 const ProjectsDashboard = () => {
   const navigate = useNavigate();
-  const { user, isLoaded } = useUser();
+  const { user, isLoaded, isSignedIn } = useUser();
+  const { authReady } = useAuthReady();
   const dispatch = useAppDispatch();
 
   // Get pagination from Redux state
@@ -24,10 +27,16 @@ const ProjectsDashboard = () => {
   const projectParams = useAppSelector(selectProjectParams);
 
   // Fetch projects from API
-  const { data, isLoading, isError, error } = useGetProjectsQuery(projectParams);
+  const { data, isLoading, isError, error } = useGetProjectsQuery(projectParams, {
+    skip: !authReady || !isSignedIn,
+    refetchOnMountOrArgChange: 60, // Only refetch if data is older than 60s
+  });
 
-  // Check if user has premium (from Clerk public metadata)
-  const isPremium = user?.publicMetadata?.isPremium === true;
+  // Fetch subscription status (shared across app via RTK Query cache)
+  const { data: subscriptionData } = useGetSubscriptionStatusQuery(undefined, {
+    skip: !authReady || !isSignedIn,
+  });
+  const isPremium = subscriptionData?.is_pro || false;
 
   useEffect(() => {
     if (isLoaded && !user) {
@@ -72,7 +81,7 @@ const ProjectsDashboard = () => {
             {isPremium && (
               <Badge variant="default" className="gap-1">
                 <Crown className="w-3 h-3" />
-                Premium
+                Pro
               </Badge>
             )}
             <UserButton
@@ -93,12 +102,12 @@ const ProjectsDashboard = () => {
               <div>
                 <h3 className="font-semibold mb-1">Unlock Full Access</h3>
                 <p className="text-sm text-muted-foreground">
-                  You're viewing {FREE_PREVIEW_COUNT} of {data.pagination.total} projects. Upgrade to see them all.
+                  You're viewing {FREE_PREVIEW_COUNT} of {data.pagination.total} projects. Upgrade to see them all for just $4.99/month.
                 </p>
               </div>
               <Button size="lg" className="gap-2" onClick={handleUpgrade}>
                 <Crown className="w-4 h-4" />
-                Upgrade to Premium
+                Upgrade to Pro
               </Button>
             </div>
           </Card>
@@ -178,7 +187,7 @@ const ProjectsDashboard = () => {
                       <div className="absolute inset-0 bg-background/80 backdrop-blur-sm flex items-center justify-center">
                         <div className="text-center p-4">
                           <Crown className="w-8 h-8 mx-auto mb-2 text-primary" />
-                          <p className="text-sm font-semibold mb-1">Premium Only</p>
+                          <p className="text-sm font-semibold mb-1">Pro Only</p>
                           <p className="text-xs text-muted-foreground">Upgrade to view</p>
                         </div>
                       </div>
