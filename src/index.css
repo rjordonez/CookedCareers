@@ -9,9 +9,9 @@ All colors MUST be HSL.
 @layer base {
   :root {
     /* Brand colors */
-    --brand-primary: 350 100% 61%;
-    --brand-primary-90: 350 100% 51%;
-    --brand-primary-20: 350 100% 96%;
+    --brand-primary: 0 0% 0%;
+    --brand-primary-90: 0 0% 10%;
+    --brand-primary-20: 0 0% 95%;
     
     /* Text hierarchy */
     --text-high: 0 0% 10%;
@@ -28,7 +28,7 @@ All colors MUST be HSL.
     --popover: 0 0% 100%;
     --popover-foreground: 0 0% 10%;
 
-    --primary: 350 100% 61%;
+    --primary: 0 0% 0%;
     --primary-foreground: 0 0% 100%;
 
     --secondary: 0 0% 97%;
@@ -37,15 +37,15 @@ All colors MUST be HSL.
     --muted: 0 0% 95%;
     --muted-foreground: 0 0% 50%;
 
-    --accent: 350 100% 96%;
-    --accent-foreground: 350 100% 61%;
+    --accent: 0 0% 95%;
+    --accent-foreground: 0 0% 0%;
 
     --destructive: 0 84.2% 60.2%;
     --destructive-foreground: 0 0% 100%;
 
     --border: 0 0% 92%;
     --input: 0 0% 92%;
-    --ring: 350 100% 61%;
+    --ring: 0 0% 0%;
 
     --radius: 0.5rem;
 
@@ -61,9 +61,9 @@ All colors MUST be HSL.
 
   .dark {
     /* Brand colors - same in dark mode */
-    --brand-primary: 350 100% 61%;
-    --brand-primary-90: 350 100% 51%;
-    --brand-primary-20: 350 100% 15%;
+    --brand-primary: 0 0% 100%;
+    --brand-primary-90: 0 0% 90%;
+    --brand-primary-20: 0 0% 20%;
     
     /* Text hierarchy - dark mode */
     --text-high: 0 0% 95%;
@@ -79,8 +79,8 @@ All colors MUST be HSL.
     --popover: 0 0% 10%;
     --popover-foreground: 0 0% 95%;
 
-    --primary: 350 100% 61%;
-    --primary-foreground: 0 0% 100%;
+    --primary: 0 0% 100%;
+    --primary-foreground: 0 0% 0%;
 
     --secondary: 0 0% 15%;
     --secondary-foreground: 0 0% 95%;
@@ -88,15 +88,15 @@ All colors MUST be HSL.
     --muted: 0 0% 15%;
     --muted-foreground: 0 0% 60%;
 
-    --accent: 350 100% 15%;
-    --accent-foreground: 350 100% 61%;
+    --accent: 0 0% 20%;
+    --accent-foreground: 0 0% 100%;
 
     --destructive: 0 62.8% 30.6%;
     --destructive-foreground: 0 0% 95%;
 
     --border: 0 0% 20%;
     --input: 0 0% 20%;
-    --ring: 350 100% 61%;
+    --ring: 0 0% 100%;
     
     --sidebar-background: 240 5.9% 10%;
     --sidebar-foreground: 240 4.8% 95.9%;
