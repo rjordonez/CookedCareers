@@ -8,6 +8,17 @@ All colors MUST be HSL.
 
 @layer base {
   :root {
+    /* Brand colors */
+    --brand-primary: 350 100% 61%;
+    --brand-primary-90: 350 100% 51%;
+    --brand-primary-20: 350 100% 96%;
+    
+    /* Text hierarchy */
+    --text-high: 0 0% 10%;
+    --text-medium: 0 0% 30%;
+    --text-muted: 0 0% 50%;
+    
+    /* Core colors */
     --background: 0 0% 100%;
     --foreground: 0 0% 10%;
 
@@ -17,8 +28,8 @@ All colors MUST be HSL.
     --popover: 0 0% 100%;
     --popover-foreground: 0 0% 10%;
 
-    --primary: 0 0% 10%;
-    --primary-foreground: 0 0% 98%;
+    --primary: 350 100% 61%;
+    --primary-foreground: 0 0% 100%;
 
     --secondary: 0 0% 97%;
     --secondary-foreground: 0 0% 10%;
@@ -26,17 +37,17 @@ All colors MUST be HSL.
     --muted: 0 0% 95%;
     --muted-foreground: 0 0% 50%;
 
-    --accent: 142 76% 65%;
-    --accent-foreground: 0 0% 10%;
+    --accent: 350 100% 96%;
+    --accent-foreground: 350 100% 61%;
 
     --destructive: 0 84.2% 60.2%;
     --destructive-foreground: 0 0% 100%;
 
     --border: 0 0% 92%;
     --input: 0 0% 92%;
-    --ring: 142 76% 65%;
+    --ring: 350 100% 61%;
 
-    --radius: 1rem;
+    --radius: 0.5rem;
 
     --sidebar-background: 0 0% 98%;
     --sidebar-foreground: 240 5.3% 26.1%;
@@ -49,6 +60,16 @@ All colors MUST be HSL.
   }
 
   .dark {
+    /* Brand colors - same in dark mode */
+    --brand-primary: 350 100% 61%;
+    --brand-primary-90: 350 100% 51%;
+    --brand-primary-20: 350 100% 15%;
+    
+    /* Text hierarchy - dark mode */
+    --text-high: 0 0% 95%;
+    --text-medium: 0 0% 75%;
+    --text-muted: 0 0% 60%;
+    
     --background: 0 0% 7%;
     --foreground: 0 0% 95%;
 
@@ -58,8 +79,8 @@ All colors MUST be HSL.
     --popover: 0 0% 10%;
     --popover-foreground: 0 0% 95%;
 
-    --primary: 0 0% 95%;
-    --primary-foreground: 0 0% 10%;
+    --primary: 350 100% 61%;
+    --primary-foreground: 0 0% 100%;
 
     --secondary: 0 0% 15%;
     --secondary-foreground: 0 0% 95%;
@@ -67,15 +88,15 @@ All colors MUST be HSL.
     --muted: 0 0% 15%;
     --muted-foreground: 0 0% 60%;
 
-    --accent: 142 76% 65%;
-    --accent-foreground: 0 0% 10%;
+    --accent: 350 100% 15%;
+    --accent-foreground: 350 100% 61%;
 
     --destructive: 0 62.8% 30.6%;
     --destructive-foreground: 0 0% 95%;
 
     --border: 0 0% 20%;
     --input: 0 0% 20%;
-    --ring: 142 76% 65%;
+    --ring: 350 100% 61%;
     
     --sidebar-background: 240 5.9% 10%;
     --sidebar-foreground: 240 4.8% 95.9%;
@@ -103,22 +124,42 @@ All colors MUST be HSL.
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
     font-size: 16px;
+    font-weight: 400;
     line-height: 1.6;
+    color: hsl(var(--text-medium));
   }
 
   h1 {
-    @apply text-5xl md:text-6xl lg:text-7xl font-bold tracking-tight leading-tight;
+    @apply font-semibold tracking-tight leading-tight;
+    font-size: clamp(40px, 5vw, 56px);
+    font-weight: 700;
+    color: hsl(var(--text-high));
   }
 
   h2 {
-    @apply text-3xl md:text-4xl lg:text-5xl font-bold tracking-tight;
+    @apply font-semibold tracking-tight;
+    font-size: clamp(28px, 3.5vw, 36px);
+    font-weight: 600;
+    color: hsl(var(--text-high));
   }
 
   h3 {
-    @apply text-xl md:text-2xl font-semibold;
+    @apply font-semibold;
+    font-size: clamp(20px, 2.5vw, 24px);
+    font-weight: 600;
+    color: hsl(var(--text-high));
   }
 
   p {
-    @apply text-base md:text-lg leading-relaxed;
+    @apply leading-relaxed;
+    font-size: 16px;
+    font-weight: 400;
+    color: hsl(var(--text-medium));
+  }
+  
+  /* Spacing rhythm */
+  section {
+    padding-top: clamp(48px, 8vw, 80px);
+    padding-bottom: clamp(48px, 8vw, 80px);
   }
 }
