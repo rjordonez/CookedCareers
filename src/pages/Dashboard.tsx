@@ -1,4 +1,4 @@
-import { useEffect, useState, useRef } from "react";
+import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -7,6 +7,7 @@ import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Search, Crown, Loader2, X } from "lucide-react";
 import { useUser, UserButton } from "@clerk/clerk-react";
+import { useAuthReady } from "@/components/AuthProvider";
 import { useResumeFilters } from "@/hooks/useResumeFilters";
 import { useSearchResumesQuery } from "@/features/resumes/resumeService";
 import { useGetSubscriptionStatusQuery } from "@/features/subscription/subscriptionService";
@@ -18,18 +19,11 @@ import type { Resume } from "@/features/resumes/resumeTypes";
 const FREE_PREVIEW_COUNT = 3;
 
 const Dashboard = () => {
-  console.log('🔄 Dashboard component rendered');
-
   const navigate = useNavigate();
   const { user, isLoaded, isSignedIn } = useUser();
+  const { authReady } = useAuthReady();
   const [selectedResume, setSelectedResume] = useState<Resume | null>(null);
   const [localSearchQuery, setLocalSearchQuery] = useState("");
-  const [authReady, setAuthReady] = useState(false);
-
-  useEffect(() => {
-    console.log('🎬 Dashboard mounted');
-    return () => console.log('💀 Dashboard unmounted');
-  }, []);
 
   // Get filters from URL search params
   const {
@@ -44,32 +38,14 @@ const Dashboard = () => {
     hasActiveFilters,
   } = useResumeFilters();
 
-  console.log('📊 Render - apiParams:', apiParams);
-  console.log('📊 Render - authReady:', authReady);
-
-  // Wait for auth to be fully ready (give AuthProvider time to set token getter)
-  useEffect(() => {
-    if (isLoaded && isSignedIn) {
-      // Wait for next tick to ensure AuthProvider effect has run
-      const timer = setTimeout(() => {
-        console.log('🟢 Setting authReady to true');
-        setAuthReady(true);
-      }, 50);
-      return () => clearTimeout(timer);
-    } else {
-      console.log('🔴 Setting authReady to false');
-      setAuthReady(false);
-    }
-  }, [isLoaded, isSignedIn]);
-
-  // Fetch resumes from API
+  // Fetch resumes from API - skip until auth token getter is ready
   const { data, isLoading, isError, error } = useSearchResumesQuery(apiParams, {
-    skip: !authReady,
+    skip: !authReady || !isSignedIn,
   });
 
   // Fetch subscription status separately (only once on mount)
   const { data: subscriptionData } = useGetSubscriptionStatusQuery(undefined, {
-    skip: !authReady,
+    skip: !authReady || !isSignedIn,
     refetchOnMountOrArgChange: false,
     refetchOnFocus: false,
     refetchOnReconnect: false,

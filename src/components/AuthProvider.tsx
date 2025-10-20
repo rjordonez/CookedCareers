@@ -1,29 +1,32 @@
-import { useEffect } from 'react';
+import { useEffect, useState, createContext, useContext } from 'react';
 import { useAuth } from '@clerk/clerk-react';
 import { setAuthTokenGetter } from '@/lib/api';
 
+interface AuthContextType {
+  authReady: boolean;
+}
+
+const AuthContext = createContext<AuthContextType>({ authReady: false });
+
+export const useAuthReady = () => useContext(AuthContext);
+
 export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
   const { getToken, isSignedIn, isLoaded } = useAuth();
+  const [authReady, setAuthReady] = useState(false);
 
   useEffect(() => {
     if (!isLoaded) {
-      console.log('Clerk not loaded yet...');
       return;
     }
 
-    console.log('AuthProvider: Setting up token getter, isSignedIn:', isSignedIn);
-
-    // Create a fresh token getter that ALWAYS calls getToken
+    // Create a token getter that wraps Clerk's getToken
     const tokenGetter = async () => {
       try {
         if (!isSignedIn) {
-          console.warn('User not signed in, cannot get token');
           return null;
         }
 
-        console.log('Getting fresh token from Clerk...');
         const token = await getToken();
-        console.log('Token retrieved:', token ? 'SUCCESS' : 'FAILED');
         return token;
       } catch (error) {
         console.error('Error getting Clerk token:', error);
@@ -31,10 +34,16 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
       }
     };
 
-    // Re-set the getter whenever auth state changes
+    // Set the getter once when auth is loaded
     setAuthTokenGetter(tokenGetter);
-    console.log('Token getter registered');
+
+    // Signal that auth is ready
+    setAuthReady(true);
   }, [getToken, isSignedIn, isLoaded]);
 
-  return <>{children}</>;
+  return (
+    <AuthContext.Provider value={{ authReady }}>
+      {children}
+    </AuthContext.Provider>
+  );
 };
