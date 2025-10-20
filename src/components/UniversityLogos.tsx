@@ -20,8 +20,8 @@ const universities = [
 
 const UniversityLogos = () => {
   return (
-    <section className="py-24 px-6 bg-muted/30">
-      <div className="max-w-7xl mx-auto">
+    <section className="py-24 px-6 bg-muted/30 overflow-hidden">
+      <div className="max-w-full mx-auto">
         <div className="text-center mb-16">
           <h2 className="text-4xl md:text-5xl font-bold mb-6">
             Trusted by Students from Top Universities
@@ -31,25 +31,47 @@ const UniversityLogos = () => {
           </p>
         </div>
 
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-8 items-center justify-items-center mb-12">
-          {universities.map((university) => (
-            <div
-              key={university.name}
-              className="group flex items-center justify-center p-6 w-full h-24"
-            >
-              <img 
-                src={university.logo} 
-                alt={`${university.name} logo`}
-                className="max-h-16 w-auto object-contain opacity-60 hover:opacity-100 transition-opacity duration-300 grayscale hover:grayscale-0"
-              />
-            </div>
-          ))}
+        {/* Horizontal scrolling marquee */}
+        <div className="relative flex overflow-hidden mb-12">
+          <div className="flex gap-12 animate-marquee" style={{ animationDuration: '30s' }}>
+            {[...universities, ...universities, ...universities].map((university, index) => (
+              <div
+                key={`${university.name}-${index}`}
+                className="flex items-center justify-center px-8 py-6 bg-background border border-border rounded-2xl hover:border-accent/50 hover:shadow-lg transition-all duration-300 shrink-0"
+              >
+                <img 
+                  src={university.logo} 
+                  alt={`${university.name} logo`}
+                  className="h-14 w-auto object-contain opacity-60 hover:opacity-100 transition-opacity grayscale hover:grayscale-0"
+                />
+              </div>
+            ))}
+          </div>
         </div>
 
         <p className="text-center text-muted-foreground max-w-2xl mx-auto">
           Whether you're studying in the US, Canada, or Asia — our library helps you level up your resume and land interviews.
         </p>
       </div>
+
+      <style>{`
+        @keyframes marquee {
+          0% {
+            transform: translateX(0);
+          }
+          100% {
+            transform: translateX(-33.333%);
+          }
+        }
+        
+        .animate-marquee {
+          animation: marquee 30s linear infinite;
+        }
+        
+        .animate-marquee:hover {
+          animation-play-state: paused;
+        }
+      `}</style>
     </section>
   );
 };
