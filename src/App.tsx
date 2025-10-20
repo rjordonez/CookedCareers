@@ -21,7 +21,7 @@ const App = () => (
         <PageTransition>
           <Routes>
             <Route path="/" element={<Index />} />
-            <Route path="/auth" element={<Auth />} />
+            <Route path="/auth/*" element={<Auth />} />
             <Route path="/dashboard" element={<Dashboard />} />
             <Route path="/projects" element={<ProjectsDashboard />} />
             {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}

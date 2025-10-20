@@ -5,8 +5,8 @@ import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { mockAuth } from "@/lib/mockAuth";
-import { Search, LogOut, Crown, Loader2, X } from "lucide-react";
+import { Search, Crown, Loader2, X } from "lucide-react";
+import { useUser, UserButton } from "@clerk/clerk-react";
 import { useAppDispatch, useAppSelector } from "@/store/hooks";
 import {
   setSearchQuery,
@@ -25,7 +25,7 @@ const FREE_PREVIEW_COUNT = 3;
 
 const Dashboard = () => {
   const navigate = useNavigate();
-  const [user, setUser] = useState(mockAuth.getSession());
+  const { user, isLoaded } = useUser();
   const dispatch = useAppDispatch();
   const [selectedResume, setSelectedResume] = useState<Resume | null>(null);
   const [localSearchQuery, setLocalSearchQuery] = useState("");
@@ -37,11 +37,14 @@ const Dashboard = () => {
   // Fetch resumes from API
   const { data, isLoading, isError, error } = useSearchResumesQuery(searchParams);
 
+  // Check if user has premium (from Clerk public metadata)
+  const isPremium = user?.publicMetadata?.isPremium === true;
+
   useEffect(() => {
-    if (!user) {
+    if (isLoaded && !user) {
       navigate("/auth");
     }
-  }, [user, navigate]);
+  }, [isLoaded, user, navigate]);
 
   // Debounce search query - only dispatch to Redux after 500ms of no typing
   useEffect(() => {
@@ -52,16 +55,10 @@ const Dashboard = () => {
     return () => clearTimeout(timer);
   }, [localSearchQuery, dispatch]);
 
-  const handleLogout = () => {
-    mockAuth.signOut();
-    navigate("/");
-  };
-
-  const handleUpgrade = () => {
-    const result = mockAuth.upgradeToPremium();
-    if (result.success) {
-      setUser(mockAuth.getSession());
-    }
+  const handleUpgrade = async () => {
+    // TODO: Implement upgrade logic with Clerk metadata
+    // This would typically involve a backend call to update user metadata
+    console.log("Upgrade to premium");
   };
 
   const handleClearFilters = () => {
@@ -103,10 +100,10 @@ const Dashboard = () => {
 
   const isBlurred = (index: number) => {
     const globalIndex = (filters.currentPage - 1) * filters.itemsPerPage + index;
-    return !user?.isPremium && globalIndex >= FREE_PREVIEW_COUNT;
+    return !isPremium && globalIndex >= FREE_PREVIEW_COUNT;
   };
 
-  if (!user) return null;
+  if (!isLoaded || !user) return null;
 
   return (
     <div className="min-h-screen bg-background">
@@ -124,17 +121,22 @@ const Dashboard = () => {
             </nav>
           </div>
           <div className="flex items-center gap-4">
-            <span className="text-sm text-muted-foreground">{user.email}</span>
-            {user.isPremium && (
+            <span className="text-sm text-muted-foreground">
+              {user.primaryEmailAddress?.emailAddress}
+            </span>
+            {isPremium && (
               <Badge variant="default" className="gap-1">
                 <Crown className="w-3 h-3" />
                 Premium
               </Badge>
             )}
-            <Button variant="outline" size="sm" onClick={handleLogout}>
-              <LogOut className="w-4 h-4 mr-2" />
-              Logout
-            </Button>
+            <UserButton
+              appearance={{
+                elements: {
+                  avatarBox: "w-9 h-9"
+                }
+              }}
+            />
           </div>
         </div>
       </header>
@@ -207,7 +209,7 @@ const Dashboard = () => {
           </div>
         </div>
 
-        {!user?.isPremium && data && (
+        {!isPremium && data && (
           <Card className="mb-8 p-6 bg-primary/5 border-primary/20">
             <div className="flex items-center justify-between">
               <div>
@@ -394,7 +396,7 @@ const Dashboard = () => {
         resume={selectedResume}
         isOpen={selectedResume !== null}
         onClose={() => setSelectedResume(null)}
-        isPremium={user?.isPremium || false}
+        isPremium={isPremium}
         onUpgrade={handleUpgrade}
       />
     </div>

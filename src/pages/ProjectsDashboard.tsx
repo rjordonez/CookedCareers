@@ -1,10 +1,10 @@
-import { useState, useEffect } from "react";
+import { useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { mockAuth } from "@/lib/mockAuth";
-import { LogOut, Crown, Code, Loader2, ExternalLink } from "lucide-react";
+import { Crown, Code, Loader2, ExternalLink } from "lucide-react";
+import { useUser, UserButton } from "@clerk/clerk-react";
 import { useAppDispatch, useAppSelector } from "@/store/hooks";
 import {
   setCurrentPage,
@@ -16,7 +16,7 @@ const FREE_PREVIEW_COUNT = 3;
 
 const ProjectsDashboard = () => {
   const navigate = useNavigate();
-  const [user, setUser] = useState(mockAuth.getSession());
+  const { user, isLoaded } = useUser();
   const dispatch = useAppDispatch();
 
   // Get pagination from Redux state
@@ -26,30 +26,26 @@ const ProjectsDashboard = () => {
   // Fetch projects from API
   const { data, isLoading, isError, error } = useGetProjectsQuery(projectParams);
 
+  // Check if user has premium (from Clerk public metadata)
+  const isPremium = user?.publicMetadata?.isPremium === true;
+
   useEffect(() => {
-    if (!user) {
+    if (isLoaded && !user) {
       navigate("/auth");
     }
-  }, [user, navigate]);
+  }, [isLoaded, user, navigate]);
 
-  const handleLogout = () => {
-    mockAuth.signOut();
-    navigate("/");
-  };
-
-  const handleUpgrade = () => {
-    const result = mockAuth.upgradeToPremium();
-    if (result.success) {
-      setUser(mockAuth.getSession());
-    }
+  const handleUpgrade = async () => {
+    // TODO: Implement upgrade logic with Clerk metadata
+    console.log("Upgrade to premium");
   };
 
   const isBlurred = (index: number) => {
     const globalIndex = (pagination.currentPage - 1) * pagination.itemsPerPage + index;
-    return !user?.isPremium && globalIndex >= FREE_PREVIEW_COUNT;
+    return !isPremium && globalIndex >= FREE_PREVIEW_COUNT;
   };
 
-  if (!user) return null;
+  if (!isLoaded || !user) return null;
 
   return (
     <div className="min-h-screen bg-background">
@@ -70,23 +66,28 @@ const ProjectsDashboard = () => {
             </nav>
           </div>
           <div className="flex items-center gap-4">
-            <span className="text-sm text-muted-foreground">{user.email}</span>
-            {user.isPremium && (
+            <span className="text-sm text-muted-foreground">
+              {user.primaryEmailAddress?.emailAddress}
+            </span>
+            {isPremium && (
               <Badge variant="default" className="gap-1">
                 <Crown className="w-3 h-3" />
                 Premium
               </Badge>
             )}
-            <Button variant="outline" size="sm" onClick={handleLogout}>
-              <LogOut className="w-4 h-4 mr-2" />
-              Logout
-            </Button>
+            <UserButton
+              appearance={{
+                elements: {
+                  avatarBox: "w-9 h-9"
+                }
+              }}
+            />
           </div>
         </div>
       </header>
 
       <main className="max-w-7xl mx-auto px-6 pt-4 pb-6">
-        {!user?.isPremium && data && (
+        {!isPremium && data && (
           <Card className="mb-8 p-6 bg-primary/5 border-primary/20">
             <div className="flex items-center justify-between">
               <div>
