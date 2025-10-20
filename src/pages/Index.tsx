@@ -1,5 +1,6 @@
 import Navigation from "@/components/Navigation";
 import Hero from "@/components/Hero";
+import LogoStrip from "@/components/LogoStrip";
 import FilterTabs from "@/components/FilterTabs";
 import BrowseGrid from "@/components/BrowseGrid";
 import CTASection from "@/components/CTASection";
@@ -11,6 +12,7 @@ const Index = () => {
       <Navigation />
       <main>
         <Hero />
+        <LogoStrip />
         <div className="max-w-7xl mx-auto px-6">
           <FilterTabs />
         </div>
