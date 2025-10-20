@@ -24,15 +24,11 @@ const companies = [
 
 const CompanyLogos = () => {
   return (
-    <section className="py-24 px-6 bg-secondary/20">
+    <section className="py-16 px-6 border-y border-border bg-secondary/30">
       <div className="max-w-7xl mx-auto">
-        <div className="text-center mb-16">
-          <h2 className="text-4xl md:text-5xl font-bold mb-6">
-            🚀 Where Our Candidates Land
-          </h2>
-          <p className="text-xl text-muted-foreground max-w-3xl mx-auto">
-            Our learners now work at the world's leading tech companies.<br />
-            They started just like you — now they're building products billions use.
+        <div className="text-center mb-12">
+          <p className="text-lg text-foreground font-semibold mb-12">
+            Our candidates have been hired at:
           </p>
         </div>
 

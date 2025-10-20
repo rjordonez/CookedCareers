@@ -1,6 +1,5 @@
 import Navigation from "@/components/Navigation";
 import Hero from "@/components/Hero";
-import LogoStrip from "@/components/LogoStrip";
 import ProblemTransformation from "@/components/ProblemTransformation";
 import FilterTabs from "@/components/FilterTabs";
 import BrowseGrid from "@/components/BrowseGrid";
@@ -19,13 +18,12 @@ const Index = () => {
       <Navigation />
       <main>
         <Hero />
-        <LogoStrip />
+        <CompanyLogos />
         <ProblemTransformation />
         <div className="max-w-7xl mx-auto px-6">
           <FilterTabs />
         </div>
         <BrowseGrid />
-        <CompanyLogos />
         <UniversityLogos />
         <Testimonials />
         <CTASection />
