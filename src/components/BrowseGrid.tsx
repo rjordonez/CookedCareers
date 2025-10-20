@@ -1,4 +1,8 @@
 import ItemCard from "./ItemCard";
+import resumeBlur1 from "@/assets/resume-blur-1.jpg";
+import resumeBlur2 from "@/assets/resume-blur-2.jpg";
+import resumeBlur3 from "@/assets/resume-blur-3.jpg";
+import resumeBlur4 from "@/assets/resume-blur-4.jpg";
 
 // Sample data - in a real app, this would come from an API
 const items = [
@@ -8,7 +12,7 @@ const items = [
     company: "Google",
     type: "resume" as const,
     tags: ["Python", "React", "AWS"],
-    imageUrl: "https://images.unsplash.com/photo-1586281380349-632531db7ed4?w=400&h=600&fit=crop",
+    imageUrl: resumeBlur1,
   },
   {
     id: 2,
@@ -16,7 +20,7 @@ const items = [
     company: "Meta",
     type: "project" as const,
     tags: ["Node.js", "MongoDB", "Docker"],
-    imageUrl: "https://images.unsplash.com/photo-1587620962725-abab7fe55159?w=400&h=600&fit=crop",
+    imageUrl: resumeBlur2,
   },
   {
     id: 3,
@@ -24,7 +28,7 @@ const items = [
     company: "OpenAI",
     type: "resume" as const,
     tags: ["Python", "TensorFlow", "PyTorch"],
-    imageUrl: "https://images.unsplash.com/photo-1555949963-aa79dcee981c?w=400&h=600&fit=crop",
+    imageUrl: resumeBlur3,
   },
   {
     id: 4,
@@ -32,7 +36,7 @@ const items = [
     company: "Shopify",
     type: "project" as const,
     tags: ["React", "TypeScript", "Stripe"],
-    imageUrl: "https://images.unsplash.com/photo-1460925895917-afdab827c52f?w=400&h=600&fit=crop",
+    imageUrl: resumeBlur4,
   },
   {
     id: 5,
@@ -40,7 +44,7 @@ const items = [
     company: "Netflix",
     type: "resume" as const,
     tags: ["Java", "Spring", "Kafka"],
-    imageUrl: "https://images.unsplash.com/photo-1484480974693-6ca0a78fb36b?w=400&h=600&fit=crop",
+    imageUrl: resumeBlur1,
   },
   {
     id: 6,
@@ -48,7 +52,7 @@ const items = [
     company: "Apple",
     type: "project" as const,
     tags: ["Swift", "iOS", "Firebase"],
-    imageUrl: "https://images.unsplash.com/photo-1551650975-87deedd944c3?w=400&h=600&fit=crop",
+    imageUrl: resumeBlur2,
   },
   {
     id: 7,
@@ -56,7 +60,7 @@ const items = [
     company: "Amazon",
     type: "resume" as const,
     tags: ["Python", "SQL", "Tableau"],
-    imageUrl: "https://images.unsplash.com/photo-1504868584819-f8e8b4b6d7e3?w=400&h=600&fit=crop",
+    imageUrl: resumeBlur3,
   },
   {
     id: 8,
@@ -64,7 +68,7 @@ const items = [
     company: "Coinbase",
     type: "project" as const,
     tags: ["Solidity", "Web3.js", "Ethereum"],
-    imageUrl: "https://images.unsplash.com/photo-1639762681485-074b7f938ba0?w=400&h=600&fit=crop",
+    imageUrl: resumeBlur4,
   },
   {
     id: 9,
@@ -72,7 +76,7 @@ const items = [
     company: "Microsoft",
     type: "resume" as const,
     tags: ["Kubernetes", "CI/CD", "Azure"],
-    imageUrl: "https://images.unsplash.com/photo-1618401471353-b98afee0b2eb?w=400&h=600&fit=crop",
+    imageUrl: resumeBlur1,
   },
 ];
 

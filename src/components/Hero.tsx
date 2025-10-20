@@ -22,7 +22,9 @@ const Hero = () => {
           <Button size="lg" className="rounded-full text-base font-medium px-8 h-12">
             Join for free
           </Button>
-          
+          <Button size="lg" variant="outline" className="rounded-full text-base font-medium px-8 h-12">
+            Book a consultation call
+          </Button>
         </div>
       </div>
     </section>;
