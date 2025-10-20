@@ -43,9 +43,32 @@ export const mockAuth = {
   signOut: () => {
     localStorage.removeItem(MOCK_SESSION_KEY);
   },
-  
+
   getSession: (): User | null => {
     const session = localStorage.getItem(MOCK_SESSION_KEY);
     return session ? JSON.parse(session) : null;
+  },
+
+  upgradeToPremium: (): { success: boolean; error?: string } => {
+    const session = localStorage.getItem(MOCK_SESSION_KEY);
+    if (!session) {
+      return { success: false, error: 'No user logged in' };
+    }
+
+    const user: User = JSON.parse(session);
+    user.isPremium = true;
+
+    // Update session
+    localStorage.setItem(MOCK_SESSION_KEY, JSON.stringify(user));
+
+    // Update in users array
+    const users = JSON.parse(localStorage.getItem(MOCK_USERS_KEY) || '[]');
+    const userIndex = users.findIndex((u: User) => u.id === user.id);
+    if (userIndex !== -1) {
+      users[userIndex].isPremium = true;
+      localStorage.setItem(MOCK_USERS_KEY, JSON.stringify(users));
+    }
+
+    return { success: true };
   }
 };

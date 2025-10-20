@@ -1,25 +1,30 @@
-import { useState, useEffect, useMemo } from "react";
+import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { mockAuth } from "@/lib/mockAuth";
-import { mockProjects, Project } from "@/lib/mockProjectData";
-import { Search, LogOut, Crown, Code } from "lucide-react";
+import { LogOut, Crown, Code, Loader2, ExternalLink } from "lucide-react";
+import { useAppDispatch, useAppSelector } from "@/store/hooks";
+import {
+  setCurrentPage,
+  selectProjectParams,
+} from "@/features/projects/projectSlice";
+import { useGetProjectsQuery } from "@/features/projects/projectService";
 
-const ITEMS_PER_PAGE = 20;
 const FREE_PREVIEW_COUNT = 3;
 
 const ProjectsDashboard = () => {
   const navigate = useNavigate();
-  const user = mockAuth.getSession();
-  const [searchQuery, setSearchQuery] = useState("");
-  const [companyFilter, setCompanyFilter] = useState("all");
-  const [typeFilter, setTypeFilter] = useState("all");
-  const [complexityFilter, setComplexityFilter] = useState("all");
-  const [currentPage, setCurrentPage] = useState(1);
+  const [user, setUser] = useState(mockAuth.getSession());
+  const dispatch = useAppDispatch();
+
+  // Get pagination from Redux state
+  const pagination = useAppSelector((state) => state.projectPagination);
+  const projectParams = useAppSelector(selectProjectParams);
+
+  // Fetch projects from API
+  const { data, isLoading, isError, error } = useGetProjectsQuery(projectParams);
 
   useEffect(() => {
     if (!user) {
@@ -27,41 +32,20 @@ const ProjectsDashboard = () => {
     }
   }, [user, navigate]);
 
-  const companies = useMemo(() => 
-    ["all", ...new Set(mockProjects.map(p => p.company))].sort(),
-    []
-  );
-  
-  const types = useMemo(() => 
-    ["all", ...new Set(mockProjects.map(p => p.type))].sort(),
-    []
-  );
-
-  const filteredProjects = useMemo(() => {
-    return mockProjects.filter(project => {
-      const matchesSearch = searchQuery === "" || 
-        project.keywords.toLowerCase().includes(searchQuery.toLowerCase());
-      const matchesCompany = companyFilter === "all" || project.company === companyFilter;
-      const matchesType = typeFilter === "all" || project.type === typeFilter;
-      const matchesComplexity = complexityFilter === "all" || project.complexity === complexityFilter;
-      
-      return matchesSearch && matchesCompany && matchesType && matchesComplexity;
-    });
-  }, [searchQuery, companyFilter, typeFilter, complexityFilter]);
-
-  const totalPages = Math.ceil(filteredProjects.length / ITEMS_PER_PAGE);
-  const paginatedProjects = filteredProjects.slice(
-    (currentPage - 1) * ITEMS_PER_PAGE,
-    currentPage * ITEMS_PER_PAGE
-  );
-
   const handleLogout = () => {
     mockAuth.signOut();
     navigate("/");
   };
 
+  const handleUpgrade = () => {
+    const result = mockAuth.upgradeToPremium();
+    if (result.success) {
+      setUser(mockAuth.getSession());
+    }
+  };
+
   const isBlurred = (index: number) => {
-    const globalIndex = (currentPage - 1) * ITEMS_PER_PAGE + index;
+    const globalIndex = (pagination.currentPage - 1) * pagination.itemsPerPage + index;
     return !user?.isPremium && globalIndex >= FREE_PREVIEW_COUNT;
   };
 
@@ -102,69 +86,16 @@ const ProjectsDashboard = () => {
       </header>
 
       <main className="max-w-7xl mx-auto px-6 pt-4 pb-6">
-        <div className="mb-6 space-y-4">
-          <div className="relative">
-            <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
-            <Input
-              placeholder="Search projects by keywords..."
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-              className="pl-10"
-            />
-          </div>
-
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-            <Select value={companyFilter} onValueChange={setCompanyFilter}>
-              <SelectTrigger>
-                <SelectValue placeholder="Company" />
-              </SelectTrigger>
-              <SelectContent>
-                {companies.map(company => (
-                  <SelectItem key={company} value={company}>
-                    {company === "all" ? "All Companies" : company}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-
-            <Select value={typeFilter} onValueChange={setTypeFilter}>
-              <SelectTrigger>
-                <SelectValue placeholder="Project Type" />
-              </SelectTrigger>
-              <SelectContent>
-                {types.map(type => (
-                  <SelectItem key={type} value={type}>
-                    {type === "all" ? "All Types" : type}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-
-            <Select value={complexityFilter} onValueChange={setComplexityFilter}>
-              <SelectTrigger>
-                <SelectValue placeholder="Complexity" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="all">All Levels</SelectItem>
-                <SelectItem value="Beginner">Beginner</SelectItem>
-                <SelectItem value="Intermediate">Intermediate</SelectItem>
-                <SelectItem value="Advanced">Advanced</SelectItem>
-                <SelectItem value="Expert">Expert</SelectItem>
-              </SelectContent>
-            </Select>
-          </div>
-        </div>
-
-        {!user.isPremium && (
+        {!user?.isPremium && data && (
           <Card className="mb-8 p-6 bg-primary/5 border-primary/20">
             <div className="flex items-center justify-between">
               <div>
                 <h3 className="font-semibold mb-1">Unlock Full Access</h3>
                 <p className="text-sm text-muted-foreground">
-                  You're viewing {FREE_PREVIEW_COUNT} of {filteredProjects.length} projects. Upgrade to see them all.
+                  You're viewing {FREE_PREVIEW_COUNT} of {data.pagination.total} projects. Upgrade to see them all.
                 </p>
               </div>
-              <Button size="lg" className="gap-2">
+              <Button size="lg" className="gap-2" onClick={handleUpgrade}>
                 <Crown className="w-4 h-4" />
                 Upgrade to Premium
               </Button>
@@ -172,72 +103,130 @@ const ProjectsDashboard = () => {
           </Card>
         )}
 
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
-          {paginatedProjects.map((project, index) => (
-            <div key={project.id} className="relative">
-              <Card className="group overflow-hidden border border-border hover:shadow-lg transition-all duration-300 cursor-pointer bg-card">
-                <div className="aspect-[3/4] bg-muted overflow-hidden relative">
-                  <img
-                    src={project.imageUrl}
-                    alt={project.title}
-                    className={`w-full h-full object-cover group-hover:scale-105 transition-transform duration-300 ${
-                      isBlurred(index) ? 'blur-md' : ''
-                    }`}
-                  />
-                  {isBlurred(index) && (
-                    <div className="absolute inset-0 bg-background/80 backdrop-blur-sm flex items-center justify-center">
-                      <div className="text-center p-4">
-                        <Crown className="w-8 h-8 mx-auto mb-2 text-primary" />
-                        <p className="text-sm font-semibold mb-1">Premium Only</p>
-                        <p className="text-xs text-muted-foreground">Upgrade to view</p>
-                      </div>
-                    </div>
-                  )}
-                </div>
-                <div className="p-4">
-                  <div className="flex items-start justify-between gap-2 mb-2">
-                    <h3 className="font-semibold text-sm leading-tight">{project.title}</h3>
-                    <Badge variant="secondary" className="text-xs shrink-0">
-                      {project.complexity}
-                    </Badge>
-                  </div>
-                  <p className="text-sm text-muted-foreground mb-1">{project.company}</p>
-                  <p className="text-xs text-muted-foreground mb-3">{project.type}</p>
-                  <div className="flex flex-wrap gap-1.5">
-                    {project.tags.slice(0, 3).map((tag) => (
-                      <span
-                        key={tag}
-                        className="text-xs px-2 py-1 rounded-md bg-secondary text-foreground"
-                      >
-                        {tag}
-                      </span>
-                    ))}
-                  </div>
-                </div>
-              </Card>
-            </div>
-          ))}
-        </div>
+        {isLoading && (
+          <div className="flex items-center justify-center py-20">
+            <Loader2 className="w-8 h-8 animate-spin text-primary" />
+            <span className="ml-3 text-muted-foreground">Loading projects...</span>
+          </div>
+        )}
 
-        <div className="flex items-center justify-center gap-2">
-          <Button
-            variant="outline"
-            onClick={() => setCurrentPage(p => Math.max(1, p - 1))}
-            disabled={currentPage === 1}
-          >
-            Previous
-          </Button>
-          <span className="text-sm text-muted-foreground px-4">
-            Page {currentPage} of {totalPages}
-          </span>
-          <Button
-            variant="outline"
-            onClick={() => setCurrentPage(p => Math.min(totalPages, p + 1))}
-            disabled={currentPage === totalPages}
-          >
-            Next
-          </Button>
-        </div>
+        {isError && (
+          <Card className="p-8 text-center">
+            <p className="text-destructive mb-2">Failed to load projects</p>
+            <p className="text-sm text-muted-foreground">
+              {error && 'status' in error ? `Error: ${error.status}` : 'Please check your connection and try again'}
+            </p>
+          </Card>
+        )}
+
+        {!isLoading && !isError && data && data.projects.length === 0 && (
+          <Card className="p-8 text-center">
+            <p className="text-muted-foreground">No projects found</p>
+          </Card>
+        )}
+
+        {!isLoading && !isError && data && data.projects.length > 0 && (
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+            {data.projects.map((project, index) => {
+              const isProjectBlurred = isBlurred(index);
+              return (
+              <div key={`${project.owner_id}-${index}`} className="relative">
+                <Card
+                  className="group overflow-hidden border border-border hover:shadow-lg transition-all duration-300 cursor-pointer bg-card"
+                  onClick={() => !isProjectBlurred && project.project_url && window.open(project.project_url, '_blank')}
+                >
+                  <div className="aspect-[3/4] bg-gradient-to-br from-white to-gray-50 overflow-hidden relative border-b">
+                    <div className={`w-full h-full p-6 flex flex-col ${
+                      isProjectBlurred ? 'blur-md' : ''
+                    }`}>
+                      {/* Header */}
+                      <div className="mb-4 pb-3 border-b-2 border-gray-200">
+                        <h4 className="font-bold text-xl text-gray-900 mb-2 line-clamp-2">
+                          {project.project_name}
+                        </h4>
+                        <p className="text-sm text-gray-600 line-clamp-1">{project.owner_name}</p>
+                        <p className="text-sm text-gray-500 line-clamp-1">{project.owner_title}</p>
+                      </div>
+
+                      {/* Description */}
+                      <div className="mb-4 flex-1">
+                        <p className="text-xs font-bold text-gray-700 mb-2 tracking-wide">DESCRIPTION</p>
+                        <p className="text-sm text-gray-700 line-clamp-4">
+                          {project.project_description}
+                        </p>
+                      </div>
+
+                      {/* Technologies */}
+                      {project.project_technologies && project.project_technologies.length > 0 && (
+                        <div className="mt-auto">
+                          <p className="text-xs font-bold text-gray-700 mb-2 tracking-wide">TECHNOLOGIES</p>
+                          <div className="flex flex-wrap gap-1.5">
+                            {project.project_technologies.slice(0, 6).map((tech, techIdx) => (
+                              <span
+                                key={techIdx}
+                                className="text-xs px-2 py-1 bg-gray-200 text-gray-700 rounded font-medium"
+                              >
+                                {tech}
+                              </span>
+                            ))}
+                          </div>
+                        </div>
+                      )}
+                    </div>
+                    {isProjectBlurred && (
+                      <div className="absolute inset-0 bg-background/80 backdrop-blur-sm flex items-center justify-center">
+                        <div className="text-center p-4">
+                          <Crown className="w-8 h-8 mx-auto mb-2 text-primary" />
+                          <p className="text-sm font-semibold mb-1">Premium Only</p>
+                          <p className="text-xs text-muted-foreground">Upgrade to view</p>
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                  <div className="p-4">
+                    <div className="flex items-center justify-between gap-2">
+                      <p className="text-sm text-muted-foreground line-clamp-1">{project.owner_email}</p>
+                      {project.project_url && (
+                        <a
+                          href={project.project_url}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          onClick={(e) => e.stopPropagation()}
+                          className="text-primary hover:underline flex items-center gap-1"
+                        >
+                          <ExternalLink className="w-4 h-4" />
+                        </a>
+                      )}
+                    </div>
+                  </div>
+                </Card>
+              </div>
+              );
+            })}
+          </div>
+        )}
+
+        {!isLoading && !isError && data && (
+          <div className="flex items-center justify-center gap-2">
+            <Button
+              variant="outline"
+              onClick={() => dispatch(setCurrentPage(Math.max(1, pagination.currentPage - 1)))}
+              disabled={pagination.currentPage === 1}
+            >
+              Previous
+            </Button>
+            <span className="text-sm text-muted-foreground px-4">
+              Page {data.pagination.page} of {data.pagination.total_pages}
+            </span>
+            <Button
+              variant="outline"
+              onClick={() => dispatch(setCurrentPage(Math.min(data.pagination.total_pages, pagination.currentPage + 1)))}
+              disabled={pagination.currentPage === data.pagination.total_pages}
+            >
+              Next
+            </Button>
+          </div>
+        )}
       </main>
     </div>
   );

@@ -1,4 +1,4 @@
-import { useState, useEffect, useMemo } from "react";
+import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -6,20 +6,36 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { mockAuth } from "@/lib/mockAuth";
-import { mockResumes, Resume } from "@/lib/mockData";
-import { Search, LogOut, Crown } from "lucide-react";
+import { Search, LogOut, Crown, Loader2, X } from "lucide-react";
+import { useAppDispatch, useAppSelector } from "@/store/hooks";
+import {
+  setSearchQuery,
+  setSeniority,
+  setSchool,
+  setExperienceRange,
+  setCurrentPage,
+  resetFilters,
+  selectResumeSearchParams,
+} from "@/features/resumes/resumeSlice";
+import { useSearchResumesQuery } from "@/features/resumes/resumeService";
+import { ResumeDetailModal } from "@/components/ResumeDetailModal";
+import type { Resume } from "@/features/resumes/resumeTypes";
 
-const ITEMS_PER_PAGE = 20;
 const FREE_PREVIEW_COUNT = 3;
 
 const Dashboard = () => {
   const navigate = useNavigate();
-  const user = mockAuth.getSession();
-  const [searchQuery, setSearchQuery] = useState("");
-  const [companyFilter, setCompanyFilter] = useState("all");
-  const [schoolFilter, setSchoolFilter] = useState("all");
-  const [experienceFilter, setExperienceFilter] = useState("all");
-  const [currentPage, setCurrentPage] = useState(1);
+  const [user, setUser] = useState(mockAuth.getSession());
+  const dispatch = useAppDispatch();
+  const [selectedResume, setSelectedResume] = useState<Resume | null>(null);
+  const [localSearchQuery, setLocalSearchQuery] = useState("");
+
+  // Get filters from Redux state
+  const filters = useAppSelector((state) => state.resumeFilters);
+  const searchParams = useAppSelector(selectResumeSearchParams);
+
+  // Fetch resumes from API
+  const { data, isLoading, isError, error } = useSearchResumesQuery(searchParams);
 
   useEffect(() => {
     if (!user) {
@@ -27,44 +43,66 @@ const Dashboard = () => {
     }
   }, [user, navigate]);
 
-  const companies = useMemo(() => 
-    ["all", ...new Set(mockResumes.map(r => r.company))].sort(),
-    []
-  );
-  
-  const schools = useMemo(() => 
-    ["all", ...new Set(mockResumes.map(r => r.school))].sort(),
-    []
-  );
+  // Debounce search query - only dispatch to Redux after 500ms of no typing
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      dispatch(setSearchQuery(localSearchQuery));
+    }, 500);
 
-  const filteredResumes = useMemo(() => {
-    return mockResumes.filter(resume => {
-      const matchesSearch = searchQuery === "" || 
-        resume.keywords.toLowerCase().includes(searchQuery.toLowerCase());
-      const matchesCompany = companyFilter === "all" || resume.company === companyFilter;
-      const matchesSchool = schoolFilter === "all" || resume.school === schoolFilter;
-      const matchesExperience = experienceFilter === "all" || 
-        (experienceFilter === "0-3" && resume.yearsOfExperience <= 3) ||
-        (experienceFilter === "4-7" && resume.yearsOfExperience >= 4 && resume.yearsOfExperience <= 7) ||
-        (experienceFilter === "8+" && resume.yearsOfExperience >= 8);
-      
-      return matchesSearch && matchesCompany && matchesSchool && matchesExperience;
-    });
-  }, [searchQuery, companyFilter, schoolFilter, experienceFilter]);
-
-  const totalPages = Math.ceil(filteredResumes.length / ITEMS_PER_PAGE);
-  const paginatedResumes = filteredResumes.slice(
-    (currentPage - 1) * ITEMS_PER_PAGE,
-    currentPage * ITEMS_PER_PAGE
-  );
+    return () => clearTimeout(timer);
+  }, [localSearchQuery, dispatch]);
 
   const handleLogout = () => {
     mockAuth.signOut();
     navigate("/");
   };
 
+  const handleUpgrade = () => {
+    const result = mockAuth.upgradeToPremium();
+    if (result.success) {
+      setUser(mockAuth.getSession());
+    }
+  };
+
+  const handleClearFilters = () => {
+    setLocalSearchQuery("");
+    dispatch(resetFilters());
+  };
+
+  const hasActiveFilters =
+    filters.searchQuery ||
+    filters.seniority ||
+    filters.school ||
+    filters.minExperience !== undefined ||
+    filters.maxExperience !== undefined;
+
+  const handleExperienceChange = (value: string) => {
+    if (value === "all") {
+      dispatch(setExperienceRange({ min: undefined, max: undefined }));
+    } else if (value === "0-3") {
+      dispatch(setExperienceRange({ min: 0, max: 3 }));
+    } else if (value === "4-7") {
+      dispatch(setExperienceRange({ min: 4, max: 7 }));
+    } else if (value === "8+") {
+      dispatch(setExperienceRange({ min: 8, max: undefined }));
+    }
+  };
+
+  const getExperienceFilterValue = () => {
+    if (filters.minExperience === undefined && filters.maxExperience === undefined) {
+      return "all";
+    } else if (filters.minExperience === 0 && filters.maxExperience === 3) {
+      return "0-3";
+    } else if (filters.minExperience === 4 && filters.maxExperience === 7) {
+      return "4-7";
+    } else if (filters.minExperience === 8 && filters.maxExperience === undefined) {
+      return "8+";
+    }
+    return "all";
+  };
+
   const isBlurred = (index: number) => {
-    const globalIndex = (currentPage - 1) * ITEMS_PER_PAGE + index;
+    const globalIndex = (filters.currentPage - 1) * filters.itemsPerPage + index;
     return !user?.isPremium && globalIndex >= FREE_PREVIEW_COUNT;
   };
 
@@ -103,44 +141,59 @@ const Dashboard = () => {
 
       <main className="max-w-7xl mx-auto px-6 pt-4 pb-6">
         <div className="mb-6 space-y-4">
-          <div className="relative">
-            <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
-            <Input
-              placeholder="Search resumes by keywords..."
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-              className="pl-10"
-            />
+          <div className="flex gap-3">
+            <div className="relative flex-1">
+              <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+              <Input
+                placeholder="Search resumes by keywords..."
+                value={localSearchQuery}
+                onChange={(e) => setLocalSearchQuery(e.target.value)}
+                className="pl-10"
+              />
+            </div>
+            {hasActiveFilters && (
+              <Button
+                variant="outline"
+                onClick={handleClearFilters}
+                className="gap-2 shrink-0"
+              >
+                <X className="w-4 h-4" />
+                Clear Filters
+              </Button>
+            )}
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-            <Select value={companyFilter} onValueChange={setCompanyFilter}>
+            <Select value={filters.seniority || "all"} onValueChange={(value) => dispatch(setSeniority(value === "all" ? "" : value))}>
               <SelectTrigger>
-                <SelectValue placeholder="Company" />
+                <SelectValue placeholder="Seniority" />
               </SelectTrigger>
               <SelectContent>
-                {companies.map(company => (
-                  <SelectItem key={company} value={company}>
-                    {company === "all" ? "All Companies" : company}
-                  </SelectItem>
-                ))}
+                <SelectItem value="all">All Seniority</SelectItem>
+                <SelectItem value="intern">Intern</SelectItem>
+                <SelectItem value="junior">Junior</SelectItem>
+                <SelectItem value="mid-level">Mid-Level</SelectItem>
+                <SelectItem value="senior">Senior</SelectItem>
+                <SelectItem value="staff">Staff</SelectItem>
+                <SelectItem value="principal">Principal</SelectItem>
               </SelectContent>
             </Select>
 
-            <Select value={schoolFilter} onValueChange={setSchoolFilter}>
+            <Select value={filters.school || "all"} onValueChange={(value) => dispatch(setSchool(value === "all" ? "" : value))}>
               <SelectTrigger>
                 <SelectValue placeholder="School" />
               </SelectTrigger>
               <SelectContent>
-                {schools.map(school => (
-                  <SelectItem key={school} value={school}>
-                    {school === "all" ? "All Schools" : school}
-                  </SelectItem>
-                ))}
+                <SelectItem value="all">All Schools</SelectItem>
+                <SelectItem value="Stanford">Stanford</SelectItem>
+                <SelectItem value="MIT">MIT</SelectItem>
+                <SelectItem value="UC Berkeley">UC Berkeley</SelectItem>
+                <SelectItem value="Carnegie Mellon">Carnegie Mellon</SelectItem>
+                <SelectItem value="Harvard">Harvard</SelectItem>
               </SelectContent>
             </Select>
 
-            <Select value={experienceFilter} onValueChange={setExperienceFilter}>
+            <Select value={getExperienceFilterValue()} onValueChange={handleExperienceChange}>
               <SelectTrigger>
                 <SelectValue placeholder="Experience" />
               </SelectTrigger>
@@ -154,16 +207,16 @@ const Dashboard = () => {
           </div>
         </div>
 
-        {!user.isPremium && (
+        {!user?.isPremium && data && (
           <Card className="mb-8 p-6 bg-primary/5 border-primary/20">
             <div className="flex items-center justify-between">
               <div>
                 <h3 className="font-semibold mb-1">Unlock Full Access</h3>
                 <p className="text-sm text-muted-foreground">
-                  You're viewing {FREE_PREVIEW_COUNT} of {filteredResumes.length} resumes. Upgrade to see them all.
+                  You're viewing {FREE_PREVIEW_COUNT} of {data.pagination.total} resumes. Upgrade to see them all.
                 </p>
               </div>
-              <Button size="lg" className="gap-2">
+              <Button size="lg" className="gap-2" onClick={handleUpgrade}>
                 <Crown className="w-4 h-4" />
                 Upgrade to Premium
               </Button>
@@ -171,73 +224,179 @@ const Dashboard = () => {
           </Card>
         )}
 
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
-          {paginatedResumes.map((resume, index) => (
-            <div key={resume.id} className="relative">
-              <Card className="group overflow-hidden border border-border hover:shadow-lg transition-all duration-300 cursor-pointer bg-card">
-                <div className="aspect-[3/4] bg-muted overflow-hidden relative">
-                  <img
-                    src={resume.imageUrl}
-                    alt={resume.title}
-                    className={`w-full h-full object-cover group-hover:scale-105 transition-transform duration-300 ${
-                      isBlurred(index) ? 'blur-md' : ''
-                    }`}
-                  />
-                  {isBlurred(index) && (
-                    <div className="absolute inset-0 bg-background/80 backdrop-blur-sm flex items-center justify-center">
-                      <div className="text-center p-4">
-                        <Crown className="w-8 h-8 mx-auto mb-2 text-primary" />
-                        <p className="text-sm font-semibold mb-1">Premium Only</p>
-                        <p className="text-xs text-muted-foreground">Upgrade to view</p>
-                      </div>
-                    </div>
-                  )}
-                </div>
-                <div className="p-4">
-                  <div className="flex items-start justify-between gap-2 mb-2">
-                    <h3 className="font-semibold text-sm leading-tight">{resume.title}</h3>
-                    <Badge variant="secondary" className="text-xs shrink-0">
-                      {resume.yearsOfExperience}y
-                    </Badge>
-                  </div>
-                  <p className="text-sm text-muted-foreground mb-1">{resume.company}</p>
-                  <p className="text-xs text-muted-foreground mb-3">{resume.school}</p>
-                  <div className="flex flex-wrap gap-1.5">
-                    {resume.tags.slice(0, 3).map((tag) => (
-                      <span
-                        key={tag}
-                        className="text-xs px-2 py-1 rounded-md bg-secondary text-foreground"
-                      >
-                        {tag}
-                      </span>
-                    ))}
-                  </div>
-                </div>
-              </Card>
-            </div>
-          ))}
-        </div>
+        {isLoading && (
+          <div className="flex items-center justify-center py-20">
+            <Loader2 className="w-8 h-8 animate-spin text-primary" />
+            <span className="ml-3 text-muted-foreground">Loading resumes...</span>
+          </div>
+        )}
 
-        <div className="flex items-center justify-center gap-2">
-          <Button
-            variant="outline"
-            onClick={() => setCurrentPage(p => Math.max(1, p - 1))}
-            disabled={currentPage === 1}
-          >
-            Previous
-          </Button>
-          <span className="text-sm text-muted-foreground px-4">
-            Page {currentPage} of {totalPages}
-          </span>
-          <Button
-            variant="outline"
-            onClick={() => setCurrentPage(p => Math.min(totalPages, p + 1))}
-            disabled={currentPage === totalPages}
-          >
-            Next
-          </Button>
-        </div>
+        {isError && (
+          <Card className="p-8 text-center">
+            <p className="text-destructive mb-2">Failed to load resumes</p>
+            <p className="text-sm text-muted-foreground">
+              {error && 'status' in error ? `Error: ${error.status}` : 'Please check your connection and try again'}
+            </p>
+          </Card>
+        )}
+
+        {!isLoading && !isError && data && data.results.length === 0 && (
+          <Card className="p-8 text-center">
+            <p className="text-muted-foreground">No resumes found matching your criteria</p>
+          </Card>
+        )}
+
+        {!isLoading && !isError && data && data.results.length > 0 && (
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+            {data.results.map((resume, index) => {
+              const isResumeBlurred = isBlurred(index);
+              return (
+              <div key={resume.id} className="relative">
+                <Card
+                  className="group overflow-hidden border border-border hover:shadow-lg transition-all duration-300 cursor-pointer bg-card"
+                  onClick={() => !isResumeBlurred && setSelectedResume(resume)}
+                >
+                  <div className="aspect-[3/4] bg-gradient-to-br from-white to-gray-50 overflow-hidden relative border-b">
+                    <div className={`w-full h-full p-6 flex flex-col ${
+                      isResumeBlurred ? 'blur-md' : ''
+                    }`}>
+                      {/* Header */}
+                      <div className="mb-6 pb-4 border-b-2 border-gray-200">
+                        <h4 className="font-bold text-2xl text-gray-900 mb-2 line-clamp-1">
+                          {resume.name || 'Candidate'}
+                        </h4>
+                        {resume.title && (
+                          <p className="text-base text-gray-600 line-clamp-1">{resume.title}</p>
+                        )}
+                        {resume.location && (
+                          <p className="text-base text-gray-500 mt-1.5 line-clamp-1">{resume.location}</p>
+                        )}
+                      </div>
+
+                      {/* Experience Preview */}
+                      {resume.experience && resume.experience.length > 0 && (
+                        <div className="mb-6">
+                          <p className="text-sm font-bold text-gray-700 mb-3 tracking-wide">EXPERIENCE</p>
+                          <div className="space-y-3">
+                            {resume.experience.slice(0, 2).map((exp, idx) => (
+                              <div key={idx}>
+                                <p className="text-base font-semibold text-gray-800 line-clamp-1">
+                                  {exp.title}
+                                </p>
+                                <p className="text-base text-gray-600 line-clamp-1">{exp.company}</p>
+                              </div>
+                            ))}
+                          </div>
+                        </div>
+                      )}
+
+                      {/* Education Preview */}
+                      {resume.education && resume.education.length > 0 && resume.education[0].institution && (
+                        <div className="mb-6">
+                          <p className="text-sm font-bold text-gray-700 mb-3 tracking-wide">EDUCATION</p>
+                          <p className="text-base font-semibold text-gray-800 line-clamp-1">
+                            {resume.education[0].institution}
+                          </p>
+                          {resume.education[0].degree && (
+                            <p className="text-base text-gray-600 line-clamp-1">
+                              {resume.education[0].degree}
+                            </p>
+                          )}
+                        </div>
+                      )}
+
+                      {/* Skills Preview */}
+                      {resume.skills && resume.skills.length > 0 && (
+                        <div className="mt-auto">
+                          <p className="text-sm font-bold text-gray-700 mb-3 tracking-wide">SKILLS</p>
+                          <div className="flex flex-wrap gap-2">
+                            {resume.skills.slice(0, 6).map((skill, idx) => (
+                              <span
+                                key={idx}
+                                className="text-sm px-3 py-1.5 bg-gray-200 text-gray-700 rounded font-medium"
+                              >
+                                {skill}
+                              </span>
+                            ))}
+                          </div>
+                        </div>
+                      )}
+                    </div>
+                    {isResumeBlurred && (
+                      <div className="absolute inset-0 bg-background/80 backdrop-blur-sm flex items-center justify-center">
+                        <div className="text-center p-4">
+                          <Crown className="w-8 h-8 mx-auto mb-2 text-primary" />
+                          <p className="text-sm font-semibold mb-1">Premium Only</p>
+                          <p className="text-xs text-muted-foreground">Upgrade to view</p>
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                  <div className="p-4">
+                    <div className="flex items-start justify-between gap-2 mb-2">
+                      <h3 className="font-semibold text-sm leading-tight">
+                        {resume.title || resume.name || 'Untitled Resume'}
+                      </h3>
+                      {resume.years_of_experience !== undefined && (
+                        <Badge variant="secondary" className="text-xs shrink-0">
+                          {resume.years_of_experience}y
+                        </Badge>
+                      )}
+                    </div>
+                    {resume.company && (
+                      <p className="text-sm text-muted-foreground mb-1">{resume.company}</p>
+                    )}
+                    {resume.education && resume.education.length > 0 && resume.education[0].institution && (
+                      <p className="text-xs text-muted-foreground mb-3">{resume.education[0].institution}</p>
+                    )}
+                    <div className="flex flex-wrap gap-1.5">
+                      {resume.skills.slice(0, 3).map((skill, idx) => (
+                        <span
+                          key={idx}
+                          className="text-xs px-2 py-1 rounded-md bg-secondary text-foreground"
+                        >
+                          {skill}
+                        </span>
+                      ))}
+                    </div>
+                  </div>
+                </Card>
+              </div>
+              );
+            })}
+          </div>
+        )}
+
+        {!isLoading && !isError && data && (
+          <div className="flex items-center justify-center gap-2">
+            <Button
+              variant="outline"
+              onClick={() => dispatch(setCurrentPage(Math.max(1, filters.currentPage - 1)))}
+              disabled={filters.currentPage === 1}
+            >
+              Previous
+            </Button>
+            <span className="text-sm text-muted-foreground px-4">
+              Page {data.pagination.page} of {data.pagination.total_pages}
+            </span>
+            <Button
+              variant="outline"
+              onClick={() => dispatch(setCurrentPage(Math.min(data.pagination.total_pages, filters.currentPage + 1)))}
+              disabled={filters.currentPage === data.pagination.total_pages}
+            >
+              Next
+            </Button>
+          </div>
+        )}
       </main>
+
+      <ResumeDetailModal
+        resume={selectedResume}
+        isOpen={selectedResume !== null}
+        onClose={() => setSelectedResume(null)}
+        isPremium={user?.isPremium || false}
+        onUpgrade={handleUpgrade}
+      />
     </div>
   );
 };
