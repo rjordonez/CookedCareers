@@ -110,13 +110,13 @@ const UniversityLogos = () => {
       {/* Gradient fade at bottom */}
       <div className="pointer-events-none absolute bottom-0 h-[20%] md:h-[35%] w-full bg-gradient-to-t from-background to-transparent"></div>
 
-      <div className="max-w-7xl mx-auto">
+      <div className="max-w-6xl mx-auto">
         <h2 className="text-center mb-16 text-3xl md:text-4xl lg:text-5xl font-bold">
           What our users are saying.
         </h2>
 
         {/* Masonry Grid */}
-        <div className="columns-1 md:columns-2 lg:columns-3 xl:columns-4 gap-4 md:gap-6">
+        <div className="columns-1 md:columns-2 lg:columns-3 xl:columns-4 gap-6">
           {testimonials.map((testimonial, index) => (
             <div
               key={index}

@@ -9,8 +9,13 @@ const Navigation = () => {
     <nav className="fixed left-1/2 top-4 md:top-6 z-50 flex h-[60px] w-[90%] max-w-[584px] -translate-x-1/2 items-center gap-3 md:gap-6 rounded-full bg-[rgba(237,237,237,0.72)] px-4 md:px-6 py-2 backdrop-blur-xl">
       <div className="flex grow items-center min-w-0">
         <Link to="/" className="flex items-center gap-2 min-w-0">
-          <div className="w-8 h-8 rounded-xl bg-[#1a1a1a] flex items-center justify-center shrink-0">
-            <span className="text-lg font-bold text-white">C</span>
+          <div className="relative w-[36px] h-[36px] shrink-0">
+            {/* Grey paper layer (offset bottom-right) */}
+            <div className="absolute w-8 h-8 rounded-xl bg-gray-300 bottom-0 right-0"></div>
+            {/* Black layer with C */}
+            <div className="absolute w-8 h-8 rounded-xl bg-[#1a1a1a] flex items-center justify-center top-0 left-0 z-10">
+              <span className="text-lg font-bold text-white">C</span>
+            </div>
           </div>
           <span className="text-base md:text-lg font-bold truncate" style={{ letterSpacing: '-0.05em' }}>CookedCareer</span>
         </Link>

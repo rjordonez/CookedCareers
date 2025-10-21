@@ -25,8 +25,13 @@ const DashboardNav = ({ isPro, searchQuery = "", onSearchChange, searchPlacehold
           {/* Left: Logo + Navigation */}
           <div className="flex items-center gap-4 md:gap-6">
             <Link to="/" className="flex items-center gap-2">
-              <div className="w-8 h-8 rounded-xl bg-[#1a1a1a] flex items-center justify-center">
-                <span className="text-lg font-bold text-white">C</span>
+              <div className="relative w-[36px] h-[36px] shrink-0">
+                {/* Grey paper layer (offset bottom-right) */}
+                <div className="absolute w-8 h-8 rounded-xl bg-gray-300 bottom-0 right-0"></div>
+                {/* Black layer with C */}
+                <div className="absolute w-8 h-8 rounded-xl bg-[#1a1a1a] flex items-center justify-center top-0 left-0 z-10">
+                  <span className="text-lg font-bold text-white">C</span>
+                </div>
               </div>
             </Link>
 
