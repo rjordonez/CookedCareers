@@ -56,7 +56,7 @@ const DashboardNav = ({ isPro, searchQuery = "", onSearchChange, searchPlacehold
               <ProBadge />
             ) : (
               <Button size="sm" className="hidden md:flex rounded-full text-sm font-semibold px-4 h-9 bg-[#1a1a1a] text-white hover:bg-[#2a2a2a]">
-                Upgrade to Pro
+                Get Pro
               </Button>
             )}
             <UserButton

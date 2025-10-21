@@ -28,13 +28,17 @@ const companies = [
 
 const Hero = () => {
   const [mounted, setMounted] = useState(false);
+  const [visible, setVisible] = useState(false);
 
   useEffect(() => {
     setMounted(true);
+    // Trigger fade-in animation
+    const timer = setTimeout(() => setVisible(true), 50);
+    return () => clearTimeout(timer);
   }, []);
 
   return (
-    <section className="px-6 pt-48 pb-16">
+    <section className={`px-6 pt-48 pb-16 fade-in ${visible ? 'visible' : ''}`}>
       <div className="max-w-7xl mx-auto">
         <h1 className="max-w-[400px] mx-auto text-center text-5xl font-bold tracking-tight leading-tight md:max-w-[600px] md:text-6xl lg:max-w-[900px] lg:text-7xl">
           Learn From Applications<br />That Landed Offers

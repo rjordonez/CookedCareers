@@ -13,6 +13,7 @@ import {
 import { useGetProjectsQuery } from "@/features/projects/projectService";
 import { useGetSubscriptionStatusQuery } from "@/features/subscription/subscriptionService";
 import DashboardNav from "@/components/DashboardNav";
+import { UpgradeButton } from "@/components/UpgradeButton";
 
 const FREE_PREVIEW_COUNT = 3;
 
@@ -62,20 +63,15 @@ const ProjectsDashboard = () => {
 
       <main className="max-w-7xl mx-auto px-6 pt-4 pb-6">
         {!isPremium && data && (
-          <Card className="mb-8 p-6 bg-primary/5 border-primary/20">
-            <div className="flex items-center justify-between">
-              <div>
-                <h3 className="font-semibold mb-1">Unlock Full Access</h3>
-                <p className="text-sm text-muted-foreground">
-                  You're viewing {FREE_PREVIEW_COUNT} of {data.pagination.total} projects. Upgrade to see them all for just $4.99/month.
-                </p>
-              </div>
-              <Button size="lg" className="gap-2" onClick={handleUpgrade}>
-                <Crown className="w-4 h-4" />
-                Upgrade to Pro
-              </Button>
+          <div className="mb-8 p-6 bg-muted/50 rounded-2xl text-center">
+            <div className="max-w-2xl mx-auto">
+              <h3 className="text-lg font-semibold mb-2">Unlock Full Access</h3>
+              <p className="text-sm text-muted-foreground mb-4">
+                You're viewing {FREE_PREVIEW_COUNT} of {data.pagination.total} projects. Upgrade to see them all for just $4.99/month.
+              </p>
+              <UpgradeButton size="default" />
             </div>
-          </Card>
+          </div>
         )}
 
         {isLoading && (

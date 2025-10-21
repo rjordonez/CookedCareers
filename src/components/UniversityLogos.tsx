@@ -64,76 +64,38 @@ const UniversityLogos = () => {
   const ref = useScrollAnimation();
 
   return (
-    <section ref={ref} className="py-24 px-6 bg-gray-50 fade-in">
+    <section ref={ref} className="py-24 px-6 bg-background fade-in relative">
+      {/* Gradient fade at bottom */}
+      <div className="pointer-events-none absolute bottom-0 h-[20%] md:h-[35%] w-full bg-gradient-to-t from-background to-transparent"></div>
+
       <div className="max-w-7xl mx-auto">
-        <div className="mb-12 text-center">
-          <h2 className="text-3xl md:text-4xl font-bold tracking-tight mb-2">
-            What our users are saying.
-          </h2>
-        </div>
+        <h2 className="text-center mb-16 text-3xl md:text-4xl lg:text-5xl font-bold">
+          What our users are saying.
+        </h2>
 
-        {/* Auto-Scrolling Testimonials Carousel */}
-        <div className="relative mb-16 overflow-hidden">
-          <div className="flex gap-6 pb-4 animate-scroll-testimonials">
-            {/* First set of testimonials */}
-            {testimonials.map((testimonial, index) => (
-              <div
-                key={`${testimonial.name}-1-${index}`}
-                className="flex-none w-[90%] sm:w-[400px] bg-white rounded-2xl p-8 border border-gray-200 hover:shadow-lg transition-shadow duration-300"
-              >
-                <div className="flex items-start gap-4 mb-6">
-                  <div className="relative">
-                    <img
-                      src={testimonial.image}
-                      alt={testimonial.name}
-                      className="w-12 h-12 rounded-full object-cover"
-                    />
-                  </div>
+        {/* Masonry Grid */}
+        <div className="columns-1 md:columns-2 lg:columns-3 xl:columns-4 gap-4 md:gap-6">
+          {testimonials.map((testimonial, index) => (
+            <div
+              key={index}
+              className="mb-4 md:mb-6 break-inside-avoid"
+            >
+              <div className="bg-background rounded-2xl p-6 border border-border">
+                <div className="flex items-center gap-3 mb-4">
+                  <img
+                    src={testimonial.image}
+                    alt={testimonial.name}
+                    className="w-11 h-11 rounded-full object-cover"
+                  />
                   <div className="flex-1 min-w-0">
-                    <p className="font-semibold text-gray-900 text-base">
-                      {testimonial.name}
-                    </p>
-                    <p className="text-sm text-gray-500">
-                      {testimonial.school}
-                    </p>
+                    <p className="font-semibold text-sm">{testimonial.name}</p>
+                    <p className="text-xs text-muted-foreground">{testimonial.school}</p>
                   </div>
                 </div>
-
-                <p className="text-gray-900 leading-relaxed text-base">
-                  {testimonial.quote}
-                </p>
+                <p className="text-sm leading-relaxed">{testimonial.quote}</p>
               </div>
-            ))}
-            {/* Duplicate set for seamless loop */}
-            {testimonials.map((testimonial, index) => (
-              <div
-                key={`${testimonial.name}-2-${index}`}
-                className="flex-none w-[90%] sm:w-[400px] bg-white rounded-2xl p-8 border border-gray-200 hover:shadow-lg transition-shadow duration-300"
-              >
-                <div className="flex items-start gap-4 mb-6">
-                  <div className="relative">
-                    <img
-                      src={testimonial.image}
-                      alt={testimonial.name}
-                      className="w-12 h-12 rounded-full object-cover"
-                    />
-                  </div>
-                  <div className="flex-1 min-w-0">
-                    <p className="font-semibold text-gray-900 text-base">
-                      {testimonial.name}
-                    </p>
-                    <p className="text-sm text-gray-500">
-                      {testimonial.school}
-                    </p>
-                  </div>
-                </div>
-
-                <p className="text-gray-900 leading-relaxed text-base">
-                  {testimonial.quote}
-                </p>
-              </div>
-            ))}
-          </div>
+            </div>
+          ))}
         </div>
 
         {/* Interview Screenshots Carousel */}
@@ -142,7 +104,7 @@ const UniversityLogos = () => {
             {/* First set */}
             {successScreenshots.map((screenshot, index) => (
               <div key={`${screenshot.company}-1-${index}`} className="flex-none w-[80%] sm:w-[500px] md:w-[600px]">
-                <div className="bg-white rounded-2xl p-4 border-2 border-gray-200 shadow-lg hover:shadow-xl transition-all duration-300">
+                <div className="bg-background rounded-2xl p-4 border-2 border-border shadow-lg hover:shadow-xl transition-all duration-300">
                   <img
                     src={screenshot.image}
                     alt={screenshot.alt}
@@ -154,7 +116,7 @@ const UniversityLogos = () => {
             {/* Duplicate set for seamless loop */}
             {successScreenshots.map((screenshot, index) => (
               <div key={`${screenshot.company}-2-${index}`} className="flex-none w-[80%] sm:w-[500px] md:w-[600px]">
-                <div className="bg-white rounded-2xl p-4 border-2 border-gray-200 shadow-lg hover:shadow-xl transition-all duration-300">
+                <div className="bg-background rounded-2xl p-4 border-2 border-border shadow-lg hover:shadow-xl transition-all duration-300">
                   <img
                     src={screenshot.image}
                     alt={screenshot.alt}
@@ -165,35 +127,9 @@ const UniversityLogos = () => {
             ))}
           </div>
         </div>
-
       </div>
 
       <style>{`
-        .scrollbar-hide::-webkit-scrollbar {
-          display: none;
-        }
-        .scrollbar-hide {
-          -ms-overflow-style: none;
-          scrollbar-width: none;
-        }
-
-        @keyframes scroll-testimonials {
-          0% {
-            transform: translateX(0);
-          }
-          100% {
-            transform: translateX(-50%);
-          }
-        }
-
-        .animate-scroll-testimonials {
-          animation: scroll-testimonials 40s linear infinite;
-        }
-
-        .animate-scroll-testimonials:hover {
-          animation-play-state: paused;
-        }
-
         @keyframes scroll-screenshots {
           0% {
             transform: translateX(0);

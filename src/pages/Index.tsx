@@ -1,5 +1,6 @@
 import Navigation from "@/components/Navigation";
 import Hero from "@/components/Hero";
+import WhySection from "@/components/WhySection";
 import BrowseGrid from "@/components/BrowseGrid";
 import CompanyLogos from "@/components/CompanyLogos";
 import UniversityLogos from "@/components/UniversityLogos";
@@ -15,6 +16,7 @@ const Index = () => {
       <Navigation />
       <main>
         <Hero />
+        <WhySection />
         <BrowseGrid />
         <UniversityLogos />
         <CTASection />

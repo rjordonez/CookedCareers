@@ -183,15 +183,15 @@ const Dashboard = () => {
         </div>
 
         {!isPro && data && (
-          <Card className="mb-8 p-8 bg-background border-border text-center">
-            <div className="max-w-md mx-auto space-y-4">
-              <h3 className="text-xl font-semibold">Unlock Full Access</h3>
-              <p className="text-base text-muted-foreground">
+          <div className="mb-8 p-6 bg-muted/50 rounded-2xl text-center">
+            <div className="max-w-2xl mx-auto">
+              <h3 className="text-lg font-semibold mb-2">Unlock Full Access</h3>
+              <p className="text-sm text-muted-foreground mb-4">
                 You're viewing {FREE_PREVIEW_COUNT} of {data.pagination.total} resumes. Upgrade to see them all for just $4.99/month.
               </p>
-              <UpgradeButton size="lg" className="w-full sm:w-auto" />
+              <UpgradeButton size="default" />
             </div>
-          </Card>
+          </div>
         )}
 
         {isLoading && (
