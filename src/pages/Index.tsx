@@ -1,3 +1,4 @@
+import Navigation from "@/components/Navigation";
 import Hero from "@/components/Hero";
 import BrowseGrid from "@/components/BrowseGrid";
 import CompanyLogos from "@/components/CompanyLogos";
@@ -11,6 +12,7 @@ const Index = () => {
 
   return (
     <div className="min-h-screen">
+      <Navigation />
       <main>
         <Hero />
         <CompanyLogos />

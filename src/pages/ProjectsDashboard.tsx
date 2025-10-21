@@ -2,9 +2,8 @@ import { useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
-import { Crown, Code, Loader2, ExternalLink } from "lucide-react";
-import { useUser, UserButton } from "@clerk/clerk-react";
+import { Crown, Loader2, ExternalLink } from "lucide-react";
+import { useUser } from "@clerk/clerk-react";
 import { useAuthReady } from "@/components/AuthProvider";
 import { useAppDispatch, useAppSelector } from "@/store/hooks";
 import {
@@ -13,6 +12,7 @@ import {
 } from "@/features/projects/projectSlice";
 import { useGetProjectsQuery } from "@/features/projects/projectService";
 import { useGetSubscriptionStatusQuery } from "@/features/subscription/subscriptionService";
+import DashboardNav from "@/components/DashboardNav";
 
 const FREE_PREVIEW_COUNT = 3;
 
@@ -58,42 +58,7 @@ const ProjectsDashboard = () => {
 
   return (
     <div className="min-h-screen bg-background">
-      <header className="border-b border-border bg-card/50 backdrop-blur-sm sticky top-0 z-10">
-        <div className="max-w-7xl mx-auto px-6 py-3 flex items-center justify-between">
-          <div className="flex items-center gap-6">
-            <h1 className="text-2xl font-bold flex items-center gap-2">
-              <Code className="w-6 h-6" />
-              Project Library
-            </h1>
-            <nav className="flex gap-2">
-              <Button variant="ghost" size="sm" onClick={() => navigate("/dashboard")}>
-                Resumes
-              </Button>
-              <Button variant="default" size="sm">
-                Projects
-              </Button>
-            </nav>
-          </div>
-          <div className="flex items-center gap-4">
-            <span className="text-sm text-muted-foreground">
-              {user.primaryEmailAddress?.emailAddress}
-            </span>
-            {isPremium && (
-              <Badge variant="default" className="gap-1">
-                <Crown className="w-3 h-3" />
-                Pro
-              </Badge>
-            )}
-            <UserButton
-              appearance={{
-                elements: {
-                  avatarBox: "w-9 h-9"
-                }
-              }}
-            />
-          </div>
-        </div>
-      </header>
+      <DashboardNav isPro={isPremium} />
 
       <main className="max-w-7xl mx-auto px-6 pt-4 pb-6">
         {!isPremium && data && (

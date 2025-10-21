@@ -2,8 +2,15 @@ import { Button } from "@/components/ui/button";
 import { ArrowRight } from "lucide-react";
 import { Link } from "react-router-dom";
 import SlotCounter from "react-slot-counter";
+import { useState, useEffect } from "react";
 
 const Hero = () => {
+  const [mounted, setMounted] = useState(false);
+
+  useEffect(() => {
+    setMounted(true);
+  }, []);
+
   return (
     <section className="grid place-items-center px-6 pt-24 pb-16 animate-fade-in">
       <h1 className="max-w-[400px] text-center text-5xl font-bold tracking-tight leading-tight md:max-w-[600px] md:text-6xl lg:max-w-[900px] lg:text-7xl">
@@ -13,7 +20,7 @@ const Hero = () => {
       <p className="max-w-[450px] pt-6 text-center text-lg text-muted-foreground md:max-w-[550px] md:text-xl lg:max-w-[700px]">
         Access{' '}
         <span className="inline-flex items-baseline">
-          <SlotCounter value={1000} />
+          {mounted ? <SlotCounter value="1000" /> : '1000'}
           <span>+</span>
         </span>
         {' '}successful CS resumes, projects, and portfolios that landed jobs at top tech companies

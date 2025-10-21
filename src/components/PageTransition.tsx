@@ -32,10 +32,18 @@ const pageVariants = {
 const PageTransition = ({ children }: PageTransitionProps) => {
   const location = useLocation();
 
+  // Skip animation for dashboard routes
+  const isDashboardRoute = location.pathname.startsWith('/dashboard') ||
+                           location.pathname.startsWith('/projects');
+
   useEffect(() => {
     // Smooth scroll to top on route change
     window.scrollTo({ top: 0, behavior: "smooth" });
   }, [location.pathname]);
+
+  if (isDashboardRoute) {
+    return <>{children}</>;
+  }
 
   return (
     <AnimatePresence mode="wait">

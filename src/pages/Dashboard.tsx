@@ -1,19 +1,18 @@
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { Search, Crown, Loader2, X } from "lucide-react";
-import { useUser, UserButton } from "@clerk/clerk-react";
+import { Crown, Loader2, X } from "lucide-react";
+import { useUser } from "@clerk/clerk-react";
 import { useAuthReady } from "@/components/AuthProvider";
 import { useResumeFilters } from "@/hooks/useResumeFilters";
 import { useSearchResumesQuery } from "@/features/resumes/resumeService";
 import { useGetSubscriptionStatusQuery } from "@/features/subscription/subscriptionService";
 import { ResumeDetailModal } from "@/components/ResumeDetailModal";
 import { UpgradeButton } from "@/components/UpgradeButton";
-import { ProBadge } from "@/components/ProBadge";
+import DashboardNav from "@/components/DashboardNav";
 import type { Resume } from "@/features/resumes/resumeTypes";
 
 const FREE_PREVIEW_COUNT = 3;
@@ -117,52 +116,17 @@ const Dashboard = () => {
 
   return (
     <div className="min-h-screen bg-background">
-      <header className="border-b border-border bg-card/50 backdrop-blur-sm sticky top-0 z-10">
-        <div className="max-w-7xl mx-auto px-6 py-3 flex items-center justify-between">
-          <div className="flex items-center gap-6">
-            <h1 className="text-2xl font-bold">Resume Library</h1>
-            <nav className="flex gap-2">
-              <Button variant="default" size="sm">
-                Resumes
-              </Button>
-              <Button variant="ghost" size="sm" onClick={() => navigate("/projects")}>
-                Projects
-              </Button>
-            </nav>
-          </div>
-          <div className="flex items-center gap-4">
-            <span className="text-sm text-muted-foreground">
-              {user.primaryEmailAddress?.emailAddress}
-            </span>
-            {isPro ? (
-              <ProBadge />
-            ) : (
-              <UpgradeButton variant="outline" size="sm" />
-            )}
-            <UserButton
-              appearance={{
-                elements: {
-                  avatarBox: "w-9 h-9"
-                }
-              }}
-            />
-          </div>
-        </div>
-      </header>
+      <DashboardNav
+        isPro={isPro}
+        searchQuery={localSearchQuery}
+        onSearchChange={setLocalSearchQuery}
+        searchPlaceholder="Search resumes by keywords..."
+      />
 
       <main className="max-w-7xl mx-auto px-6 pt-4 pb-6">
         <div className="mb-6 space-y-4">
-          <div className="flex gap-3">
-            <div className="relative flex-1">
-              <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
-              <Input
-                placeholder="Search resumes by keywords..."
-                value={localSearchQuery}
-                onChange={(e) => setLocalSearchQuery(e.target.value)}
-                className="pl-10"
-              />
-            </div>
-            {hasActiveFilters && (
+          {hasActiveFilters && (
+            <div className="flex justify-end">
               <Button
                 variant="outline"
                 onClick={handleClearFilters}
@@ -171,8 +135,8 @@ const Dashboard = () => {
                 <X className="w-4 h-4" />
                 Clear Filters
               </Button>
-            )}
-          </div>
+            </div>
+          )}
 
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
             <Select value={filters.seniority || "all"} onValueChange={(value) => updateSeniority(value === "all" ? "" : value)}>
