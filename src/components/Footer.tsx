@@ -7,12 +7,12 @@ const Footer = () => {
             <div className="w-8 h-8 rounded-xl bg-accent flex items-center justify-center">
               <span className="text-xl font-bold text-foreground">C</span>
             </div>
-            <span className="text-lg font-bold">CSLibrary</span>
+            <span className="text-lg font-bold" style={{ letterSpacing: '-0.05em' }}>CookedResume</span>
           </div>
-          
-          
-          
-          <p className="text-sm text-muted-foreground">© 2025 CSLibrary. All rights reserved.</p>
+
+
+
+          <p className="text-sm text-muted-foreground">© 2025 CookedResume. All rights reserved.</p>
         </div>
       </div>
     </footer>

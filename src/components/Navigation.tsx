@@ -9,13 +9,9 @@ const Navigation = () => {
           <div className="w-8 h-8 rounded-xl bg-[#1a1a1a] flex items-center justify-center">
             <span className="text-lg font-bold text-white">C</span>
           </div>
-          <span className="text-lg font-bold">CSLibrary</span>
+          <span className="text-lg font-bold" style={{ letterSpacing: '-0.05em' }}>CookedResume</span>
         </Link>
       </div>
-
-      <Link to="/pricing" className="text-sm font-semibold hover:opacity-80 transition-opacity">
-        Pricing
-      </Link>
 
       <Link to="/auth" className="text-sm font-semibold hover:opacity-80 transition-opacity">
         Log in

@@ -28,12 +28,18 @@ const CompanyLogos = () => {
 
   return (
     <section ref={ref} className="pt-6 pb-8 px-6 fade-in-fast">
-      <div className="max-w-full mx-auto">
+      <div className="max-w-6xl mx-auto">
         <p className="text-center text-xs md:text-sm font-medium tracking-wide text-muted-foreground mb-4">
           Our candidates have been hired at
         </p>
 
         <div className="relative overflow-hidden">
+          {/* Left fade gradient */}
+          <div className="absolute left-0 top-0 bottom-0 w-32 bg-gradient-to-r from-background to-transparent z-10 pointer-events-none"></div>
+
+          {/* Right fade gradient */}
+          <div className="absolute right-0 top-0 bottom-0 w-32 bg-gradient-to-l from-background to-transparent z-10 pointer-events-none"></div>
+
           <div className="flex animate-scroll-logos whitespace-nowrap" style={{ width: 'max-content' }}>
             {/* First set of logos */}
             {companies.map((company, index) => (
@@ -70,11 +76,7 @@ const CompanyLogos = () => {
         }
 
         .animate-scroll-logos {
-          animation: scroll-logos 30s linear infinite;
-        }
-
-        .animate-scroll-logos:hover {
-          animation-play-state: paused;
+          animation: scroll-logos 50s linear infinite;
         }
       `}</style>
     </section>
