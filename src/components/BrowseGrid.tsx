@@ -6,6 +6,7 @@ import resumeBlur1 from "@/assets/resume-blur-1.jpg";
 import resumeBlur2 from "@/assets/resume-blur-2.jpg";
 import resumeBlur3 from "@/assets/resume-blur-3.jpg";
 import resumeBlur4 from "@/assets/resume-blur-4.jpg";
+import { useScrollAnimation } from "@/hooks/useScrollAnimation";
 
 // Sample data - in a real app, this would come from an API
 const items = [
@@ -84,11 +85,13 @@ const items = [
 ];
 
 const BrowseGrid = () => {
+  const ref = useScrollAnimation();
+
   return (
-    <section className="py-24 px-6 bg-background">
+    <section ref={ref} className="py-24 px-6 bg-background fade-in">
       <div className="max-w-7xl mx-auto">
         <h2 className="text-center mb-12">
-          Study Applications That Got Hired
+          Study Applications That Landed Offers
         </h2>
         
         {/* Filter Tabs */}

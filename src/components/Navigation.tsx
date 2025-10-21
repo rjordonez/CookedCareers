@@ -12,16 +12,7 @@ const Navigation = () => {
             </div>
             <span className="text-xl font-bold">CSLibrary</span>
           </div>
-          
-          <div className="hidden md:flex items-center gap-8">
-            <a href="#browse" className="text-sm text-muted-foreground hover:text-foreground transition-colors">
-              Browse
-            </a>
-            <a href="#pricing" className="text-sm text-muted-foreground hover:text-foreground transition-colors">
-              Pricing
-            </a>
-          </div>
-          
+
           <div className="flex items-center gap-3">
             <Button variant="ghost" size="sm" className="text-sm">
               Log in

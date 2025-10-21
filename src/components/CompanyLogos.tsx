@@ -8,6 +8,7 @@ import appleLogo from "@/assets/apple-logo.svg";
 import lyftLogo from "@/assets/lyft-logo.png";
 import doordashLogo from "@/assets/doordash-logo.png";
 import twosigmaLogo from "@/assets/twosigma-logo.png";
+import { useScrollAnimation } from "@/hooks/useScrollAnimation";
 
 const companies = [
   { name: "Google", logo: googleLogo },
@@ -23,18 +24,20 @@ const companies = [
 ];
 
 const CompanyLogos = () => {
+  const ref = useScrollAnimation();
+
   return (
-    <section className="pt-6 pb-8 px-6">
+    <section ref={ref} className="pt-6 pb-8 px-6 fade-in-fast">
       <div className="max-w-full mx-auto">
         <p className="text-center text-xs md:text-sm font-medium tracking-wide text-muted-foreground mb-4">
           Our candidates have been hired at
         </p>
 
         <div className="relative overflow-hidden">
-          <div className="flex animate-scroll-logos">
+          <div className="flex animate-scroll-logos whitespace-nowrap" style={{ width: 'max-content' }}>
             {/* First set of logos */}
             {companies.map((company, index) => (
-              <div key={`${company.name}-1-${index}`} className="flex-none mx-8">
+              <div key={`${company.name}-1-${index}`} className="flex-none mx-8 inline-block">
                 <img
                   src={company.logo}
                   alt={`${company.name} logo`}
@@ -44,7 +47,7 @@ const CompanyLogos = () => {
             ))}
             {/* Duplicate set for seamless loop */}
             {companies.map((company, index) => (
-              <div key={`${company.name}-2-${index}`} className="flex-none mx-8">
+              <div key={`${company.name}-2-${index}`} className="flex-none mx-8 inline-block">
                 <img
                   src={company.logo}
                   alt={`${company.name} logo`}

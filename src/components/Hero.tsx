@@ -7,7 +7,7 @@ const Hero = () => {
         
         
         <h1 className="text-6xl md:text-7xl font-bold tracking-tight mb-6 leading-tight">
-          Get hired by learning from those who made it
+          Learn From Applications<br />That Landed Offers
         </h1>
         
         <p className="text-xl text-muted-foreground mb-10 max-w-3xl mx-auto">Access 1,000+ successful CS resumes, projects, and portfolios<br />
