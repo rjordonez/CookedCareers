@@ -1,7 +1,8 @@
 import { baseApi } from '@/lib/api';
 import type {
   SubscriptionInfo,
-  CheckoutSessionResponse
+  CheckoutSessionResponse,
+  PortalSessionResponse
 } from './subscriptionTypes';
 
 export const subscriptionApi = baseApi.injectEndpoints({
@@ -18,10 +19,18 @@ export const subscriptionApi = baseApi.injectEndpoints({
       }),
       invalidatesTags: ['Subscription'],
     }),
+
+    createPortalSession: builder.mutation<PortalSessionResponse, void>({
+      query: () => ({
+        url: '/api/subscriptions/create-portal-session',
+        method: 'POST',
+      }),
+    }),
   }),
 });
 
 export const {
   useGetSubscriptionStatusQuery,
   useCreateCheckoutSessionMutation,
+  useCreatePortalSessionMutation,
 } = subscriptionApi;
