@@ -92,7 +92,7 @@ const Account = () => {
                   {subscription?.end_date && (
                     <div>
                       <label className="text-sm font-medium text-muted-foreground">
-                        {subscription.status === 'canceled' ? 'Access Until' : 'Next Billing Date'}
+                        Subscription Ends
                       </label>
                       <p className="text-lg">
                         {new Date(subscription.end_date).toLocaleDateString('en-US', {
