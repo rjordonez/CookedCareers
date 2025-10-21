@@ -1,7 +1,7 @@
 import { Link, useLocation } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Search } from "lucide-react";
+import { Search, Settings } from "lucide-react";
 import { UserButton } from "@clerk/clerk-react";
 import { UpgradeButton } from "@/components/UpgradeButton";
 import { ProBadge } from "@/components/ProBadge";
@@ -55,10 +55,17 @@ const DashboardNav = ({ isPro, searchQuery = "", onSearchChange, searchPlacehold
             </div>
           </div>
 
-          {/* Right: Upgrade + Profile */}
+          {/* Right: Upgrade + Settings + Profile */}
           <div className="flex items-center gap-3 md:gap-4">
             {isPro ? (
-              <ProBadge />
+              <>
+                <ProBadge />
+                <Link to="/account">
+                  <Button variant="ghost" size="icon" className="w-9 h-9">
+                    <Settings className="w-5 h-5" />
+                  </Button>
+                </Link>
+              </>
             ) : (
               <Button size="sm" className="hidden md:flex rounded-full text-sm font-semibold px-4 h-9 bg-[#1a1a1a] text-white hover:bg-[#2a2a2a]">
                 Get Pro
