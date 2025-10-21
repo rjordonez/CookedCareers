@@ -1,6 +1,9 @@
 import { Link } from "react-router-dom";
+import { usePostHog } from "posthog-js/react";
 
 const Footer = () => {
+  const posthog = usePostHog();
+
   return (
     <footer className="bg-[#1a1a1a] text-white px-6 py-20 md:py-28">
       <div className="max-w-7xl mx-auto grid grid-cols-1 md:grid-cols-[auto_1fr] gap-16 md:gap-24">

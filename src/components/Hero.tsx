@@ -2,6 +2,7 @@ import { Button } from "@/components/ui/button";
 import { Link } from "react-router-dom";
 import SlotCounter from "react-slot-counter";
 import { useState, useEffect } from "react";
+import { usePostHog } from "posthog-js/react";
 import googleLogo from "@/assets/google-logo.png";
 import metaLogo from "@/assets/meta-logo.png";
 import amazonLogo from "@/assets/amazon-logo.png";
@@ -29,6 +30,7 @@ const companies = [
 const Hero = () => {
   const [mounted, setMounted] = useState(false);
   const [visible, setVisible] = useState(false);
+  const posthog = usePostHog();
 
   useEffect(() => {
     setMounted(true);
@@ -38,7 +40,7 @@ const Hero = () => {
   }, []);
 
   return (
-    <section className={`px-6 pt-48 pb-16 fade-in ${visible ? 'visible' : ''}`}>
+    <section className={`px-6 pt-64 pb-16 fade-in ${visible ? 'visible' : ''}`}>
       <div className="max-w-7xl mx-auto">
         <h1 className="max-w-[400px] mx-auto text-center text-5xl font-bold tracking-tight leading-tight md:max-w-[600px] md:text-6xl lg:max-w-[900px] lg:text-7xl">
           Learn From Applications<br />That Landed Offers
@@ -55,7 +57,11 @@ const Hero = () => {
 
         <div className="pt-10 text-center">
           <Link to="/auth">
-            <Button size="lg" className="rounded-full text-base font-semibold px-4 h-11 bg-[#1a1a1a] text-white hover:bg-[#2a2a2a]">
+            <Button
+              size="lg"
+              className="rounded-full text-base font-semibold px-4 h-11 bg-[#1a1a1a] text-white hover:bg-[#2a2a2a]"
+              onClick={() => posthog?.capture('hero_join_for_free_clicked')}
+            >
               Join for free
             </Button>
           </Link>
