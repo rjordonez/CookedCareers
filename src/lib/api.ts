@@ -1,7 +1,7 @@
 import { createApi, fetchBaseQuery } from '@reduxjs/toolkit/query/react';
 
 // Base API URL from environment variables
-export const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://0.0.0.0:8080';
+export const API_BASE_URL = import.meta.env.VITE_API_BASE_URL;
 
 // Store for getting auth token - will be set by Clerk provider
 let getAuthToken: (() => Promise<string | null>) | null = null;
