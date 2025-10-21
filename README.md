@@ -1,4 +1,4 @@
-# CookedResume
+# CookedCareer
 
 ## Project info
 

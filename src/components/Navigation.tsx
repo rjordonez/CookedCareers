@@ -9,7 +9,7 @@ const Navigation = () => {
           <div className="w-8 h-8 rounded-xl bg-[#1a1a1a] flex items-center justify-center">
             <span className="text-lg font-bold text-white">C</span>
           </div>
-          <span className="text-lg font-bold" style={{ letterSpacing: '-0.05em' }}>CookedResume</span>
+          <span className="text-lg font-bold" style={{ letterSpacing: '-0.05em' }}>CookedCareer</span>
         </Link>
       </div>
 

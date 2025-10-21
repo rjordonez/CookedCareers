@@ -1,6 +1,7 @@
 import { Button } from "@/components/ui/button";
 import { ArrowRight } from "lucide-react";
 import { Link } from "react-router-dom";
+import SlotCounter from "react-slot-counter";
 
 const Hero = () => {
   return (
@@ -10,7 +11,12 @@ const Hero = () => {
       </h1>
 
       <p className="max-w-[450px] pt-6 text-center text-lg text-muted-foreground md:max-w-[550px] md:text-xl lg:max-w-[700px]">
-        Access 1,000+ successful CS resumes, projects, and portfolios that landed jobs at top tech companies
+        Access{' '}
+        <span className="inline-flex items-baseline">
+          <SlotCounter value={1000} />
+          <span>+</span>
+        </span>
+        {' '}successful CS resumes, projects, and portfolios that landed jobs at top tech companies
       </p>
 
       <div className="pt-10">
