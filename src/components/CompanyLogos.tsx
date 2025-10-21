@@ -27,7 +27,7 @@ const CompanyLogos = () => {
   const ref = useScrollAnimation();
 
   return (
-    <section ref={ref} className="pt-6 pb-8 px-6 fade-in-fast">
+    <section ref={ref} className="pt-6 pb-8 px-6 fade-in-fast -mt-64">
       <div className="max-w-6xl mx-auto">
         <p className="text-center text-xs md:text-sm font-medium tracking-wide text-muted-foreground mb-4">
           Our candidates have been hired at

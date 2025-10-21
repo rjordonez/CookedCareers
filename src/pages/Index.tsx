@@ -15,7 +15,6 @@ const Index = () => {
       <Navigation />
       <main>
         <Hero />
-        <CompanyLogos />
         <BrowseGrid />
         <UniversityLogos />
         <CTASection />
