@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState } from "react";
+import { FileText, ScanLine } from "lucide-react";
 
 const WhySection = () => {
   const containerRef = useRef<HTMLDivElement>(null);
@@ -39,6 +40,20 @@ const WhySection = () => {
   return (
     <div ref={containerRef} className="relative" style={{ height: "200vh" }}>
       <div className="sticky top-0 h-screen flex items-center justify-center px-6">
+        {/* Left Icon - Resume */}
+        <div className="hidden lg:block absolute left-[15%] top-[30%] -translate-y-1/2 rotate-[-12deg]">
+          <div className="w-24 h-24 rounded-3xl bg-gradient-to-br from-blue-500 to-blue-600 flex items-center justify-center shadow-2xl">
+            <FileText className="w-12 h-12 text-white" strokeWidth={2} />
+          </div>
+        </div>
+
+        {/* Right Icon - Scan */}
+        <div className="hidden lg:block absolute right-[15%] top-[50%] -translate-y-1/2 rotate-[12deg]">
+          <div className="w-24 h-24 rounded-3xl bg-gradient-to-br from-purple-500 to-purple-600 flex items-center justify-center shadow-2xl">
+            <ScanLine className="w-12 h-12 text-white" strokeWidth={2} />
+          </div>
+        </div>
+
         <div className="max-w-4xl mx-auto w-full space-y-12">
           {statements.map((statement, index) => (
             <div

@@ -90,7 +90,7 @@ const BrowseGrid = () => {
   return (
     <section ref={ref} className="py-24 px-6 bg-background fade-in">
       <div className="max-w-7xl mx-auto">
-        <h2 className="text-center mb-12">
+        <h2 className="text-center mb-12 text-3xl md:text-4xl lg:text-5xl font-bold">
           Study Applications That Lands Offers
         </h2>
 
