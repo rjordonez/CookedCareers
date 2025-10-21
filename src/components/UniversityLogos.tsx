@@ -35,6 +35,48 @@ const testimonials = [
     image: "https://images.unsplash.com/photo-1580489944761-15a19d654956?w=150&h=150&fit=crop&q=80",
     quote: "Desperately needed real examples. Seeing what worked helped me rewrite my resume and feel confident again.",
   },
+  {
+    name: "Marcus D.",
+    school: "UC Berkeley",
+    image: "https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=150&h=150&fit=crop&q=80",
+    quote: "CookedCareer helped me understand what top companies actually look for. Landed 3 interviews in my first week.",
+  },
+  {
+    name: "Emily R.",
+    school: "Carnegie Mellon",
+    image: "https://images.unsplash.com/photo-1438761681033-6461ffad8d80?w=150&h=150&fit=crop&q=80",
+    quote: "Finally got past the resume screening. The real examples showed me exactly what was missing from mine.",
+  },
+  {
+    name: "David K.",
+    school: "Stanford (International)",
+    image: "https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=150&h=150&fit=crop&q=80",
+    quote: "As an international student, I had no idea what worked in the US market. This database was a game changer.",
+  },
+  {
+    name: "Jessica M.",
+    school: "MIT",
+    image: "https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=150&h=150&fit=crop&q=80",
+    quote: "Studied successful resumes for a week, rewrote mine, and got responses from Amazon and Microsoft within days.",
+  },
+  {
+    name: "Alex T.",
+    school: "Cornell University",
+    image: "https://images.unsplash.com/photo-1519345182560-3f2917c472ef?w=150&h=150&fit=crop&q=80",
+    quote: "The pattern recognition was instant. Saw what made candidates stand out and applied it. Interview rate went from 0% to 40%.",
+  },
+  {
+    name: "Kavya P.",
+    school: "UT Austin (Master's)",
+    image: "https://images.unsplash.com/photo-1544005313-94ddf0286df2?w=150&h=150&fit=crop&q=80",
+    quote: "Went from no responses to multiple offers. Learning from real examples beats any resume template.",
+  },
+  {
+    name: "Ryan W.",
+    school: "UCLA",
+    image: "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=150&h=150&fit=crop&q=80",
+    quote: "Best investment I made for my job search. Seeing what actually worked saved me months of trial and error.",
+  },
 ];
 
 const successScreenshots = [

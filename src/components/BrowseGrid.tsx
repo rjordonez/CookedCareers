@@ -93,7 +93,7 @@ const BrowseGrid = () => {
         <h2 className="text-center mb-12">
           Study Applications That Lands Offers
         </h2>
-        
+
         {/* Filter Tabs */}
         <div className="mb-12">
           <FilterTabs />
@@ -125,7 +125,7 @@ const BrowseGrid = () => {
         .scrollbar-hide::-webkit-scrollbar {
           display: none;
         }
-        
+
         .scrollbar-hide {
           -ms-overflow-style: none;
           scrollbar-width: none;
