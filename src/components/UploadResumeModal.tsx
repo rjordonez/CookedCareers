@@ -6,9 +6,10 @@ interface UploadResumeModalProps {
   isOpen: boolean;
   onClose: () => void;
   onUploadClick: () => void;
+  mode?: 'upload' | 'update';
 }
 
-const UploadResumeModal = ({ isOpen, onClose, onUploadClick }: UploadResumeModalProps) => {
+const UploadResumeModal = ({ isOpen, onClose, onUploadClick, mode = 'upload' }: UploadResumeModalProps) => {
   const handleUploadClick = () => {
     onClose();
     // Small delay to ensure modal closes before file dialog opens
@@ -16,6 +17,8 @@ const UploadResumeModal = ({ isOpen, onClose, onUploadClick }: UploadResumeModal
       onUploadClick();
     }, 100);
   };
+
+  const isUpdateMode = mode === 'update';
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
@@ -25,11 +28,14 @@ const UploadResumeModal = ({ isOpen, onClose, onUploadClick }: UploadResumeModal
             <Upload className="w-8 h-8 text-muted-foreground" />
           </div>
 
-          <DialogTitle className="text-2xl font-bold mb-3">Upload Your Resume</DialogTitle>
+          <DialogTitle className="text-2xl font-bold mb-3">
+            {isUpdateMode ? 'Update Your Resume' : 'Upload Your Resume'}
+          </DialogTitle>
 
           <DialogDescription className="text-muted-foreground mb-6">
-            To compare your resume with others, you need to upload your resume first.
-            Click the button below to select your resume file.
+            {isUpdateMode
+              ? 'Replace your current resume with a new version. This will update the resume used for comparisons.'
+              : 'To compare your resume with others, you need to upload your resume first. Click the button below to select your resume file.'}
           </DialogDescription>
 
           <div className="flex gap-3 justify-center">
@@ -44,7 +50,7 @@ const UploadResumeModal = ({ isOpen, onClose, onUploadClick }: UploadResumeModal
               className="bg-[#1a1a1a] text-white hover:bg-[#2a2a2a]"
             >
               <Upload className="w-4 h-4 mr-2" />
-              Upload Resume
+              {isUpdateMode ? 'Update Resume' : 'Upload Resume'}
             </Button>
           </div>
 

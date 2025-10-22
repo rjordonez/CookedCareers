@@ -8,6 +8,7 @@ export interface SubscriptionInfo {
   status: SubscriptionStatus;
   is_pro: boolean;
   end_date?: string;
+  user_resume_url?: string | null;
 }
 
 export interface CheckoutSessionResponse {

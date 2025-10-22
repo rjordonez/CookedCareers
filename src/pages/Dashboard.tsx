@@ -16,6 +16,7 @@ import { UpgradeButton } from "@/components/UpgradeButton";
 import DashboardNav, { DashboardNavRef } from "@/components/DashboardNav";
 import ComparisonModal from "@/components/ComparisonModal";
 import UploadResumeModal from "@/components/UploadResumeModal";
+import ComparisonLoadingModal from "@/components/ComparisonLoadingModal";
 import type { Resume } from "@/features/resumes/resumeTypes";
 import { usePostHog } from "posthog-js/react";
 import { useToast } from "@/hooks/use-toast";
@@ -31,10 +32,12 @@ const Dashboard = () => {
   const posthog = usePostHog();
   const { toast } = useToast();
   const [createCheckoutSession] = useCreateCheckoutSessionMutation();
-  const [compareResume, { isLoading: isComparing }] = useCompareResumeMutation();
+  const [compareResume] = useCompareResumeMutation();
+  const [comparingResumeId, setComparingResumeId] = useState<string | null>(null);
   const [comparisonResume, setComparisonResume] = useState<Resume | null>(null);
   const [comparisonData, setComparisonData] = useState<any>(null);
   const [showUploadModal, setShowUploadModal] = useState(false);
+  const [uploadModalMode, setUploadModalMode] = useState<'upload' | 'update'>('upload');
   const dashboardNavRef = useRef<DashboardNavRef>(null);
 
   // Get filters from URL search params
@@ -57,13 +60,14 @@ const Dashboard = () => {
   });
 
   // Fetch subscription status separately (only once on mount)
-  const { data: subscriptionData } = useGetSubscriptionStatusQuery(undefined, {
+  const { data: subscriptionData, refetch: refetchSubscription } = useGetSubscriptionStatusQuery(undefined, {
     skip: !authReady || !isSignedIn,
     refetchOnMountOrArgChange: false,
     refetchOnFocus: false,
     refetchOnReconnect: false,
   });
   const isPro = subscriptionData?.is_active ?? false;
+  const hasUploadedResume = !!subscriptionData?.user_resume_url;
 
   const sortedResumes = data?.results || [];
 
@@ -103,6 +107,22 @@ const Dashboard = () => {
   const handleClearFilters = () => {
     setLocalSearchQuery("");
     clearFilters();
+  };
+
+  const handleMyResumeClick = () => {
+    if (hasUploadedResume) {
+      // Show update modal
+      setUploadModalMode('update');
+      setShowUploadModal(true);
+    } else {
+      // Directly trigger upload
+      dashboardNavRef.current?.triggerUpload();
+    }
+  };
+
+  const handleUploadComplete = () => {
+    // Refetch subscription data to get updated user_resume_url
+    refetchSubscription();
   };
 
   const handleExperienceChange = (value: string) => {
@@ -156,6 +176,9 @@ const Dashboard = () => {
   const handleCompareClick = async (e: React.MouseEvent, resume: Resume) => {
     e.stopPropagation(); // Prevent opening the modal
 
+    // Set this resume as currently comparing
+    setComparingResumeId(resume.id);
+
     try {
       // Call the compare API endpoint
       const result = await compareResume({ resume_id: resume.id }).unwrap();
@@ -172,20 +195,26 @@ const Dashboard = () => {
       console.error("Comparison failed:", error);
 
       // Check if error is about missing resume
-      const errorMessage = error?.data?.detail || error?.message || "";
-      const isNoResumeError = errorMessage.toLowerCase().includes("no resume") ||
-                              errorMessage.toLowerCase().includes("upload");
+      const errorMessage = (error?.data?.detail || error?.message || "").toLowerCase();
+      const isNoResumeError = errorMessage.includes("no resume") ||
+                              errorMessage.includes("upload") ||
+                              errorMessage.includes("not found") ||
+                              error?.status === 404;
 
       if (isNoResumeError) {
         // Show upload modal instead of directly triggering upload
+        setUploadModalMode('upload');
         setShowUploadModal(true);
       } else {
         toast({
           title: "Comparison Failed",
-          description: errorMessage || "Something went wrong. Please try again.",
+          description: error?.data?.detail || error?.message || "Something went wrong. Please try again.",
           variant: "destructive",
         });
       }
+    } finally {
+      // Clear comparing state
+      setComparingResumeId(null);
     }
   };
 
@@ -294,6 +323,9 @@ const Dashboard = () => {
         onSeniorityChange={(value) => updateSeniority(value === "all" ? "" : value)}
         hasActiveFilters={hasActiveFilters}
         onClearFilters={handleClearFilters}
+        onMyResumeClick={handleMyResumeClick}
+        hasUploadedResume={hasUploadedResume}
+        onUploadSuccess={handleUploadComplete}
       />
 
       <main className="max-w-7xl mx-auto px-6 pt-4 pb-6">
@@ -419,9 +451,9 @@ const Dashboard = () => {
                           variant="secondary"
                           className="text-xs font-semibold bg-[#1a1a1a] text-white hover:bg-[#2a2a2a]"
                           onClick={(e) => handleCompareClick(e, resume)}
-                          disabled={isComparing}
+                          disabled={comparingResumeId !== null}
                         >
-                          {isComparing ? 'Comparing...' : 'Compare'}
+                          {comparingResumeId === resume.id ? 'Comparing...' : 'Compare'}
                         </Button>
                       )}
                     </div>
@@ -476,13 +508,17 @@ const Dashboard = () => {
         comparedResume={comparisonResume}
         comparisonData={comparisonData}
         isPro={isPro}
+        userResumeUrl={subscriptionData?.user_resume_url}
       />
 
       <UploadResumeModal
         isOpen={showUploadModal}
         onClose={() => setShowUploadModal(false)}
         onUploadClick={() => dashboardNavRef.current?.triggerUpload()}
+        mode={uploadModalMode}
       />
+
+      <ComparisonLoadingModal isOpen={comparingResumeId !== null} />
     </div>
   );
 };

@@ -8,9 +8,10 @@ interface ComparisonModalProps {
   comparedResume: Resume | null;
   comparisonData: CompareResumeResponse | null;
   isPro: boolean;
+  userResumeUrl?: string | null;
 }
 
-const ComparisonModal = ({ isOpen, onClose, comparedResume, comparisonData, isPro }: ComparisonModalProps) => {
+const ComparisonModal = ({ isOpen, onClose, comparedResume, comparisonData, isPro, userResumeUrl }: ComparisonModalProps) => {
   if (!comparedResume || !comparisonData) return null;
 
   const getScoreColor = (score: number) => {
@@ -43,8 +44,24 @@ const ComparisonModal = ({ isOpen, onClose, comparedResume, comparisonData, isPr
             <div className="flex flex-col items-center">
               <div className="w-32 flex-shrink-0 mb-3">
                 <div className="overflow-hidden rounded-xl bg-muted shadow-lg">
-                  <div className="aspect-[8.5/11] bg-gradient-to-br from-gray-100 to-gray-200 flex items-center justify-center">
-                    <p className="text-muted-foreground text-xs">Your resume</p>
+                  <div className="aspect-[8.5/11] bg-gradient-to-br from-gray-100 to-gray-200 overflow-hidden relative flex items-center justify-center p-2">
+                    {userResumeUrl && userResumeUrl.toLowerCase().endsWith('.pdf') ? (
+                      <div className="w-full h-full bg-white overflow-hidden relative">
+                        <object
+                          data={`${userResumeUrl}#page=1&view=FitH&toolbar=0&navpanes=0&scrollbar=0`}
+                          type="application/pdf"
+                          className="w-full h-full pointer-events-none"
+                        >
+                          <embed
+                            src={`${userResumeUrl}#page=1&view=FitH&toolbar=0&navpanes=0&scrollbar=0`}
+                            type="application/pdf"
+                            className="w-full h-full pointer-events-none"
+                          />
+                        </object>
+                      </div>
+                    ) : (
+                      <p className="text-muted-foreground text-xs">Your resume</p>
+                    )}
                   </div>
                 </div>
               </div>

@@ -18,6 +18,9 @@ interface DashboardNavProps {
   onSeniorityChange?: (value: string) => void;
   hasActiveFilters?: boolean;
   onClearFilters?: () => void;
+  onMyResumeClick?: () => void;
+  hasUploadedResume?: boolean;
+  onUploadSuccess?: () => void;
 }
 
 export interface DashboardNavRef {
@@ -32,7 +35,10 @@ const DashboardNav = forwardRef<DashboardNavRef, DashboardNavProps>(({
   seniority,
   onSeniorityChange,
   hasActiveFilters,
-  onClearFilters
+  onClearFilters,
+  onMyResumeClick,
+  hasUploadedResume = false,
+  onUploadSuccess
 }, ref) => {
   const location = useLocation();
   const isResumesPage = location.pathname === "/dashboard";
@@ -76,9 +82,13 @@ const DashboardNav = forwardRef<DashboardNavRef, DashboardNavProps>(({
 
       if (data.success) {
         toast({
-          title: "Resume uploaded",
-          description: "Your resume has been saved successfully!",
+          title: hasUploadedResume ? "Resume updated" : "Resume uploaded",
+          description: hasUploadedResume ? "Your resume has been updated successfully!" : "Your resume has been saved successfully!",
         });
+        // Notify parent of successful upload
+        if (onUploadSuccess) {
+          onUploadSuccess();
+        }
       } else {
         throw new Error(data.detail || data.error || 'Upload failed');
       }
@@ -147,11 +157,17 @@ const DashboardNav = forwardRef<DashboardNavRef, DashboardNavProps>(({
               variant="outline"
               size="sm"
               className="hidden md:flex items-center gap-2"
-              onClick={() => fileInputRef.current?.click()}
+              onClick={() => {
+                if (onMyResumeClick) {
+                  onMyResumeClick();
+                } else {
+                  fileInputRef.current?.click();
+                }
+              }}
               disabled={isUploading}
             >
               <Upload className="w-4 h-4" />
-              {isUploading ? 'Uploading...' : 'My Resume'}
+              {isUploading ? 'Uploading...' : hasUploadedResume ? 'Resume Uploaded ✓' : 'My Resume'}
             </Button>
 
             {isPro ? (
