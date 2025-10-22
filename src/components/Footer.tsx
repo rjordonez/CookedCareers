@@ -51,29 +51,11 @@ const Footer = () => {
           </div>
           <div className="flex flex-col gap-3">
             <a
-              href="mailto:support@cookedcareer.com"
+              href="mailto:jessie@nativespeaking.ai"
               className="hover:opacity-80 transition-opacity"
               onClick={() => posthog?.capture('footer_contact_clicked')}
             >
               Contact
-            </a>
-            <a
-              href="https://twitter.com/cookedcareer"
-              target="_blank"
-              rel="noopener noreferrer"
-              className="hover:opacity-80 transition-opacity"
-              onClick={() => posthog?.capture('footer_twitter_clicked')}
-            >
-              Twitter
-            </a>
-            <a
-              href="https://linkedin.com/company/cookedcareer"
-              target="_blank"
-              rel="noopener noreferrer"
-              className="hover:opacity-80 transition-opacity"
-              onClick={() => posthog?.capture('footer_linkedin_clicked')}
-            >
-              LinkedIn
             </a>
           </div>
         </div>

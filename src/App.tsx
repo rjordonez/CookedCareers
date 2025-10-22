@@ -12,6 +12,8 @@ import Dashboard from "./pages/Dashboard";
 import ProjectsDashboard from "./pages/ProjectsDashboard";
 import SubscriptionSuccess from "./pages/SubscriptionSuccess";
 import Account from "./pages/Account";
+import Privacy from "./pages/Privacy";
+import Terms from "./pages/Terms";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -31,6 +33,8 @@ const App = () => (
               <Route path="/projects" element={<ProjectsDashboard />} />
               <Route path="/subscription/success" element={<SubscriptionSuccess />} />
               <Route path="/account" element={<Account />} />
+              <Route path="/privacy" element={<Privacy />} />
+              <Route path="/terms" element={<Terms />} />
               {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
               <Route path="*" element={<NotFound />} />
             </Routes>
