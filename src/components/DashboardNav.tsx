@@ -2,10 +2,12 @@ import { Link, useLocation } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Search, Settings, X } from "lucide-react";
+import { Search, Settings, X, Upload } from "lucide-react";
 import { UserButton } from "@clerk/clerk-react";
 import { UpgradeButton } from "@/components/UpgradeButton";
 import { ProBadge } from "@/components/ProBadge";
+import { useRef, useState } from "react";
+import { useToast } from "@/hooks/use-toast";
 
 interface DashboardNavProps {
   isPro: boolean;
@@ -31,6 +33,48 @@ const DashboardNav = ({
   const location = useLocation();
   const isResumesPage = location.pathname === "/dashboard";
   const isProjectsPage = location.pathname === "/projects";
+  const fileInputRef = useRef<HTMLInputElement>(null);
+  const [isUploading, setIsUploading] = useState(false);
+  const { toast } = useToast();
+
+  const handleFileUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    if (!file) return;
+
+    setIsUploading(true);
+    const formData = new FormData();
+    formData.append('file', file);
+
+    try {
+      const response = await fetch(`${import.meta.env.VITE_API_BASE_URL}/api/user-resume/upload`, {
+        method: 'POST',
+        body: formData,
+        credentials: 'include',
+      });
+
+      const data = await response.json();
+
+      if (data.success) {
+        toast({
+          title: "Resume uploaded",
+          description: "Your resume has been saved successfully!",
+        });
+      } else {
+        throw new Error(data.error || 'Upload failed');
+      }
+    } catch (error: any) {
+      toast({
+        title: "Upload failed",
+        description: error.message || "Failed to upload resume. Please try again.",
+        variant: "destructive",
+      });
+    } finally {
+      setIsUploading(false);
+      if (fileInputRef.current) {
+        fileInputRef.current.value = '';
+      }
+    }
+  };
 
   return (
     <nav className="bg-background sticky top-0 z-50">
@@ -69,8 +113,27 @@ const DashboardNav = ({
             </div>
           </div>
 
-          {/* Right: Upgrade + Settings + Profile */}
+          {/* Right: Upload Resume + Upgrade + Settings + Profile */}
           <div className="flex items-center gap-2 md:gap-4">
+            {/* Upload Resume Button */}
+            <input
+              ref={fileInputRef}
+              type="file"
+              accept=".pdf,.doc,.docx"
+              onChange={handleFileUpload}
+              className="hidden"
+            />
+            <Button
+              variant="outline"
+              size="sm"
+              className="hidden md:flex items-center gap-2"
+              onClick={() => fileInputRef.current?.click()}
+              disabled={isUploading}
+            >
+              <Upload className="w-4 h-4" />
+              {isUploading ? 'Uploading...' : 'My Resume'}
+            </Button>
+
             {isPro ? (
               <>
                 <ProBadge className="hidden md:flex" />

@@ -5,6 +5,7 @@ import UniversityLogos from "@/components/UniversityLogos";
 import CTASection from "@/components/CTASection";
 import Footer from "@/components/Footer";
 import ResumeCarousel from "@/components/ResumeCarousel";
+import ResumeComparison from "@/components/ResumeComparison";
 import { useSmoothScroll } from "@/hooks/useSmoothScroll";
 
 const Index = () => {
@@ -17,6 +18,7 @@ const Index = () => {
         <Hero />
         <WhySection />
         <ResumeCarousel />
+        <ResumeComparison />
         <UniversityLogos />
         <CTASection />
       </main>

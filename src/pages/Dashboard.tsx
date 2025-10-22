@@ -4,7 +4,7 @@ import { Button } from "@/components/ui/button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { Crown, Loader2, X } from "lucide-react";
+import { Crown, Loader2, X, GitCompare } from "lucide-react";
 import { useUser } from "@clerk/clerk-react";
 import { useAuthReady } from "@/components/AuthProvider";
 import { useResumeFilters } from "@/hooks/useResumeFilters";
@@ -13,6 +13,7 @@ import { useGetSubscriptionStatusQuery, useCreateCheckoutSessionMutation } from 
 import { ResumeDetailModal } from "@/components/ResumeDetailModal";
 import { UpgradeButton } from "@/components/UpgradeButton";
 import DashboardNav from "@/components/DashboardNav";
+import ComparisonModal from "@/components/ComparisonModal";
 import type { Resume } from "@/features/resumes/resumeTypes";
 import { usePostHog } from "posthog-js/react";
 import { useToast } from "@/hooks/use-toast";
@@ -28,6 +29,8 @@ const Dashboard = () => {
   const posthog = usePostHog();
   const { toast } = useToast();
   const [createCheckoutSession] = useCreateCheckoutSessionMutation();
+  const [comparisonResume, setComparisonResume] = useState<Resume | null>(null);
+  const [comparisonData, setComparisonData] = useState<any>(null);
 
   // Get filters from URL search params
   const {
@@ -145,6 +148,96 @@ const Dashboard = () => {
     }
   };
 
+  const handleCompareClick = async (e: React.MouseEvent, resume: Resume) => {
+    e.stopPropagation(); // Prevent opening the modal
+
+    // Mock comparison data for now
+    const mockComparisonData = {
+      score: 78,
+      ats_score: 65,
+      compared_resume_ats_score: 92,
+      feedback: {
+        strengths: [
+          "Your resume demonstrates excellent use of white space and clean formatting that makes it easy for recruiters to quickly scan and identify key information. The consistent font choices and clear section headers create a professional appearance that stands out in applicant tracking systems.",
+          "Strong action verbs like 'developed', 'implemented', 'led', and 'optimized' throughout your experience section effectively communicate your contributions and impact. This active language helps paint a vivid picture of your accomplishments and demonstrates ownership of your work.",
+          "Your technical skills section is well-organized and prominently displayed, making it immediately clear what technologies you're proficient in. The categorization of skills (e.g., languages, frameworks, tools) helps recruiters quickly assess your technical fit for the role.",
+          "The chronological layout of your experience section flows logically and makes it easy to understand your career progression. Each role clearly states the company, position, and dates, which helps establish credibility and context.",
+          "Your resume length is appropriate at one page, demonstrating your ability to communicate concisely and prioritize the most relevant information for the target role."
+        ],
+        weaknesses: [
+          "Your accomplishments lack quantifiable metrics and specific numbers that demonstrate tangible impact. For example, instead of saying 'improved system performance', you should specify 'improved system performance by 40%, reducing load times from 3.2s to 1.9s and supporting 10,000+ concurrent users.' Numbers make your achievements concrete and memorable.",
+          "The education section is sparse and missing valuable details like your GPA (if above 3.0), relevant coursework, academic projects, research experience, or honors/awards. These details are especially important for recent graduates or career changers and help establish your foundational knowledge in key areas.",
+          "There's no professional summary or objective statement at the top of your resume to immediately communicate your value proposition and career goals. A well-crafted 2-3 sentence summary can hook the reader and provide context for everything that follows, especially when pivoting industries or targeting specific roles.",
+          "Several bullet points are too vague and don't clearly articulate what you actually did or the business impact. Statements like 'worked on various projects' or 'helped the team' don't differentiate you from other candidates and miss opportunities to showcase your unique contributions.",
+          "Your resume lacks keywords and terminology specific to the target industry or role, which could cause it to be filtered out by ATS systems. Research job descriptions for your target positions and incorporate relevant technical terms, methodologies, and industry-specific language throughout your resume."
+        ],
+        suggestions: [
+          "Add specific metrics and numbers to every bullet point where possible. Examples: 'Reduced customer support tickets by 35% through automated FAQ system', 'Mentored 5 junior developers resulting in 2 promotions', 'Increased test coverage from 45% to 87% across 50+ microservices'. If exact numbers aren't available, use reasonable estimates or ranges to give readers a sense of scale and impact.",
+          "Expand your education section to include: GPA (if 3.0+), Dean's List/honors, relevant coursework (especially courses directly related to your target role), significant academic projects with GitHub links, teaching assistant positions, research experience, or publications. For recent graduates, this section can be a major differentiator.",
+          "Create a compelling professional summary at the top of your resume (2-3 sentences, 40-60 words) that includes: your current role/level, years of experience, key technical specializations, and your most impressive quantified achievement. Example: 'Full-stack software engineer with 4+ years building scalable web applications. Specialized in React, Node.js, and AWS cloud architecture. Led migration to microservices that reduced infrastructure costs by $120K annually while improving system reliability to 99.9% uptime.'",
+          "Rewrite vague bullet points using the STAR method (Situation, Task, Action, Result). Each bullet should tell a mini-story: what challenge you faced, what you did about it, and what measurable outcome you achieved. Start with a strong action verb, include the technical approach, and end with quantified business impact.",
+          "Optimize for ATS by incorporating keywords from the target job description. Review 5-10 job postings for your target role and identify recurring terms, technologies, and skills. Naturally weave these throughout your resume in context (don't just keyword stuff). Focus on: programming languages, frameworks, methodologies (Agile, CI/CD), tools, certifications, and industry-specific terminology.",
+          "Consider adding a 'Projects' section if you have impressive side projects, open-source contributions, or personal work that demonstrates skills relevant to your target role. Include project name, technologies used, brief description, and link to live demo/GitHub. This is especially valuable for developers, designers, and technical roles.",
+          "Review your experience bullets for parallel structure and consistency. All bullets should follow the same grammatical pattern (e.g., all starting with past-tense action verbs for previous roles, present-tense for current role). Ensure consistent punctuation, date formatting, and spacing throughout.",
+          "Add any relevant certifications, publications, conference talks, or professional affiliations that demonstrate expertise and thought leadership in your field. These can be particularly impactful for technical roles, especially cloud certifications (AWS, Azure, GCP) or specialized training (machine learning, security, etc.)."
+        ],
+        critical_mistakes: [
+          {
+            original: "Responsible for managing social media accounts",
+            suggested: "Grew Instagram following from 5K to 50K followers in 6 months, increasing engagement rate by 240% and driving $125K in attributed revenue through targeted content strategy"
+          },
+          {
+            original: "Worked on improving the codebase",
+            suggested: "Refactored legacy payment processing system, reducing code complexity by 45% and decreasing transaction failures from 8% to 0.3%, saving $2M annually in lost revenue"
+          },
+          {
+            original: "Helped the sales team achieve their goals",
+            suggested: "Implemented automated lead scoring system that increased sales team productivity by 35%, resulting in 200+ additional qualified demos per quarter and $4.2M in new pipeline"
+          },
+          {
+            original: "Assisted with various marketing campaigns",
+            suggested: "Launched and optimized 12 email marketing campaigns achieving 28% average open rate (vs. 18% industry standard), generating 1,500+ MQLs and $850K in attributed pipeline"
+          }
+        ]
+      }
+    };
+
+    setComparisonResume(resume);
+    setComparisonData(mockComparisonData);
+
+    /* API call commented out for now
+    try {
+      const response = await fetch(`${import.meta.env.VITE_API_BASE_URL}/api/user-resume/compare`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        credentials: 'include',
+        body: JSON.stringify({ resume_id: resumeId }),
+      });
+
+      const data = await response.json();
+
+      if (data.comparison) {
+        setComparisonResume(resume);
+        setComparisonData(data.comparison);
+        toast({
+          title: "Comparison Complete",
+          description: "Check the comparison results!",
+        });
+      } else {
+        throw new Error(data.error || 'Comparison failed');
+      }
+    } catch (error: any) {
+      toast({
+        title: "Comparison Failed",
+        description: error.message || "Please upload your resume first.",
+        variant: "destructive",
+      });
+    }
+    */
+  };
+
   if (!isLoaded || !user) return null;
 
   return (
@@ -192,11 +285,22 @@ const Dashboard = () => {
               const hasSearch = filters.searchQuery.trim().length > 0;
               const isBlurred = !isPro && (hasSearch || globalIndex >= FREE_PREVIEW_COUNT);
               return (
-              <div key={resume.id} className="relative h-full">
+              <div key={resume.id} className="relative h-full group">
                 <Card
-                  className="group overflow-hidden border-0 bg-muted rounded-2xl hover:shadow-xl hover:scale-105 hover:-translate-y-2 transition-all duration-300 cursor-pointer h-full"
+                  className="overflow-hidden border-0 bg-muted rounded-2xl hover:shadow-xl hover:scale-105 hover:-translate-y-2 transition-all duration-300 cursor-pointer h-full"
                   onClick={() => handleResumeClick(resume, index)}
                 >
+                  {/* Compare Icon - Top Right */}
+                  {!isBlurred && (
+                    <Button
+                      size="icon"
+                      variant="secondary"
+                      className="absolute top-4 right-4 z-20 shadow-lg bg-white hover:bg-gray-100"
+                      onClick={(e) => handleCompareClick(e, resume)}
+                    >
+                      <GitCompare className="w-4 h-4" />
+                    </Button>
+                  )}
                   <div className="aspect-[3/4] bg-gradient-to-br from-gray-100 to-gray-200 overflow-hidden relative p-4 flex items-center justify-center">
                     {resume.file_url && resume.file_url.toLowerCase().endsWith('.pdf') ? (
                       <div className={`w-full h-full bg-white overflow-hidden relative ${isBlurred ? 'blur-md' : ''}`}>
@@ -316,6 +420,16 @@ const Dashboard = () => {
         isOpen={selectedResume !== null}
         onClose={() => setSelectedResume(null)}
         isPremium={isPro}
+      />
+
+      <ComparisonModal
+        isOpen={comparisonResume !== null}
+        onClose={() => {
+          setComparisonResume(null);
+          setComparisonData(null);
+        }}
+        comparedResume={comparisonResume}
+        comparisonData={comparisonData}
       />
     </div>
   );
