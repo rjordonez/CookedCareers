@@ -244,17 +244,26 @@ const Dashboard = () => {
                           'Amazon': 'https://upload.wikimedia.org/wikipedia/commons/thumb/a/a9/Amazon_logo.svg/2880px-Amazon_logo.svg.png',
                           'Microsoft': 'https://upload.wikimedia.org/wikipedia/commons/thumb/4/44/Microsoft_logo.svg/1200px-Microsoft_logo.svg.png',
                           'Apple': 'https://upload.wikimedia.org/wikipedia/commons/thumb/f/fa/Apple_logo_black.svg/1200px-Apple_logo_black.svg.png',
-                          'Netflix': 'https://upload.wikimedia.org/wikipedia/commons/thumb/0/08/Netflix_2015_logo.svg/1200px-Netflix_2015_logo.svg.png',
+                          'Netflix': 'https://upload.wikimedia.org/wikipedia/commons/7/75/Netflix_icon.svg',
+                          'NVIDIA': 'https://upload.wikimedia.org/wikipedia/sco/thumb/2/21/Nvidia_logo.svg/1200px-Nvidia_logo.svg.png',
+                          'Jane Street': 'https://avatars.githubusercontent.com/u/3384712?s=280&v=4',
+                          'Citadel': 'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcTU0UCFsdvrDlX5MzjSH7Uy5LtBj3BXlFtWPrbbq0F9WtOLGFDtq-p8Ef1UOsKbR9a8jGE&usqp=CAU',
+                          'Tesla': 'https://upload.wikimedia.org/wikipedia/commons/thumb/b/bd/Tesla_Motors.svg/1200px-Tesla_Motors.svg.png',
+                          'Deloitte': 'https://pbs.twimg.com/profile_images/743077244218707968/fQE6lnor_400x400.jpg',
+                          'Sentry': 'https://cdn.worldvectorlogo.com/logos/sentry-3.svg',
+                          'Shopify': 'https://cdn-icons-png.freepik.com/512/2496/2496101.png',
                         };
 
-                        // Get company from experience array (check all companies)
+                        // Get all matching companies from experience array
                         const experienceCompanies = resume.experience?.map(exp => exp.company?.toUpperCase()) || [];
-                        const companyWithLogo = Object.keys(companyLogos).find(company =>
+                        const companiesWithLogos = Object.keys(companyLogos).filter(company =>
                           experienceCompanies.some(expCompany => expCompany?.includes(company.toUpperCase()))
                         );
 
-                        return companyWithLogo ? (
-                          <img src={companyLogos[companyWithLogo]} alt={companyWithLogo} className="h-6 object-contain" />
+                        return companiesWithLogos.length > 0 ? (
+                          companiesWithLogos.map(company => (
+                            <img key={company} src={companyLogos[company]} alt={company} className="h-6 object-contain" />
+                          ))
                         ) : (
                           resume.skills.slice(0, 3).map((skill, idx) => (
                             <span
