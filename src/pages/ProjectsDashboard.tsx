@@ -37,7 +37,7 @@ const ProjectsDashboard = () => {
   const { data: subscriptionData } = useGetSubscriptionStatusQuery(undefined, {
     skip: !authReady || !isSignedIn,
   });
-  const isPremium = true; // TEMP: Testing pro features - REVERT BEFORE DEPLOY!
+  const isPremium = subscriptionData?.is_premium ?? false;
 
   useEffect(() => {
     if (isLoaded && !user) {
@@ -62,18 +62,6 @@ const ProjectsDashboard = () => {
       <DashboardNav isPro={isPremium} />
 
       <main className="max-w-7xl mx-auto px-6 pt-4 pb-6">
-        {!isPremium && data && (
-          <div className="mb-8 p-6 bg-muted/50 rounded-2xl text-center">
-            <div className="max-w-2xl mx-auto">
-              <h3 className="text-lg font-semibold mb-2">Unlock Full Access</h3>
-              <p className="text-sm text-muted-foreground mb-4">
-                You're viewing {FREE_PREVIEW_COUNT} of {data.pagination.total} projects. Upgrade to see them all for just $4.99/month.
-              </p>
-              <UpgradeButton size="default" />
-            </div>
-          </div>
-        )}
-
         {isLoading && (
           <div className="flex items-center justify-center py-20">
             <Loader2 className="w-8 h-8 animate-spin text-primary" />
@@ -187,12 +175,16 @@ const ProjectsDashboard = () => {
               Previous
             </Button>
             <span className="text-sm text-muted-foreground px-4">
-              Page {data.pagination.page} of {data.pagination.total_pages}
+              Page {data.pagination.page} of 100+
             </span>
             <Button
               variant="outline"
-              onClick={() => dispatch(setCurrentPage(Math.min(data.pagination.total_pages, pagination.currentPage + 1)))}
-              disabled={pagination.currentPage === data.pagination.total_pages}
+              onClick={() => {
+                // If we're at or past page 100, loop back to page 1
+                const nextPage = pagination.currentPage >= 100 ? 1 : pagination.currentPage + 1;
+                dispatch(setCurrentPage(nextPage));
+              }}
+              disabled={false}
             >
               Next
             </Button>

@@ -1,7 +1,8 @@
 import { Link, useLocation } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Search, Settings } from "lucide-react";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Search, Settings, X } from "lucide-react";
 import { UserButton } from "@clerk/clerk-react";
 import { UpgradeButton } from "@/components/UpgradeButton";
 import { ProBadge } from "@/components/ProBadge";
@@ -11,9 +12,22 @@ interface DashboardNavProps {
   searchQuery?: string;
   onSearchChange?: (value: string) => void;
   searchPlaceholder?: string;
+  seniority?: string;
+  onSeniorityChange?: (value: string) => void;
+  hasActiveFilters?: boolean;
+  onClearFilters?: () => void;
 }
 
-const DashboardNav = ({ isPro, searchQuery = "", onSearchChange, searchPlaceholder = "Search..." }: DashboardNavProps) => {
+const DashboardNav = ({
+  isPro,
+  searchQuery = "",
+  onSearchChange,
+  searchPlaceholder = "Search...",
+  seniority,
+  onSeniorityChange,
+  hasActiveFilters,
+  onClearFilters
+}: DashboardNavProps) => {
   const location = useLocation();
   const isResumesPage = location.pathname === "/dashboard";
   const isProjectsPage = location.pathname === "/projects";
@@ -67,9 +81,10 @@ const DashboardNav = ({ isPro, searchQuery = "", onSearchChange, searchPlacehold
                 </Link>
               </>
             ) : (
-              <Button size="sm" className="hidden md:flex rounded-full text-sm font-semibold px-4 h-9 bg-[#1a1a1a] text-white hover:bg-[#2a2a2a]">
-                Get Pro
-              </Button>
+              <UpgradeButton
+                size="sm"
+                className="hidden md:flex rounded-full text-sm font-semibold px-4 h-9 bg-[#1a1a1a] text-white hover:bg-[#2a2a2a]"
+              />
             )}
             <UserButton
               appearance={{
@@ -81,18 +96,47 @@ const DashboardNav = ({ isPro, searchQuery = "", onSearchChange, searchPlacehold
           </div>
         </div>
 
-        {/* Center: Search - Full width on mobile, centered on desktop */}
+        {/* Center: Search + Filters - Full width on mobile, centered on desktop */}
         {onSearchChange && (
-          <div className="mt-4 md:mt-0 md:absolute md:left-1/2 md:-translate-x-1/2 md:top-4 md:w-full md:max-w-lg md:px-6">
-            <div className="relative">
-              <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
-              <Input
-                type="text"
-                placeholder={searchPlaceholder}
-                value={searchQuery}
-                onChange={(e) => onSearchChange(e.target.value)}
-                className="w-full h-10 md:h-12 pl-11 rounded-full bg-muted border-none focus-visible:ring-0 focus-visible:ring-offset-0"
-              />
+          <div className="mt-4 md:mt-0 md:absolute md:left-1/2 md:-translate-x-1/2 md:top-4 md:w-full md:max-w-3xl md:px-6">
+            <div className="flex items-center gap-3">
+              <div className="relative flex-1">
+                <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+                <Input
+                  type="text"
+                  placeholder={searchPlaceholder}
+                  value={searchQuery}
+                  onChange={(e) => onSearchChange(e.target.value)}
+                  className="w-full h-10 md:h-12 pl-11 rounded-full bg-muted border-none focus-visible:ring-0 focus-visible:ring-offset-0"
+                />
+              </div>
+
+              {onSeniorityChange && seniority && (
+                <>
+                  <Select value={seniority} onValueChange={onSeniorityChange}>
+                    <SelectTrigger className="w-[140px] h-10 md:h-12 rounded-full">
+                      <SelectValue placeholder="Seniority" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="all">All Seniority</SelectItem>
+                      <SelectItem value="intern">Intern</SelectItem>
+                      <SelectItem value="junior">Junior</SelectItem>
+                      <SelectItem value="senior">Senior</SelectItem>
+                    </SelectContent>
+                  </Select>
+
+                  {hasActiveFilters && onClearFilters && (
+                    <Button
+                      variant="ghost"
+                      onClick={onClearFilters}
+                      size="icon"
+                      className="w-10 h-10 md:w-12 md:h-12 rounded-full"
+                    >
+                      <X className="w-4 h-4" />
+                    </Button>
+                  )}
+                </>
+              )}
             </div>
           </div>
         )}

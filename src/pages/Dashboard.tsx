@@ -9,14 +9,15 @@ import { useUser } from "@clerk/clerk-react";
 import { useAuthReady } from "@/components/AuthProvider";
 import { useResumeFilters } from "@/hooks/useResumeFilters";
 import { useSearchResumesQuery } from "@/features/resumes/resumeService";
-import { useGetSubscriptionStatusQuery } from "@/features/subscription/subscriptionService";
+import { useGetSubscriptionStatusQuery, useCreateCheckoutSessionMutation } from "@/features/subscription/subscriptionService";
 import { ResumeDetailModal } from "@/components/ResumeDetailModal";
 import { UpgradeButton } from "@/components/UpgradeButton";
 import DashboardNav from "@/components/DashboardNav";
 import type { Resume } from "@/features/resumes/resumeTypes";
 import { usePostHog } from "posthog-js/react";
+import { useToast } from "@/hooks/use-toast";
 
-const FREE_PREVIEW_COUNT = 3;
+const FREE_PREVIEW_COUNT = 6;
 
 const Dashboard = () => {
   const navigate = useNavigate();
@@ -25,6 +26,8 @@ const Dashboard = () => {
   const [selectedResume, setSelectedResume] = useState<Resume | null>(null);
   const [localSearchQuery, setLocalSearchQuery] = useState("");
   const posthog = usePostHog();
+  const { toast } = useToast();
+  const [createCheckoutSession] = useCreateCheckoutSessionMutation();
 
   // Get filters from URL search params
   const {
@@ -135,9 +138,26 @@ const Dashboard = () => {
     return "all";
   };
 
-  const isBlurred = (index: number) => {
+  const handleResumeClick = async (resume: Resume, index: number) => {
     const globalIndex = (filters.currentPage - 1) * 20 + index;
-    return !isPro && globalIndex >= FREE_PREVIEW_COUNT;
+    const canView = isPro || globalIndex < FREE_PREVIEW_COUNT;
+
+    if (canView) {
+      setSelectedResume(resume);
+    } else {
+      // Redirect to Stripe checkout
+      try {
+        const result = await createCheckoutSession().unwrap();
+        window.location.href = result.checkout_url;
+      } catch (error: any) {
+        console.error("Failed to create checkout session:", error);
+        toast({
+          title: "Error",
+          description: error?.data?.detail || error?.error || "Failed to start upgrade process. Please try again.",
+          variant: "destructive",
+        });
+      }
+    }
   };
 
   if (!isLoaded || !user) return null;
@@ -148,79 +168,15 @@ const Dashboard = () => {
         isPro={isPro}
         searchQuery={localSearchQuery}
         onSearchChange={setLocalSearchQuery}
-        searchPlaceholder="Search resumes by keywords..."
+        searchPlaceholder="Search resumes by job..."
+        seniority={filters.seniority || "all"}
+        onSeniorityChange={(value) => updateSeniority(value === "all" ? "" : value)}
+        hasActiveFilters={hasActiveFilters}
+        onClearFilters={handleClearFilters}
       />
 
       <main className="max-w-7xl mx-auto px-6 pt-4 pb-6">
-        <div className="mb-6 space-y-4">
-          {hasActiveFilters && (
-            <div className="flex justify-end">
-              <Button
-                variant="outline"
-                onClick={handleClearFilters}
-                className="gap-2 shrink-0"
-              >
-                <X className="w-4 h-4" />
-                Clear Filters
-              </Button>
-            </div>
-          )}
 
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-            <Select value={filters.seniority || "all"} onValueChange={(value) => updateSeniority(value === "all" ? "" : value)}>
-              <SelectTrigger>
-                <SelectValue placeholder="Seniority" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="all">All Seniority</SelectItem>
-                <SelectItem value="intern">Intern</SelectItem>
-                <SelectItem value="junior">Junior</SelectItem>
-                <SelectItem value="mid-level">Mid-Level</SelectItem>
-                <SelectItem value="senior">Senior</SelectItem>
-                <SelectItem value="staff">Staff</SelectItem>
-                <SelectItem value="principal">Principal</SelectItem>
-              </SelectContent>
-            </Select>
-
-            <Select value={filters.school || "all"} onValueChange={(value) => updateSchool(value === "all" ? "" : value)}>
-              <SelectTrigger>
-                <SelectValue placeholder="School" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="all">All Schools</SelectItem>
-                <SelectItem value="Stanford">Stanford</SelectItem>
-                <SelectItem value="MIT">MIT</SelectItem>
-                <SelectItem value="UC Berkeley">UC Berkeley</SelectItem>
-                <SelectItem value="Carnegie Mellon">Carnegie Mellon</SelectItem>
-                <SelectItem value="Harvard">Harvard</SelectItem>
-              </SelectContent>
-            </Select>
-
-            <Select value={getExperienceFilterValue()} onValueChange={handleExperienceChange}>
-              <SelectTrigger>
-                <SelectValue placeholder="Experience" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="all">All Experience</SelectItem>
-                <SelectItem value="0-3">0-3 years</SelectItem>
-                <SelectItem value="4-7">4-7 years</SelectItem>
-                <SelectItem value="8+">8+ years</SelectItem>
-              </SelectContent>
-            </Select>
-          </div>
-        </div>
-
-        {!isPro && data && (
-          <div className="mb-8 p-6 bg-muted/50 rounded-2xl text-center">
-            <div className="max-w-2xl mx-auto">
-              <h3 className="text-lg font-semibold mb-2">Unlock Full Access</h3>
-              <p className="text-sm text-muted-foreground mb-4">
-                You're viewing {FREE_PREVIEW_COUNT} of {data.pagination.total} resumes. Upgrade to see them all for just $4.99/month.
-              </p>
-              <UpgradeButton size="default" />
-            </div>
-          </div>
-        )}
 
         {isLoading && (
           <div className="flex items-center justify-center py-20">
@@ -245,47 +201,42 @@ const Dashboard = () => {
         )}
 
         {!isLoading && !isError && data && sortedResumes.length > 0 && (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
-            {sortedResumes.map((resume, index) => {
-              const isResumeBlurred = isBlurred(index);
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-8">
+            {sortedResumes.slice(0, 18).map((resume, index) => {
+              const globalIndex = (filters.currentPage - 1) * 20 + index;
+              const isBlurred = !isPro && globalIndex >= FREE_PREVIEW_COUNT;
               return (
               <div key={resume.id} className="relative h-full">
                 <Card
                   className="group overflow-hidden border-0 bg-muted rounded-2xl hover:shadow-xl hover:scale-105 hover:-translate-y-2 transition-all duration-300 cursor-pointer h-full"
-                  onClick={() => !isResumeBlurred && setSelectedResume(resume)}
+                  onClick={() => handleResumeClick(resume, index)}
                 >
                   <div className="aspect-[3/4] bg-gradient-to-br from-gray-100 to-gray-200 overflow-hidden relative p-4 flex items-center justify-center">
                     {resume.file_url ? (
-                      <div className="w-full h-full bg-white overflow-hidden relative">
+                      <div className={`w-full h-full bg-white overflow-hidden relative ${isBlurred ? 'blur-md' : ''}`}>
                         <object
                           data={`${resume.file_url}#page=1&view=FitH&toolbar=0&navpanes=0&scrollbar=0`}
                           type="application/pdf"
-                          className={`w-full h-full pointer-events-none ${
-                            isResumeBlurred ? 'blur-md' : ''
-                          }`}
+                          className="w-full h-full pointer-events-none"
                         >
                           <embed
                             src={`${resume.file_url}#page=1&view=FitH&toolbar=0&navpanes=0&scrollbar=0`}
                             type="application/pdf"
-                            className={`w-full h-full pointer-events-none ${
-                              isResumeBlurred ? 'blur-md' : ''
-                            }`}
+                            className="w-full h-full pointer-events-none"
                           />
                         </object>
                       </div>
                     ) : (
-                      <div className={`w-full h-full bg-white flex items-center justify-center ${
-                        isResumeBlurred ? 'blur-md' : ''
-                      }`}>
+                      <div className={`w-full h-full bg-white flex items-center justify-center ${isBlurred ? 'blur-md' : ''}`}>
                         <p className="text-muted-foreground">No preview available</p>
                       </div>
                     )}
-                    {isResumeBlurred && (
+                    {isBlurred && (
                       <div className="absolute inset-0 bg-background/80 backdrop-blur-sm flex items-center justify-center">
                         <div className="text-center p-4">
                           <Crown className="w-8 h-8 mx-auto mb-2 text-primary" />
-                          <p className="text-sm font-semibold mb-1">Premium Only</p>
-                          <p className="text-xs text-muted-foreground">Upgrade to view</p>
+                          <p className="text-sm font-semibold mb-1">Pro Only</p>
+                          <p className="text-xs text-muted-foreground">Click to upgrade</p>
                         </div>
                       </div>
                     )}
@@ -348,12 +299,16 @@ const Dashboard = () => {
               Previous
             </Button>
             <span className="text-sm text-muted-foreground px-4">
-              Page {data.pagination.page} of {data.pagination.total_pages}
+              Page {data.pagination.page} of 100+
             </span>
             <Button
               variant="outline"
-              onClick={() => updateCurrentPage(Math.min(data.pagination.total_pages, filters.currentPage + 1))}
-              disabled={filters.currentPage === data.pagination.total_pages}
+              onClick={() => {
+                // If we're at or past page 100, loop back to page 1
+                const nextPage = filters.currentPage >= 100 ? 1 : filters.currentPage + 1;
+                updateCurrentPage(nextPage);
+              }}
+              disabled={false}
             >
               Next
             </Button>
