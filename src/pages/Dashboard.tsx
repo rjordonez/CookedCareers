@@ -431,6 +431,7 @@ const Dashboard = () => {
         }}
         comparedResume={comparisonResume}
         comparisonData={comparisonData}
+        isPro={isPro}
       />
     </div>
   );

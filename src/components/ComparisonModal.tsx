@@ -18,9 +18,10 @@ interface ComparisonModalProps {
   onClose: () => void;
   comparedResume: Resume | null;
   comparisonData: ComparisonData | null;
+  isPro: boolean;
 }
 
-const ComparisonModal = ({ isOpen, onClose, comparedResume, comparisonData }: ComparisonModalProps) => {
+const ComparisonModal = ({ isOpen, onClose, comparedResume, comparisonData, isPro }: ComparisonModalProps) => {
   if (!comparedResume || !comparisonData) return null;
 
   const getScoreColor = (score: number) => {
@@ -113,37 +114,62 @@ const ComparisonModal = ({ isOpen, onClose, comparedResume, comparisonData }: Co
           </div>
 
           {/* Feedback Sections - Full Width Grid */}
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6 relative">
             {/* Critical Mistakes */}
-            <div>
+            <div className="relative">
               <h3 className="text-sm font-semibold mb-3">⚠ What You Should Write Instead</h3>
               <div className="space-y-3">
                 {comparisonData.feedback.critical_mistakes.map((mistake, idx) => (
-                  <div key={idx} className="p-4 bg-muted rounded-xl">
+                  <div key={idx} className={`p-4 bg-muted rounded-xl ${!isPro && idx >= 1 ? "blur-sm select-none" : ""}`}>
                     <div className="space-y-2.5">
                       <div>
                         <p className="text-[10px] font-semibold text-muted-foreground mb-1.5">INSTEAD OF:</p>
-                        <p className="text-xs leading-relaxed opacity-60">{mistake.original}</p>
+                        <p className={`text-xs leading-relaxed opacity-60 ${!isPro && idx >= 1 ? "select-none" : ""}`}>
+                          {mistake.original}
+                        </p>
                       </div>
                       <div>
                         <p className="text-[10px] font-semibold text-muted-foreground mb-1.5">WRITE THIS:</p>
-                        <p className="text-xs leading-relaxed font-medium">{mistake.suggested}</p>
+                        <p className={`text-xs leading-relaxed font-medium ${!isPro && idx >= 1 ? "select-none" : ""}`}>
+                          {mistake.suggested}
+                        </p>
                       </div>
                     </div>
                   </div>
                 ))}
               </div>
+
+              {/* Overlay for this section */}
+              {!isPro && (
+                <div className="absolute top-[140px] left-0 right-0 bottom-0 z-10 flex items-center justify-center">
+                  <div className="absolute inset-0 bg-gradient-to-b from-transparent via-background/40 to-background/80"></div>
+                  <div className="relative z-20 text-center p-8">
+                    <h3 className="text-2xl font-bold mb-3">Unlock Pro to Get Unlimited Compares</h3>
+                    <p className="text-muted-foreground mb-6">
+                      Get detailed feedback on what you should write instead, what's working, what needs work, and actionable next steps.
+                    </p>
+                    <button
+                      onClick={onClose}
+                      className="px-6 py-3 bg-[#1a1a1a] text-white rounded-full font-semibold hover:bg-[#2a2a2a] transition-colors"
+                    >
+                      Upgrade to Pro
+                    </button>
+                  </div>
+                </div>
+              )}
             </div>
 
             {/* Strengths & Weaknesses Combined */}
-            <div className="space-y-6">
+            <div className="space-y-6 relative">
               {/* Strengths */}
               <div>
                 <h3 className="text-sm font-semibold mb-3">✓ What's Working</h3>
                 <div className="space-y-2">
                   {comparisonData.feedback.strengths.slice(0, 2).map((strength, idx) => (
-                    <div key={idx} className="p-3 bg-muted rounded-xl">
-                      <p className="text-xs leading-relaxed">{strength}</p>
+                    <div key={idx} className={`p-3 bg-muted rounded-xl ${!isPro && idx >= 1 ? "blur-sm select-none" : ""}`}>
+                      <p className={`text-xs leading-relaxed ${!isPro && idx >= 1 ? "select-none" : ""}`}>
+                        {strength}
+                      </p>
                     </div>
                   ))}
                 </div>
@@ -154,8 +180,10 @@ const ComparisonModal = ({ isOpen, onClose, comparedResume, comparisonData }: Co
                 <h3 className="text-sm font-semibold mb-3">✗ What Needs Work</h3>
                 <div className="space-y-2">
                   {comparisonData.feedback.weaknesses.slice(0, 2).map((weakness, idx) => (
-                    <div key={idx} className="p-3 bg-muted rounded-xl">
-                      <p className="text-xs leading-relaxed">{weakness}</p>
+                    <div key={idx} className={`p-3 bg-muted rounded-xl ${!isPro ? "blur-sm select-none" : ""}`}>
+                      <p className={`text-xs leading-relaxed ${!isPro ? "select-none" : ""}`}>
+                        {weakness}
+                      </p>
                     </div>
                   ))}
                 </div>
@@ -166,12 +194,21 @@ const ComparisonModal = ({ isOpen, onClose, comparedResume, comparisonData }: Co
                 <h3 className="text-sm font-semibold mb-3">→ Next Steps</h3>
                 <div className="space-y-2">
                   {comparisonData.feedback.suggestions.slice(0, 2).map((suggestion, idx) => (
-                    <div key={idx} className="p-3 bg-muted rounded-xl">
-                      <p className="text-xs leading-relaxed">{suggestion}</p>
+                    <div key={idx} className={`p-3 bg-muted rounded-xl ${!isPro ? "blur-sm select-none" : ""}`}>
+                      <p className={`text-xs leading-relaxed ${!isPro ? "select-none" : ""}`}>
+                        {suggestion}
+                      </p>
                     </div>
                   ))}
                 </div>
               </div>
+
+              {/* Overlay for this section */}
+              {!isPro && (
+                <div className="absolute top-[120px] left-0 right-0 bottom-0 z-10 pointer-events-none">
+                  <div className="absolute inset-0 bg-gradient-to-b from-transparent via-background/40 to-background/80"></div>
+                </div>
+              )}
             </div>
           </div>
         </div>
