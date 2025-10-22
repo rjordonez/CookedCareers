@@ -54,6 +54,24 @@ const Dashboard = () => {
   });
   const isPro = subscriptionData?.is_active ?? false;
 
+  // FAANG companies for prioritization
+  const FAANG_COMPANIES = ['Google', 'Meta', 'Amazon', 'Apple', 'Netflix', 'Microsoft'];
+
+  // Sort resumes to show FAANG first
+  const sortedResumes = data?.results ? [...data.results].sort((a, b) => {
+    const aHasFaang = a.experience?.some(exp =>
+      FAANG_COMPANIES.some(faang => exp.company?.toUpperCase().includes(faang.toUpperCase()))
+    );
+    const bHasFaang = b.experience?.some(exp =>
+      FAANG_COMPANIES.some(faang => exp.company?.toUpperCase().includes(faang.toUpperCase()))
+    );
+
+    // FAANG resumes come first
+    if (aHasFaang && !bHasFaang) return -1;
+    if (!aHasFaang && bHasFaang) return 1;
+    return 0;
+  }) : [];
+
   // Sync local search with URL params on mount
   useEffect(() => {
     setLocalSearchQuery(filters.searchQuery);
@@ -226,9 +244,9 @@ const Dashboard = () => {
           </Card>
         )}
 
-        {!isLoading && !isError && data && data.results.length > 0 && (
+        {!isLoading && !isError && data && sortedResumes.length > 0 && (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
-            {data.results.map((resume, index) => {
+            {sortedResumes.map((resume, index) => {
               const isResumeBlurred = isBlurred(index);
               return (
               <div key={resume.id} className="relative h-full">
