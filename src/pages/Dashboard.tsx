@@ -14,6 +14,7 @@ import { ResumeDetailModal } from "@/components/ResumeDetailModal";
 import { UpgradeButton } from "@/components/UpgradeButton";
 import DashboardNav from "@/components/DashboardNav";
 import type { Resume } from "@/features/resumes/resumeTypes";
+import { usePostHog } from "posthog-js/react";
 
 const FREE_PREVIEW_COUNT = 3;
 
@@ -23,6 +24,7 @@ const Dashboard = () => {
   const { authReady } = useAuthReady();
   const [selectedResume, setSelectedResume] = useState<Resume | null>(null);
   const [localSearchQuery, setLocalSearchQuery] = useState("");
+  const posthog = usePostHog();
 
   // Get filters from URL search params
   const {
@@ -50,7 +52,7 @@ const Dashboard = () => {
     refetchOnFocus: false,
     refetchOnReconnect: false,
   });
-  const isPro = true; // TEMP: Testing pro features - REVERT BEFORE DEPLOY!
+  const isPro = subscriptionData?.is_active ?? false;
 
   // Sync local search with URL params on mount
   useEffect(() => {
@@ -72,10 +74,18 @@ const Dashboard = () => {
 
     const timer = setTimeout(() => {
       updateSearchQuery(localSearchQuery);
+
+      // Track search query in PostHog
+      if (localSearchQuery.trim()) {
+        posthog?.capture('dashboard_search', {
+          search_query: localSearchQuery,
+          user_id: user?.id,
+        });
+      }
     }, 500);
 
     return () => clearTimeout(timer);
-  }, [localSearchQuery, filters.searchQuery, updateSearchQuery]);
+  }, [localSearchQuery, filters.searchQuery, updateSearchQuery, posthog, user?.id]);
 
   const handleClearFilters = () => {
     setLocalSearchQuery("");

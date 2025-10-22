@@ -1,11 +1,10 @@
 import Navigation from "@/components/Navigation";
 import Hero from "@/components/Hero";
 import WhySection from "@/components/WhySection";
-import BrowseGrid from "@/components/BrowseGrid";
-import CompanyLogos from "@/components/CompanyLogos";
 import UniversityLogos from "@/components/UniversityLogos";
 import CTASection from "@/components/CTASection";
 import Footer from "@/components/Footer";
+import ResumeCarousel from "@/components/ResumeCarousel";
 import { useSmoothScroll } from "@/hooks/useSmoothScroll";
 
 const Index = () => {
@@ -17,7 +16,7 @@ const Index = () => {
       <main>
         <Hero />
         <WhySection />
-        <BrowseGrid />
+        <ResumeCarousel />
         <UniversityLogos />
         <CTASection />
       </main>
