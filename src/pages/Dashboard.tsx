@@ -57,23 +57,7 @@ const Dashboard = () => {
   });
   const isPro = subscriptionData?.is_active ?? false;
 
-  // FAANG companies for prioritization
-  const FAANG_COMPANIES = ['Google', 'Meta', 'Amazon', 'Apple', 'Netflix', 'Microsoft'];
-
-  // Sort resumes to show FAANG first
-  const sortedResumes = data?.results ? [...data.results].sort((a, b) => {
-    const aHasFaang = a.experience?.some(exp =>
-      FAANG_COMPANIES.some(faang => exp.company?.toUpperCase().includes(faang.toUpperCase()))
-    );
-    const bHasFaang = b.experience?.some(exp =>
-      FAANG_COMPANIES.some(faang => exp.company?.toUpperCase().includes(faang.toUpperCase()))
-    );
-
-    // FAANG resumes come first
-    if (aHasFaang && !bHasFaang) return -1;
-    if (!aHasFaang && bHasFaang) return 1;
-    return 0;
-  }) : [];
+  const sortedResumes = data?.results || [];
 
   // Sync local search with URL params on mount
   useEffect(() => {
@@ -139,8 +123,9 @@ const Dashboard = () => {
   };
 
   const handleResumeClick = async (resume: Resume, index: number) => {
-    const globalIndex = (filters.currentPage - 1) * 20 + index;
-    const canView = isPro || globalIndex < FREE_PREVIEW_COUNT;
+    const globalIndex = (filters.currentPage - 1) * 18 + index;
+    const hasSearch = filters.searchQuery.trim().length > 0;
+    const canView = isPro || (!hasSearch && globalIndex < FREE_PREVIEW_COUNT);
 
     if (canView) {
       setSelectedResume(resume);
@@ -166,6 +151,13 @@ const Dashboard = () => {
     <div className="min-h-screen bg-background">
       <DashboardNav
         isPro={isPro}
+        searchQuery={localSearchQuery}
+        onSearchChange={setLocalSearchQuery}
+        searchPlaceholder="Search resumes by job..."
+        seniority={filters.seniority || "all"}
+        onSeniorityChange={(value) => updateSeniority(value === "all" ? "" : value)}
+        hasActiveFilters={hasActiveFilters}
+        onClearFilters={handleClearFilters}
       />
 
       <main className="max-w-7xl mx-auto px-6 pt-4 pb-6">
@@ -196,8 +188,9 @@ const Dashboard = () => {
         {!isLoading && !isError && data && sortedResumes.length > 0 && (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-8">
             {sortedResumes.slice(0, 18).map((resume, index) => {
-              const globalIndex = (filters.currentPage - 1) * 20 + index;
-              const isBlurred = !isPro && globalIndex >= FREE_PREVIEW_COUNT;
+              const globalIndex = (filters.currentPage - 1) * 18 + index;
+              const hasSearch = filters.searchQuery.trim().length > 0;
+              const isBlurred = !isPro && (hasSearch || globalIndex >= FREE_PREVIEW_COUNT);
               return (
               <div key={resume.id} className="relative h-full">
                 <Card
@@ -282,7 +275,7 @@ const Dashboard = () => {
           </div>
         )}
 
-        {!isLoading && !isError && data && (
+        {!isLoading && !isError && data && sortedResumes.length >= 18 && (
           <div className="flex items-center justify-center gap-2">
             <Button
               variant="outline"

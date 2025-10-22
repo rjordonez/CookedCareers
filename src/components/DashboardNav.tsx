@@ -35,10 +35,10 @@ const DashboardNav = ({
   return (
     <nav className="bg-background sticky top-0 z-50">
       <div className="max-w-7xl mx-auto px-4 md:px-6 py-4">
-        <div className="flex items-center justify-between gap-4 md:gap-8">
+        <div className="flex flex-wrap items-center justify-between gap-4">
           {/* Left: Logo + Navigation */}
-          <div className="flex items-center gap-4 md:gap-6">
-            <Link to="/" className="flex items-center gap-2">
+          <div className="flex items-center gap-2 md:gap-6">
+            <Link to="/dashboard" className="flex items-center gap-2">
               <div className="relative w-[36px] h-[36px] shrink-0">
                 {/* Grey paper layer (offset bottom-right) */}
                 <div className="absolute w-8 h-8 rounded-xl bg-gray-300 bottom-0 right-0"></div>
@@ -49,7 +49,7 @@ const DashboardNav = ({
               </div>
             </Link>
 
-            <div className="flex items-center gap-4 md:gap-6">
+            <div className="flex items-center gap-3 md:gap-6">
               <Link
                 to="/dashboard"
                 className={`text-sm font-semibold transition-colors ${
@@ -70,10 +70,10 @@ const DashboardNav = ({
           </div>
 
           {/* Right: Upgrade + Settings + Profile */}
-          <div className="flex items-center gap-3 md:gap-4">
+          <div className="flex items-center gap-2 md:gap-4">
             {isPro ? (
               <>
-                <ProBadge />
+                <ProBadge className="hidden md:flex" />
                 <Link to="/account">
                   <Button variant="ghost" size="icon" className="w-9 h-9">
                     <Settings className="w-5 h-5" />
@@ -96,25 +96,25 @@ const DashboardNav = ({
           </div>
         </div>
 
-        {/* Center: Search + Filters - Full width on mobile, centered on desktop */}
+        {/* Search + Filters - Full width below nav on mobile */}
         {onSearchChange && (
-          <div className="mt-4 md:mt-0 md:absolute md:left-1/2 md:-translate-x-1/2 md:top-4 md:w-full md:max-w-3xl md:px-6">
-            <div className="flex items-center gap-3">
+          <div className="mt-4">
+            <div className="flex items-center gap-2">
               <div className="relative flex-1">
-                <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+                <Search className="absolute left-3 md:left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
                 <Input
                   type="text"
                   placeholder={searchPlaceholder}
                   value={searchQuery}
                   onChange={(e) => onSearchChange(e.target.value)}
-                  className="w-full h-10 md:h-12 pl-11 rounded-full bg-muted border-none focus-visible:ring-0 focus-visible:ring-offset-0"
+                  className="w-full h-10 md:h-12 pl-10 md:pl-11 rounded-full bg-muted border-none focus-visible:ring-0 focus-visible:ring-offset-0"
                 />
               </div>
 
               {onSeniorityChange && seniority && (
                 <>
                   <Select value={seniority} onValueChange={onSeniorityChange}>
-                    <SelectTrigger className="w-[140px] h-10 md:h-12 rounded-full">
+                    <SelectTrigger className="w-[100px] md:w-[140px] h-10 md:h-12 rounded-full">
                       <SelectValue placeholder="Seniority" />
                     </SelectTrigger>
                     <SelectContent>
@@ -130,7 +130,7 @@ const DashboardNav = ({
                       variant="ghost"
                       onClick={onClearFilters}
                       size="icon"
-                      className="w-10 h-10 md:w-12 md:h-12 rounded-full"
+                      className="w-10 h-10 md:w-12 md:h-12 rounded-full shrink-0"
                     >
                       <X className="w-4 h-4" />
                     </Button>
