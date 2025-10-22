@@ -79,7 +79,7 @@ const WhySection = () => {
           >
             <div className="bg-muted/50 rounded-2xl p-8 text-center max-w-3xl mx-auto">
               <p className="text-lg md:text-xl leading-relaxed">
-                <span className="font-bold">Get your resume ATS-scanned correctly every time.</span> Increase your interview rate with 1,000+ real resumes that landed offers.
+                <span className="font-bold">Get your resume ATS-scanned correctly every time.</span> Increase your interview rate 4x with 1,000+ real resumes that landed offers.
               </p>
             </div>
           </div>

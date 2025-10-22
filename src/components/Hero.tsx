@@ -58,7 +58,7 @@ const Hero = () => {
         </h1>
 
         <p className="max-w-[450px] mx-auto pt-6 text-center text-lg text-muted-foreground md:max-w-[550px] md:text-xl lg:max-w-[700px]">
-          Get your resume ATS-scanned correctly every time. Increase your interview rate with{' '}
+          Get your resume ATS-scanned correctly every time. <span className="font-bold text-foreground">Increase your interview rate 4x</span> with{' '}
           <span className="inline-flex items-baseline">
             {mounted ? <SlotCounter value="1000" /> : '1000'}
             <span>+</span>
