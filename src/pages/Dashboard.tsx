@@ -226,72 +226,32 @@ const Dashboard = () => {
                   className="group overflow-hidden border-0 bg-muted rounded-2xl hover:shadow-xl hover:scale-105 hover:-translate-y-2 transition-all duration-300 cursor-pointer h-full"
                   onClick={() => !isResumeBlurred && setSelectedResume(resume)}
                 >
-                  <div className="aspect-[3/4] bg-gradient-to-br from-gray-100 to-gray-200 overflow-hidden relative">
-                    <div className={`w-full h-full p-6 flex flex-col ${
-                      isResumeBlurred ? 'blur-md' : ''
-                    }`}>
-                      {/* Header */}
-                      <div className="mb-6 pb-4 border-b-2 border-gray-200">
-                        <h4 className="font-bold text-2xl text-gray-900 mb-2 line-clamp-1">
-                          {resume.name || 'Candidate'}
-                        </h4>
-                        {resume.title && (
-                          <p className="text-base text-gray-600 line-clamp-1">{resume.title}</p>
-                        )}
-                        {resume.location && (
-                          <p className="text-base text-gray-500 mt-1.5 line-clamp-1">{resume.location}</p>
-                        )}
+                  <div className="aspect-[3/4] bg-gradient-to-br from-gray-100 to-gray-200 overflow-hidden relative p-4 flex items-center justify-center">
+                    {resume.file_url ? (
+                      <div className="w-full h-full bg-white overflow-hidden relative">
+                        <object
+                          data={`${resume.file_url}#page=1&view=FitH&toolbar=0&navpanes=0&scrollbar=0`}
+                          type="application/pdf"
+                          className={`w-full h-full pointer-events-none ${
+                            isResumeBlurred ? 'blur-md' : ''
+                          }`}
+                        >
+                          <embed
+                            src={`${resume.file_url}#page=1&view=FitH&toolbar=0&navpanes=0&scrollbar=0`}
+                            type="application/pdf"
+                            className={`w-full h-full pointer-events-none ${
+                              isResumeBlurred ? 'blur-md' : ''
+                            }`}
+                          />
+                        </object>
                       </div>
-
-                      {/* Experience Preview */}
-                      {resume.experience && resume.experience.length > 0 && (
-                        <div className="mb-6">
-                          <p className="text-sm font-bold text-gray-700 mb-3 tracking-wide">EXPERIENCE</p>
-                          <div className="space-y-3">
-                            {resume.experience.slice(0, 2).map((exp, idx) => (
-                              <div key={idx}>
-                                <p className="text-base font-semibold text-gray-800 line-clamp-1">
-                                  {exp.title}
-                                </p>
-                                <p className="text-base text-gray-600 line-clamp-1">{exp.company}</p>
-                              </div>
-                            ))}
-                          </div>
-                        </div>
-                      )}
-
-                      {/* Education Preview */}
-                      {resume.education && resume.education.length > 0 && resume.education[0].institution && (
-                        <div className="mb-6">
-                          <p className="text-sm font-bold text-gray-700 mb-3 tracking-wide">EDUCATION</p>
-                          <p className="text-base font-semibold text-gray-800 line-clamp-1">
-                            {resume.education[0].institution}
-                          </p>
-                          {resume.education[0].degree && (
-                            <p className="text-base text-gray-600 line-clamp-1">
-                              {resume.education[0].degree}
-                            </p>
-                          )}
-                        </div>
-                      )}
-
-                      {/* Skills Preview */}
-                      {resume.skills && resume.skills.length > 0 && (
-                        <div className="mt-auto">
-                          <p className="text-sm font-bold text-gray-700 mb-3 tracking-wide">SKILLS</p>
-                          <div className="flex flex-wrap gap-2">
-                            {resume.skills.slice(0, 6).map((skill, idx) => (
-                              <span
-                                key={idx}
-                                className="text-sm px-3 py-1.5 bg-gray-200 text-gray-700 rounded font-medium"
-                              >
-                                {skill}
-                              </span>
-                            ))}
-                          </div>
-                        </div>
-                      )}
-                    </div>
+                    ) : (
+                      <div className={`w-full h-full bg-white flex items-center justify-center ${
+                        isResumeBlurred ? 'blur-md' : ''
+                      }`}>
+                        <p className="text-muted-foreground">No preview available</p>
+                      </div>
+                    )}
                     {isResumeBlurred && (
                       <div className="absolute inset-0 bg-background/80 backdrop-blur-sm flex items-center justify-center">
                         <div className="text-center p-4">
