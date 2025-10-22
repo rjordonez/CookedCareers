@@ -58,12 +58,12 @@ const Hero = () => {
         </h1>
 
         <p className="max-w-[450px] mx-auto pt-6 text-center text-lg text-muted-foreground md:max-w-[550px] md:text-xl lg:max-w-[700px]">
-          Access{' '}
+          Get your resume ATS-scanned correctly every time. Increase your interview rate with{' '}
           <span className="inline-flex items-baseline">
             {mounted ? <SlotCounter value="1000" /> : '1000'}
             <span>+</span>
           </span>
-          {' '}real applications that landed offers. Stop guessing. Learn what works.
+          {' '}real resumes that landed offers.
         </p>
 
         <div className="pt-10 flex flex-col items-center gap-4">
@@ -71,36 +71,11 @@ const Hero = () => {
             <Button
               size="lg"
               className="rounded-full text-base font-semibold px-6 h-11 bg-[#1a1a1a] text-white hover:bg-[#2a2a2a]"
-              onClick={() => posthog?.capture('hero_join_for_free_clicked')}
+              onClick={() => posthog?.capture('hero_compare_for_free_clicked')}
             >
-              Join for free
+              Compare for free
             </Button>
           </Link>
-
-          <div className="flex items-center gap-3">
-            <div className="h-px w-16 bg-border"></div>
-            <span className="text-sm text-muted-foreground">or</span>
-            <div className="h-px w-16 bg-border"></div>
-          </div>
-
-          <div>
-            <input
-              ref={fileInputRef}
-              type="file"
-              accept=".pdf,.doc,.docx"
-              onChange={handleFileUpload}
-              className="hidden"
-            />
-            <Button
-              size="lg"
-              variant="outline"
-              className="rounded-full text-base font-semibold px-6 h-11"
-              onClick={() => fileInputRef.current?.click()}
-            >
-              <Upload className="w-4 h-4 mr-2" />
-              Upload resume to compare
-            </Button>
-          </div>
         </div>
 
         {/* Company Logos */}
