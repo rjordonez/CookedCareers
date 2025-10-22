@@ -166,13 +166,6 @@ const Dashboard = () => {
     <div className="min-h-screen bg-background">
       <DashboardNav
         isPro={isPro}
-        searchQuery={localSearchQuery}
-        onSearchChange={setLocalSearchQuery}
-        searchPlaceholder="Search resumes by job..."
-        seniority={filters.seniority || "all"}
-        onSeniorityChange={(value) => updateSeniority(value === "all" ? "" : value)}
-        hasActiveFilters={hasActiveFilters}
-        onClearFilters={handleClearFilters}
       />
 
       <main className="max-w-7xl mx-auto px-6 pt-4 pb-6">
@@ -212,7 +205,7 @@ const Dashboard = () => {
                   onClick={() => handleResumeClick(resume, index)}
                 >
                   <div className="aspect-[3/4] bg-gradient-to-br from-gray-100 to-gray-200 overflow-hidden relative p-4 flex items-center justify-center">
-                    {resume.file_url ? (
+                    {resume.file_url && resume.file_url.toLowerCase().endsWith('.pdf') ? (
                       <div className={`w-full h-full bg-white overflow-hidden relative ${isBlurred ? 'blur-md' : ''}`}>
                         <object
                           data={`${resume.file_url}#page=1&view=FitH&toolbar=0&navpanes=0&scrollbar=0`}
