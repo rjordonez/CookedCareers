@@ -37,7 +37,7 @@ const ProjectsDashboard = () => {
   const { data: subscriptionData } = useGetSubscriptionStatusQuery(undefined, {
     skip: !authReady || !isSignedIn,
   });
-  const isPremium = subscriptionData?.is_pro || false;
+  const isPremium = true; // TEMP: Testing pro features - REVERT BEFORE DEPLOY!
 
   useEffect(() => {
     if (isLoaded && !user) {

@@ -50,7 +50,7 @@ const Dashboard = () => {
     refetchOnFocus: false,
     refetchOnReconnect: false,
   });
-  const isPro = subscriptionData?.is_pro || false;
+  const isPro = true; // TEMP: Testing pro features - REVERT BEFORE DEPLOY!
 
   // Sync local search with URL params on mount
   useEffect(() => {
@@ -221,12 +221,12 @@ const Dashboard = () => {
             {data.results.map((resume, index) => {
               const isResumeBlurred = isBlurred(index);
               return (
-              <div key={resume.id} className="relative">
+              <div key={resume.id} className="relative h-full">
                 <Card
-                  className="group overflow-hidden border border-border hover:shadow-xl hover:scale-105 hover:-translate-y-2 transition-all duration-300 cursor-pointer bg-card"
+                  className="group overflow-hidden border-0 bg-muted rounded-2xl hover:shadow-xl hover:scale-105 hover:-translate-y-2 transition-all duration-300 cursor-pointer h-full"
                   onClick={() => !isResumeBlurred && setSelectedResume(resume)}
                 >
-                  <div className="aspect-[3/4] bg-gradient-to-br from-white to-gray-50 overflow-hidden relative border-b">
+                  <div className="aspect-[3/4] bg-gradient-to-br from-gray-100 to-gray-200 overflow-hidden relative">
                     <div className={`w-full h-full p-6 flex flex-col ${
                       isResumeBlurred ? 'blur-md' : ''
                     }`}>
