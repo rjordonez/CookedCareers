@@ -1,6 +1,7 @@
 import { Dialog, DialogContent } from "@/components/ui/dialog";
 import type { Resume } from "@/features/resumes/resumeTypes";
 import type { CompareResumeResponse } from "@/features/user-resume/userResumeService";
+import { UpgradeButton } from "@/components/UpgradeButton";
 
 interface ComparisonModalProps {
   isOpen: boolean;
@@ -24,25 +25,25 @@ const ComparisonModal = ({ isOpen, onClose, comparedResume, comparisonData, isPr
     <Dialog open={isOpen} onOpenChange={onClose}>
       <DialogContent className="max-w-[95vw] w-full max-h-[95vh] overflow-hidden bg-background p-0 gap-0">
         {/* Header */}
-        <div className="border-b px-6 py-4">
-          <h2 className="text-xl font-bold">Resume Analysis</h2>
-          <p className="text-xs text-muted-foreground mt-0.5">See how your resume compares</p>
+        <div className="border-b px-4 md:px-6 py-3 md:py-4">
+          <h2 className="text-lg md:text-xl font-bold">Resume Analysis</h2>
+          <p className="text-[10px] md:text-xs text-muted-foreground mt-0.5">See how your resume compares</p>
         </div>
 
-        <div className="overflow-y-auto px-6 py-6" style={{ maxHeight: 'calc(95vh - 80px)' }}>
+        <div className="overflow-y-auto px-4 md:px-6 py-4 md:py-6" style={{ maxHeight: 'calc(95vh - 80px)' }}>
           {/* Score Section */}
-          <div className="mb-6">
-            <div className="inline-block px-6 py-4 bg-[#1a1a1a] text-white rounded-2xl">
-              <p className="text-xs text-gray-300 mb-1">Overall Match</p>
-              <p className="text-4xl font-bold text-white">{comparisonData.overall_match_score}%</p>
+          <div className="mb-4 md:mb-6">
+            <div className="inline-block px-4 md:px-6 py-3 md:py-4 bg-[#1a1a1a] text-white rounded-xl md:rounded-2xl">
+              <p className="text-[10px] md:text-xs text-gray-300 mb-1">Overall Match</p>
+              <p className="text-3xl md:text-4xl font-bold text-white">{comparisonData.overall_match_score}%</p>
             </div>
           </div>
 
           {/* Resume Previews Side by Side */}
-          <div className="flex items-start gap-6 mb-8">
+          <div className="flex items-start gap-4 md:gap-6 mb-6 md:mb-8">
             {/* Your Resume */}
             <div className="flex flex-col items-center">
-              <div className="w-32 flex-shrink-0 mb-3">
+              <div className="w-24 md:w-32 flex-shrink-0 mb-2 md:mb-3">
                 <div className="overflow-hidden rounded-xl bg-muted shadow-lg">
                   <div className="aspect-[8.5/11] bg-gradient-to-br from-gray-100 to-gray-200 overflow-hidden relative flex items-center justify-center p-2">
                     {userResumeUrl && userResumeUrl.toLowerCase().endsWith('.pdf') ? (
@@ -66,11 +67,11 @@ const ComparisonModal = ({ isOpen, onClose, comparedResume, comparisonData, isPr
                 </div>
               </div>
               <div className="text-center">
-                <h3 className="text-sm font-semibold mb-2">Your Resume</h3>
-                <div className="inline-flex items-center gap-2 px-4 py-2 bg-muted rounded-lg">
+                <h3 className="text-xs md:text-sm font-semibold mb-1 md:mb-2">Your Resume</h3>
+                <div className="inline-flex items-center gap-2 px-3 md:px-4 py-1.5 md:py-2 bg-muted rounded-lg">
                   <div className="text-left">
-                    <p className="text-[10px] text-muted-foreground">ATS</p>
-                    <p className={`text-2xl font-bold leading-none ${getScoreColor(comparisonData.user_resume_ats_score)}`}>
+                    <p className="text-[9px] md:text-[10px] text-muted-foreground">ATS</p>
+                    <p className={`text-xl md:text-2xl font-bold leading-none ${getScoreColor(comparisonData.user_resume_ats_score)}`}>
                       {comparisonData.user_resume_ats_score}%
                     </p>
                   </div>
@@ -80,7 +81,7 @@ const ComparisonModal = ({ isOpen, onClose, comparedResume, comparisonData, isPr
 
             {/* Compared Resume */}
             <div className="flex flex-col items-center">
-              <div className="w-32 flex-shrink-0 mb-3">
+              <div className="w-24 md:w-32 flex-shrink-0 mb-2 md:mb-3">
                 <div className="overflow-hidden rounded-xl bg-muted shadow-lg">
                   <div className="aspect-[8.5/11] bg-gradient-to-br from-gray-100 to-gray-200 overflow-hidden relative flex items-center justify-center p-2">
                     {comparedResume.file_url && comparedResume.file_url.toLowerCase().endsWith('.pdf') ? (
@@ -106,11 +107,11 @@ const ComparisonModal = ({ isOpen, onClose, comparedResume, comparisonData, isPr
                 </div>
               </div>
               <div className="text-center">
-                <h3 className="text-sm font-semibold mb-2">{comparisonData.db_resume_name}</h3>
-                <div className="inline-flex items-center gap-2 px-4 py-2 bg-muted rounded-lg">
+                <h3 className="text-xs md:text-sm font-semibold mb-1 md:mb-2 truncate max-w-[120px] md:max-w-none">{comparisonData.db_resume_name}</h3>
+                <div className="inline-flex items-center gap-2 px-3 md:px-4 py-1.5 md:py-2 bg-muted rounded-lg">
                   <div className="text-left">
-                    <p className="text-[10px] text-muted-foreground">ATS</p>
-                    <p className={`text-2xl font-bold leading-none ${getScoreColor(comparisonData.db_resume_ats_score)}`}>
+                    <p className="text-[9px] md:text-[10px] text-muted-foreground">ATS</p>
+                    <p className={`text-xl md:text-2xl font-bold leading-none ${getScoreColor(comparisonData.db_resume_ats_score)}`}>
                       {comparisonData.db_resume_ats_score}%
                     </p>
                   </div>
@@ -147,19 +148,17 @@ const ComparisonModal = ({ isOpen, onClose, comparedResume, comparisonData, isPr
 
               {/* Overlay for this section */}
               {!isPro && (
-                <div className="absolute top-[140px] left-0 right-0 bottom-0 z-10 flex items-center justify-center">
+                <div className="absolute top-[100px] md:top-[140px] left-0 right-0 bottom-0 z-10 flex items-center justify-center">
                   <div className="absolute inset-0 bg-gradient-to-b from-transparent via-background/40 to-background/80"></div>
-                  <div className="relative z-20 text-center p-8">
-                    <h3 className="text-2xl font-bold mb-3">Unlock Pro to Get Unlimited Compares</h3>
-                    <p className="text-muted-foreground mb-6">
+                  <div className="relative z-20 text-center p-4 md:p-8">
+                    <h3 className="text-lg md:text-2xl font-bold mb-2 md:mb-3">Unlock Pro to Get Unlimited Compares</h3>
+                    <p className="text-xs md:text-sm text-muted-foreground mb-4 md:mb-6">
                       Get detailed feedback on what you should write instead, what's working, what needs work, and actionable next steps.
                     </p>
-                    <button
-                      onClick={onClose}
-                      className="px-6 py-3 bg-[#1a1a1a] text-white rounded-full font-semibold hover:bg-[#2a2a2a] transition-colors"
-                    >
-                      Upgrade to Pro
-                    </button>
+                    <UpgradeButton
+                      size="lg"
+                      className="px-4 md:px-6 py-2 md:py-3 rounded-full text-sm md:text-base"
+                    />
                   </div>
                 </div>
               )}
@@ -211,7 +210,7 @@ const ComparisonModal = ({ isOpen, onClose, comparedResume, comparisonData, isPr
 
               {/* Overlay for this section */}
               {!isPro && (
-                <div className="absolute top-[120px] left-0 right-0 bottom-0 z-10 pointer-events-none">
+                <div className="absolute top-[80px] md:top-[120px] left-0 right-0 bottom-0 z-10 pointer-events-none">
                   <div className="absolute inset-0 bg-gradient-to-b from-transparent via-background/40 to-background/80"></div>
                 </div>
               )}

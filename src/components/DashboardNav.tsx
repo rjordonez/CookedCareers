@@ -149,14 +149,14 @@ const DashboardNav = forwardRef<DashboardNavRef, DashboardNavProps>(({
             <input
               ref={fileInputRef}
               type="file"
-              accept=".pdf,.doc,.docx,.txt"
+              accept=".pdf"
               onChange={handleFileUpload}
               className="hidden"
             />
             <Button
               variant="outline"
               size="sm"
-              className="hidden md:flex items-center gap-2"
+              className="flex items-center gap-2"
               onClick={() => {
                 if (onMyResumeClick) {
                   onMyResumeClick();
@@ -167,7 +167,7 @@ const DashboardNav = forwardRef<DashboardNavRef, DashboardNavProps>(({
               disabled={isUploading}
             >
               <Upload className="w-4 h-4" />
-              {isUploading ? 'Uploading...' : hasUploadedResume ? 'Resume Uploaded ✓' : 'My Resume'}
+              <span className="hidden sm:inline">{isUploading ? 'Uploading...' : hasUploadedResume ? 'Resume Uploaded ✓' : 'My Resume'}</span>
             </Button>
 
             {isPro ? (

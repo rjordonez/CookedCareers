@@ -55,7 +55,7 @@ const UploadResumeModal = ({ isOpen, onClose, onUploadClick, mode = 'upload' }: 
           </div>
 
           <p className="text-xs text-muted-foreground mt-4">
-            Supported formats: PDF, DOC, DOCX, TXT
+            Supported format: PDF only
           </p>
         </div>
       </DialogContent>
