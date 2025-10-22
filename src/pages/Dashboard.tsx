@@ -268,21 +268,39 @@ const Dashboard = () => {
                         {resume.title || resume.name || 'Untitled Resume'}
                       </h3>
                     </div>
-                    {resume.company && (
-                      <p className="text-sm text-muted-foreground mb-1">{resume.company}</p>
-                    )}
                     {resume.education && resume.education.length > 0 && resume.education[0].institution && (
                       <p className="text-xs text-muted-foreground mb-3">{resume.education[0].institution}</p>
                     )}
-                    <div className="flex flex-wrap gap-1.5">
-                      {resume.skills.slice(0, 3).map((skill, idx) => (
-                        <span
-                          key={idx}
-                          className="text-xs px-2 py-1 rounded-md bg-secondary text-foreground"
-                        >
-                          {skill}
-                        </span>
-                      ))}
+                    <div className="flex flex-wrap gap-2 items-center">
+                      {(() => {
+                        const companyLogos: Record<string, string> = {
+                          'Google': 'https://upload.wikimedia.org/wikipedia/commons/thumb/c/c1/Google_%22G%22_logo.svg/1200px-Google_%22G%22_logo.svg.png',
+                          'Meta': 'https://brandlogos.net/wp-content/uploads/2021/10/meta-logo-512x512.png',
+                          'Amazon': 'https://upload.wikimedia.org/wikipedia/commons/thumb/a/a9/Amazon_logo.svg/2880px-Amazon_logo.svg.png',
+                          'Microsoft': 'https://upload.wikimedia.org/wikipedia/commons/thumb/4/44/Microsoft_logo.svg/1200px-Microsoft_logo.svg.png',
+                          'Apple': 'https://upload.wikimedia.org/wikipedia/commons/thumb/f/fa/Apple_logo_black.svg/1200px-Apple_logo_black.svg.png',
+                          'Netflix': 'https://upload.wikimedia.org/wikipedia/commons/thumb/0/08/Netflix_2015_logo.svg/1200px-Netflix_2015_logo.svg.png',
+                        };
+
+                        // Get company from experience array (check all companies)
+                        const experienceCompanies = resume.experience?.map(exp => exp.company?.toUpperCase()) || [];
+                        const companyWithLogo = Object.keys(companyLogos).find(company =>
+                          experienceCompanies.some(expCompany => expCompany?.includes(company.toUpperCase()))
+                        );
+
+                        return companyWithLogo ? (
+                          <img src={companyLogos[companyWithLogo]} alt={companyWithLogo} className="h-6 object-contain" />
+                        ) : (
+                          resume.skills.slice(0, 3).map((skill, idx) => (
+                            <span
+                              key={idx}
+                              className="text-xs px-2 py-1 rounded-md bg-secondary text-foreground"
+                            >
+                              {skill}
+                            </span>
+                          ))
+                        );
+                      })()}
                     </div>
                   </div>
                 </Card>
