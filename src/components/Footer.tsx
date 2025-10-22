@@ -25,24 +25,54 @@ const Footer = () => {
         {/* Right: Links grid */}
         <div className="grid grid-cols-2 gap-x-12 gap-y-8 text-sm font-semibold md:justify-self-end">
           <div className="flex flex-col gap-3">
-            <Link to="/dashboard" className="hover:opacity-80 transition-opacity">
+            <Link
+              to="/dashboard"
+              className="hover:opacity-80 transition-opacity"
+              onClick={() => posthog?.capture('footer_resumes_clicked')}
+            >
               Resumes
             </Link>
-            <Link to="/projects" className="hover:opacity-80 transition-opacity">
+            <Link
+              to="/projects"
+              className="hover:opacity-80 transition-opacity"
+              onClick={() => posthog?.capture('footer_projects_clicked')}
+            >
               Projects
             </Link>
-            <a href="https://calendly.com/jessie-nativespeaking/consultation-call" target="_blank" rel="noopener noreferrer" className="hover:opacity-80 transition-opacity">
+            <a
+              href="https://calendly.com/jessie-nativespeaking/consultation-call"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="hover:opacity-80 transition-opacity"
+              onClick={() => posthog?.capture('book_consultation_clicked', { location: 'footer' })}
+            >
               Book a call
             </a>
           </div>
           <div className="flex flex-col gap-3">
-            <a href="mailto:support@cookedcareer.com" className="hover:opacity-80 transition-opacity">
+            <a
+              href="mailto:support@cookedcareer.com"
+              className="hover:opacity-80 transition-opacity"
+              onClick={() => posthog?.capture('footer_contact_clicked')}
+            >
               Contact
             </a>
-            <a href="https://twitter.com/cookedcareer" target="_blank" rel="noopener noreferrer" className="hover:opacity-80 transition-opacity">
+            <a
+              href="https://twitter.com/cookedcareer"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="hover:opacity-80 transition-opacity"
+              onClick={() => posthog?.capture('footer_twitter_clicked')}
+            >
               Twitter
             </a>
-            <a href="https://linkedin.com/company/cookedcareer" target="_blank" rel="noopener noreferrer" className="hover:opacity-80 transition-opacity">
+            <a
+              href="https://linkedin.com/company/cookedcareer"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="hover:opacity-80 transition-opacity"
+              onClick={() => posthog?.capture('footer_linkedin_clicked')}
+            >
               LinkedIn
             </a>
           </div>
