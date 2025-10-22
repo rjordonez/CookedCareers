@@ -1,0 +1,60 @@
+import { Dialog, DialogContent, DialogTitle, DialogDescription } from "@/components/ui/dialog";
+import { Button } from "@/components/ui/button";
+import { Upload } from "lucide-react";
+
+interface UploadResumeModalProps {
+  isOpen: boolean;
+  onClose: () => void;
+  onUploadClick: () => void;
+}
+
+const UploadResumeModal = ({ isOpen, onClose, onUploadClick }: UploadResumeModalProps) => {
+  const handleUploadClick = () => {
+    onClose();
+    // Small delay to ensure modal closes before file dialog opens
+    setTimeout(() => {
+      onUploadClick();
+    }, 100);
+  };
+
+  return (
+    <Dialog open={isOpen} onOpenChange={onClose}>
+      <DialogContent className="max-w-md">
+        <div className="text-center py-6 px-4">
+          <div className="mx-auto w-16 h-16 bg-muted rounded-full flex items-center justify-center mb-4">
+            <Upload className="w-8 h-8 text-muted-foreground" />
+          </div>
+
+          <DialogTitle className="text-2xl font-bold mb-3">Upload Your Resume</DialogTitle>
+
+          <DialogDescription className="text-muted-foreground mb-6">
+            To compare your resume with others, you need to upload your resume first.
+            Click the button below to select your resume file.
+          </DialogDescription>
+
+          <div className="flex gap-3 justify-center">
+            <Button
+              variant="outline"
+              onClick={onClose}
+            >
+              Cancel
+            </Button>
+            <Button
+              onClick={handleUploadClick}
+              className="bg-[#1a1a1a] text-white hover:bg-[#2a2a2a]"
+            >
+              <Upload className="w-4 h-4 mr-2" />
+              Upload Resume
+            </Button>
+          </div>
+
+          <p className="text-xs text-muted-foreground mt-4">
+            Supported formats: PDF, DOC, DOCX, TXT
+          </p>
+        </div>
+      </DialogContent>
+    </Dialog>
+  );
+};
+
+export default UploadResumeModal;

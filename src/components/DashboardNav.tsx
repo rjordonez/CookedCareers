@@ -3,10 +3,10 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Search, Settings, X, Upload } from "lucide-react";
-import { UserButton } from "@clerk/clerk-react";
+import { UserButton, useAuth } from "@clerk/clerk-react";
 import { UpgradeButton } from "@/components/UpgradeButton";
 import { ProBadge } from "@/components/ProBadge";
-import { useRef, useState } from "react";
+import { useRef, useState, useImperativeHandle, forwardRef } from "react";
 import { useToast } from "@/hooks/use-toast";
 
 interface DashboardNavProps {
@@ -20,7 +20,11 @@ interface DashboardNavProps {
   onClearFilters?: () => void;
 }
 
-const DashboardNav = ({
+export interface DashboardNavRef {
+  triggerUpload: () => void;
+}
+
+const DashboardNav = forwardRef<DashboardNavRef, DashboardNavProps>(({
   isPro,
   searchQuery = "",
   onSearchChange,
@@ -29,13 +33,21 @@ const DashboardNav = ({
   onSeniorityChange,
   hasActiveFilters,
   onClearFilters
-}: DashboardNavProps) => {
+}, ref) => {
   const location = useLocation();
   const isResumesPage = location.pathname === "/dashboard";
   const isProjectsPage = location.pathname === "/projects";
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [isUploading, setIsUploading] = useState(false);
   const { toast } = useToast();
+  const { getToken } = useAuth();
+
+  // Expose triggerUpload to parent via ref
+  useImperativeHandle(ref, () => ({
+    triggerUpload: () => {
+      fileInputRef.current?.click();
+    }
+  }));
 
   const handleFileUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
@@ -46,10 +58,18 @@ const DashboardNav = ({
     formData.append('file', file);
 
     try {
+      // Get Clerk JWT token
+      const token = await getToken();
+      if (!token) {
+        throw new Error('Authentication required. Please sign in again.');
+      }
+
       const response = await fetch(`${import.meta.env.VITE_API_BASE_URL}/api/user-resume/upload`, {
         method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${token}`,
+        },
         body: formData,
-        credentials: 'include',
       });
 
       const data = await response.json();
@@ -60,7 +80,7 @@ const DashboardNav = ({
           description: "Your resume has been saved successfully!",
         });
       } else {
-        throw new Error(data.error || 'Upload failed');
+        throw new Error(data.detail || data.error || 'Upload failed');
       }
     } catch (error: any) {
       toast({
@@ -119,7 +139,7 @@ const DashboardNav = ({
             <input
               ref={fileInputRef}
               type="file"
-              accept=".pdf,.doc,.docx"
+              accept=".pdf,.doc,.docx,.txt"
               onChange={handleFileUpload}
               className="hidden"
             />
@@ -206,6 +226,8 @@ const DashboardNav = ({
       </div>
     </nav>
   );
-};
+});
+
+DashboardNav.displayName = 'DashboardNav';
 
 export default DashboardNav;

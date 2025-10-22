@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, useRef } from "react";
 import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
@@ -10,10 +10,12 @@ import { useAuthReady } from "@/components/AuthProvider";
 import { useResumeFilters } from "@/hooks/useResumeFilters";
 import { useSearchResumesQuery } from "@/features/resumes/resumeService";
 import { useGetSubscriptionStatusQuery, useCreateCheckoutSessionMutation } from "@/features/subscription/subscriptionService";
+import { useCompareResumeMutation } from "@/features/user-resume/userResumeService";
 import { ResumeDetailModal } from "@/components/ResumeDetailModal";
 import { UpgradeButton } from "@/components/UpgradeButton";
-import DashboardNav from "@/components/DashboardNav";
+import DashboardNav, { DashboardNavRef } from "@/components/DashboardNav";
 import ComparisonModal from "@/components/ComparisonModal";
+import UploadResumeModal from "@/components/UploadResumeModal";
 import type { Resume } from "@/features/resumes/resumeTypes";
 import { usePostHog } from "posthog-js/react";
 import { useToast } from "@/hooks/use-toast";
@@ -29,8 +31,11 @@ const Dashboard = () => {
   const posthog = usePostHog();
   const { toast } = useToast();
   const [createCheckoutSession] = useCreateCheckoutSessionMutation();
+  const [compareResume, { isLoading: isComparing }] = useCompareResumeMutation();
   const [comparisonResume, setComparisonResume] = useState<Resume | null>(null);
   const [comparisonData, setComparisonData] = useState<any>(null);
+  const [showUploadModal, setShowUploadModal] = useState(false);
+  const dashboardNavRef = useRef<DashboardNavRef>(null);
 
   // Get filters from URL search params
   const {
@@ -151,6 +156,43 @@ const Dashboard = () => {
   const handleCompareClick = async (e: React.MouseEvent, resume: Resume) => {
     e.stopPropagation(); // Prevent opening the modal
 
+    try {
+      // Call the compare API endpoint
+      const result = await compareResume({ resume_id: resume.id }).unwrap();
+
+      // Set the resume and comparison data to open the modal
+      setComparisonResume(resume);
+      setComparisonData(result);
+
+      toast({
+        title: "Comparison Complete",
+        description: `Your resume has been compared with ${result.db_resume_name}'s resume`,
+      });
+    } catch (error: any) {
+      console.error("Comparison failed:", error);
+
+      // Check if error is about missing resume
+      const errorMessage = error?.data?.detail || error?.message || "";
+      const isNoResumeError = errorMessage.toLowerCase().includes("no resume") ||
+                              errorMessage.toLowerCase().includes("upload");
+
+      if (isNoResumeError) {
+        // Show upload modal instead of directly triggering upload
+        setShowUploadModal(true);
+      } else {
+        toast({
+          title: "Comparison Failed",
+          description: errorMessage || "Something went wrong. Please try again.",
+          variant: "destructive",
+        });
+      }
+    }
+  };
+
+  // Old mock data below - can be deleted
+  const OLD_handleCompareClick = async (e: React.MouseEvent, resume: Resume) => {
+    e.stopPropagation(); // Prevent opening the modal
+
     // Mock comparison data for now
     const mockComparisonData = {
       score: 78,
@@ -243,6 +285,7 @@ const Dashboard = () => {
   return (
     <div className="min-h-screen bg-background">
       <DashboardNav
+        ref={dashboardNavRef}
         isPro={isPro}
         searchQuery={localSearchQuery}
         onSearchChange={setLocalSearchQuery}
@@ -376,8 +419,9 @@ const Dashboard = () => {
                           variant="secondary"
                           className="text-xs font-semibold bg-[#1a1a1a] text-white hover:bg-[#2a2a2a]"
                           onClick={(e) => handleCompareClick(e, resume)}
+                          disabled={isComparing}
                         >
-                          Compare
+                          {isComparing ? 'Comparing...' : 'Compare'}
                         </Button>
                       )}
                     </div>
@@ -432,6 +476,12 @@ const Dashboard = () => {
         comparedResume={comparisonResume}
         comparisonData={comparisonData}
         isPro={isPro}
+      />
+
+      <UploadResumeModal
+        isOpen={showUploadModal}
+        onClose={() => setShowUploadModal(false)}
+        onUploadClick={() => dashboardNavRef.current?.triggerUpload()}
       />
     </div>
   );
