@@ -1,8 +1,9 @@
 import { Button } from "@/components/ui/button";
 import { Link } from "react-router-dom";
 import SlotCounter from "react-slot-counter";
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { usePostHog } from "posthog-js/react";
+import { Upload } from "lucide-react";
 import googleLogo from "@/assets/google-logo.png";
 import metaLogo from "@/assets/meta-logo.png";
 import amazonLogo from "@/assets/amazon-logo.png";
@@ -31,6 +32,7 @@ const Hero = () => {
   const [mounted, setMounted] = useState(false);
   const [visible, setVisible] = useState(false);
   const posthog = usePostHog();
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
     setMounted(true);
@@ -38,6 +40,15 @@ const Hero = () => {
     const timer = setTimeout(() => setVisible(true), 50);
     return () => clearTimeout(timer);
   }, []);
+
+  const handleFileUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    if (file) {
+      posthog?.capture('resume_upload_started', { file_name: file.name });
+      // TODO: Implement resume upload and comparison logic
+      console.log('File selected:', file);
+    }
+  };
 
   return (
     <section className={`px-6 pt-64 pb-16 fade-in ${visible ? 'visible' : ''}`}>
@@ -47,22 +58,22 @@ const Hero = () => {
         </h1>
 
         <p className="max-w-[450px] mx-auto pt-6 text-center text-lg text-muted-foreground md:max-w-[550px] md:text-xl lg:max-w-[700px]">
-          Access{' '}
+          Get your resume ATS-scanned correctly every time. <span className="font-bold text-foreground">Increase your interview rate 4x</span> with{' '}
           <span className="inline-flex items-baseline">
             {mounted ? <SlotCounter value="1000" /> : '1000'}
             <span>+</span>
           </span>
-          {' '}successful CS resumes, projects, and portfolios that landed jobs at top tech companies
+          {' '}real resumes that landed offers.
         </p>
 
-        <div className="pt-10 text-center">
+        <div className="pt-10 flex flex-col items-center gap-4">
           <Link to="/auth">
             <Button
               size="lg"
-              className="rounded-full text-base font-semibold px-4 h-11 bg-[#1a1a1a] text-white hover:bg-[#2a2a2a]"
-              onClick={() => posthog?.capture('hero_join_for_free_clicked')}
+              className="rounded-full text-base font-semibold px-6 h-11 bg-[#1a1a1a] text-white hover:bg-[#2a2a2a]"
+              onClick={() => posthog?.capture('hero_compare_for_free_clicked')}
             >
-              Join for free
+              Compare for free
             </Button>
           </Link>
         </div>

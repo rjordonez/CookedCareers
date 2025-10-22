@@ -2,10 +2,12 @@ import { Link, useLocation } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Search, Settings, X } from "lucide-react";
-import { UserButton } from "@clerk/clerk-react";
+import { Search, Settings, X, Upload } from "lucide-react";
+import { UserButton, useAuth } from "@clerk/clerk-react";
 import { UpgradeButton } from "@/components/UpgradeButton";
 import { ProBadge } from "@/components/ProBadge";
+import { useRef, useState, useImperativeHandle, forwardRef } from "react";
+import { useToast } from "@/hooks/use-toast";
 
 interface DashboardNavProps {
   isPro: boolean;
@@ -16,9 +18,16 @@ interface DashboardNavProps {
   onSeniorityChange?: (value: string) => void;
   hasActiveFilters?: boolean;
   onClearFilters?: () => void;
+  onMyResumeClick?: () => void;
+  hasUploadedResume?: boolean;
+  onUploadSuccess?: () => void;
 }
 
-const DashboardNav = ({
+export interface DashboardNavRef {
+  triggerUpload: () => void;
+}
+
+const DashboardNav = forwardRef<DashboardNavRef, DashboardNavProps>(({
   isPro,
   searchQuery = "",
   onSearchChange,
@@ -26,11 +35,76 @@ const DashboardNav = ({
   seniority,
   onSeniorityChange,
   hasActiveFilters,
-  onClearFilters
-}: DashboardNavProps) => {
+  onClearFilters,
+  onMyResumeClick,
+  hasUploadedResume = false,
+  onUploadSuccess
+}, ref) => {
   const location = useLocation();
   const isResumesPage = location.pathname === "/dashboard";
   const isProjectsPage = location.pathname === "/projects";
+  const fileInputRef = useRef<HTMLInputElement>(null);
+  const [isUploading, setIsUploading] = useState(false);
+  const { toast } = useToast();
+  const { getToken } = useAuth();
+
+  // Expose triggerUpload to parent via ref
+  useImperativeHandle(ref, () => ({
+    triggerUpload: () => {
+      fileInputRef.current?.click();
+    }
+  }));
+
+  const handleFileUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    if (!file) return;
+
+    setIsUploading(true);
+    const formData = new FormData();
+    formData.append('file', file);
+
+    try {
+      // Get Clerk JWT token
+      const token = await getToken();
+      if (!token) {
+        throw new Error('Authentication required. Please sign in again.');
+      }
+
+      const response = await fetch(`${import.meta.env.VITE_API_BASE_URL}/api/user-resume/upload`, {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${token}`,
+        },
+        body: formData,
+      });
+
+      const data = await response.json();
+
+      if (data.success) {
+        toast({
+          title: hasUploadedResume ? "Resume updated" : "Resume uploaded",
+          description: hasUploadedResume ? "Your resume has been updated successfully!" : "Your resume has been saved successfully!",
+        });
+        // Notify parent of successful upload
+        if (onUploadSuccess) {
+          onUploadSuccess();
+        }
+      } else {
+        throw new Error(data.detail || data.error || 'Upload failed');
+      }
+    } catch (error: any) {
+      toast({
+        title: "Upload failed",
+        description: error.message || "Failed to upload resume. Please try again.",
+        variant: "destructive",
+      });
+    } finally {
+      setIsUploading(false);
+      if (fileInputRef.current) {
+        fileInputRef.current.value = '';
+      }
+    }
+  };
 
   return (
     <nav className="bg-background sticky top-0 z-50">
@@ -69,8 +143,33 @@ const DashboardNav = ({
             </div>
           </div>
 
-          {/* Right: Upgrade + Settings + Profile */}
+          {/* Right: Upload Resume + Upgrade + Settings + Profile */}
           <div className="flex items-center gap-2 md:gap-4">
+            {/* Upload Resume Button */}
+            <input
+              ref={fileInputRef}
+              type="file"
+              accept=".pdf,.doc,.docx,.txt"
+              onChange={handleFileUpload}
+              className="hidden"
+            />
+            <Button
+              variant="outline"
+              size="sm"
+              className="hidden md:flex items-center gap-2"
+              onClick={() => {
+                if (onMyResumeClick) {
+                  onMyResumeClick();
+                } else {
+                  fileInputRef.current?.click();
+                }
+              }}
+              disabled={isUploading}
+            >
+              <Upload className="w-4 h-4" />
+              {isUploading ? 'Uploading...' : hasUploadedResume ? 'Resume Uploaded ✓' : 'My Resume'}
+            </Button>
+
             {isPro ? (
               <>
                 <ProBadge className="hidden md:flex" />
@@ -143,6 +242,8 @@ const DashboardNav = ({
       </div>
     </nav>
   );
-};
+});
+
+DashboardNav.displayName = 'DashboardNav';
 
 export default DashboardNav;
