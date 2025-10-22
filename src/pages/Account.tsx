@@ -2,11 +2,13 @@ import { useUser } from "@clerk/clerk-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { useGetSubscriptionStatusQuery, useCreatePortalSessionMutation } from "@/features/subscription/subscriptionService";
-import { Loader2, CreditCard, Crown } from "lucide-react";
+import { Loader2, CreditCard, Crown, ArrowLeft } from "lucide-react";
 import { toast } from "sonner";
+import { useNavigate } from "react-router-dom";
 
 const Account = () => {
   const { user } = useUser();
+  const navigate = useNavigate();
   const { data: subscription, isLoading: isLoadingSubscription } = useGetSubscriptionStatusQuery();
   const [createPortalSession, { isLoading: isCreatingPortal }] = useCreatePortalSessionMutation();
 
@@ -37,6 +39,16 @@ const Account = () => {
   return (
     <div className="min-h-screen bg-background py-12 px-4">
       <div className="max-w-4xl mx-auto space-y-6">
+        {/* Back Button */}
+        <Button
+          variant="ghost"
+          onClick={() => navigate(-1)}
+          className="mb-4"
+        >
+          <ArrowLeft className="w-4 h-4 mr-2" />
+          Back
+        </Button>
+
         {/* Header */}
         <div>
           <h1 className="text-3xl font-bold">Account Settings</h1>

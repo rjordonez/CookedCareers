@@ -65,26 +65,39 @@ export const ResumeDetailModal = ({ resume, isOpen, onClose, isPremium }: Resume
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="max-w-4xl max-h-[90vh] p-0">
-        <DialogHeader className="px-6 pt-6 pb-4">
+      <DialogContent className="max-w-6xl max-h-[90vh] p-0">
+        <DialogHeader className="px-6 pt-6 pb-4 pr-14">
           <div className="flex items-start justify-between gap-4">
-            <div className="flex-1">
-              <DialogTitle className="text-2xl mb-2">
+            <div className="flex-1 min-w-0">
+              <DialogTitle className="text-2xl mb-2 truncate">
                 {resume.name || resume.title || 'Resume Details'}
               </DialogTitle>
               {resume.title && (
-                <p className="text-muted-foreground">{resume.title}</p>
+                <p className="text-muted-foreground truncate">{resume.title}</p>
               )}
             </div>
-            <Button onClick={handleDownload} disabled={!resume.file_url}>
+            <Button onClick={handleDownload} disabled={!resume.file_url} size="sm" className="shrink-0">
               <Download className="w-4 h-4 mr-2" />
               Download
             </Button>
           </div>
         </DialogHeader>
 
-        <ScrollArea className="max-h-[calc(90vh-120px)] px-6 pb-6">
-          <div className="space-y-6">
+        <div className="flex flex-col md:flex-row gap-6 px-6 pb-6 max-h-[calc(90vh-120px)]">
+          {/* Left: PDF Preview */}
+          {resume.file_url && (
+            <div className="w-full md:w-1/2 h-[400px] md:h-full bg-white rounded-lg overflow-hidden border flex-shrink-0">
+              <iframe
+                src={`${resume.file_url}`}
+                className="w-full h-full"
+                title={`Resume preview for ${resume.name}`}
+              />
+            </div>
+          )}
+
+          {/* Right: Text Details */}
+          <ScrollArea className="w-full md:w-1/2">
+            <div className="pr-4">
             {/* Contact Info */}
             <section>
               <h3 className="text-lg font-semibold mb-3">Contact Information</h3>
@@ -92,39 +105,6 @@ export const ResumeDetailModal = ({ resume, isOpen, onClose, isPremium }: Resume
             </section>
 
             <Separator />
-
-            {/* Summary */}
-            {(resume.company || resume.seniority || resume.years_of_experience !== undefined) && (
-              <>
-                <section>
-                  <h3 className="text-lg font-semibold mb-3">Overview</h3>
-                  <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                    {resume.company && (
-                      <div className="flex items-center gap-2">
-                        <Building className="w-4 h-4 text-muted-foreground" />
-                        <div>
-                          <p className="text-xs text-muted-foreground">Current Company</p>
-                          <p className="font-medium">{resume.company}</p>
-                        </div>
-                      </div>
-                    )}
-                    {resume.seniority && (
-                      <div>
-                        <p className="text-xs text-muted-foreground mb-1">Seniority</p>
-                        <Badge variant="secondary" className="capitalize">{resume.seniority}</Badge>
-                      </div>
-                    )}
-                    {resume.years_of_experience !== undefined && (
-                      <div>
-                        <p className="text-xs text-muted-foreground mb-1">Experience</p>
-                        <p className="font-medium">{resume.years_of_experience} years</p>
-                      </div>
-                    )}
-                  </div>
-                </section>
-                <Separator />
-              </>
-            )}
 
             {/* Skills */}
             {resume.skills && resume.skills.length > 0 && (
@@ -274,8 +254,9 @@ export const ResumeDetailModal = ({ resume, isOpen, onClose, isPremium }: Resume
                 </div>
               </section>
             )}
-          </div>
-        </ScrollArea>
+            </div>
+          </ScrollArea>
+        </div>
       </DialogContent>
     </Dialog>
   );
