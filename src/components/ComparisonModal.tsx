@@ -1,6 +1,4 @@
 import { Dialog, DialogContent } from "@/components/ui/dialog";
-import { X } from "lucide-react";
-import { Button } from "@/components/ui/button";
 import type { Resume } from "@/features/resumes/resumeTypes";
 
 interface ComparisonData {
@@ -35,14 +33,9 @@ const ComparisonModal = ({ isOpen, onClose, comparedResume, comparisonData }: Co
     <Dialog open={isOpen} onOpenChange={onClose}>
       <DialogContent className="max-w-[95vw] w-full max-h-[95vh] overflow-hidden bg-background p-0 gap-0">
         {/* Header */}
-        <div className="border-b px-6 py-4 flex items-center justify-between">
-          <div>
-            <h2 className="text-xl font-bold">Resume Analysis</h2>
-            <p className="text-xs text-muted-foreground mt-0.5">See how your resume compares</p>
-          </div>
-          <Button variant="ghost" size="icon" onClick={onClose} className="h-8 w-8">
-            <X className="w-4 h-4" />
-          </Button>
+        <div className="border-b px-6 py-4">
+          <h2 className="text-xl font-bold">Resume Analysis</h2>
+          <p className="text-xs text-muted-foreground mt-0.5">See how your resume compares</p>
         </div>
 
         <div className="overflow-y-auto px-6 py-6" style={{ maxHeight: 'calc(95vh - 80px)' }}>

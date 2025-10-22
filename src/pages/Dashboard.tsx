@@ -290,17 +290,6 @@ const Dashboard = () => {
                   className="overflow-hidden border-0 bg-muted rounded-2xl hover:shadow-xl hover:scale-105 hover:-translate-y-2 transition-all duration-300 cursor-pointer h-full"
                   onClick={() => handleResumeClick(resume, index)}
                 >
-                  {/* Compare Icon - Top Right */}
-                  {!isBlurred && (
-                    <Button
-                      size="icon"
-                      variant="secondary"
-                      className="absolute top-4 right-4 z-20 shadow-lg bg-white hover:bg-gray-100"
-                      onClick={(e) => handleCompareClick(e, resume)}
-                    >
-                      <GitCompare className="w-4 h-4" />
-                    </Button>
-                  )}
                   <div className="aspect-[3/4] bg-gradient-to-br from-gray-100 to-gray-200 overflow-hidden relative p-4 flex items-center justify-center">
                     {resume.file_url && resume.file_url.toLowerCase().endsWith('.pdf') ? (
                       <div className={`w-full h-full bg-white overflow-hidden relative ${isBlurred ? 'blur-md' : ''}`}>
@@ -340,45 +329,57 @@ const Dashboard = () => {
                     {resume.education && resume.education.length > 0 && resume.education[0].institution && (
                       <p className="text-xs text-muted-foreground mb-3">{resume.education[0].institution}</p>
                     )}
-                    <div className="flex flex-wrap gap-2 items-center">
-                      {(() => {
-                        const companyLogos: Record<string, string> = {
-                          'Google': 'https://upload.wikimedia.org/wikipedia/commons/thumb/c/c1/Google_%22G%22_logo.svg/1200px-Google_%22G%22_logo.svg.png',
-                          'Meta': 'https://brandlogos.net/wp-content/uploads/2021/10/meta-logo-512x512.png',
-                          'Amazon': 'https://upload.wikimedia.org/wikipedia/commons/thumb/a/a9/Amazon_logo.svg/2880px-Amazon_logo.svg.png',
-                          'Microsoft': 'https://upload.wikimedia.org/wikipedia/commons/thumb/4/44/Microsoft_logo.svg/1200px-Microsoft_logo.svg.png',
-                          'Apple': 'https://upload.wikimedia.org/wikipedia/commons/thumb/f/fa/Apple_logo_black.svg/1200px-Apple_logo_black.svg.png',
-                          'Netflix': 'https://upload.wikimedia.org/wikipedia/commons/7/75/Netflix_icon.svg',
-                          'NVIDIA': 'https://upload.wikimedia.org/wikipedia/sco/thumb/2/21/Nvidia_logo.svg/1200px-Nvidia_logo.svg.png',
-                          'Jane Street': 'https://avatars.githubusercontent.com/u/3384712?s=280&v=4',
-                          'Citadel': 'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcTU0UCFsdvrDlX5MzjSH7Uy5LtBj3BXlFtWPrbbq0F9WtOLGFDtq-p8Ef1UOsKbR9a8jGE&usqp=CAU',
-                          'Tesla': 'https://upload.wikimedia.org/wikipedia/commons/thumb/b/bd/Tesla_Motors.svg/1200px-Tesla_Motors.svg.png',
-                          'Deloitte': 'https://pbs.twimg.com/profile_images/743077244218707968/fQE6lnor_400x400.jpg',
-                          'Sentry': 'https://cdn.worldvectorlogo.com/logos/sentry-3.svg',
-                          'Shopify': 'https://cdn-icons-png.freepik.com/512/2496/2496101.png',
-                        };
+                    <div className="flex flex-wrap gap-2 items-center justify-between">
+                      <div className="flex flex-wrap gap-2 items-center">
+                        {(() => {
+                          const companyLogos: Record<string, string> = {
+                            'Google': 'https://upload.wikimedia.org/wikipedia/commons/thumb/c/c1/Google_%22G%22_logo.svg/1200px-Google_%22G%22_logo.svg.png',
+                            'Meta': 'https://brandlogos.net/wp-content/uploads/2021/10/meta-logo-512x512.png',
+                            'Amazon': 'https://upload.wikimedia.org/wikipedia/commons/thumb/a/a9/Amazon_logo.svg/2880px-Amazon_logo.svg.png',
+                            'Microsoft': 'https://upload.wikimedia.org/wikipedia/commons/thumb/4/44/Microsoft_logo.svg/1200px-Microsoft_logo.svg.png',
+                            'Apple': 'https://upload.wikimedia.org/wikipedia/commons/thumb/f/fa/Apple_logo_black.svg/1200px-Apple_logo_black.svg.png',
+                            'Netflix': 'https://upload.wikimedia.org/wikipedia/commons/7/75/Netflix_icon.svg',
+                            'NVIDIA': 'https://upload.wikimedia.org/wikipedia/sco/thumb/2/21/Nvidia_logo.svg/1200px-Nvidia_logo.svg.png',
+                            'Jane Street': 'https://avatars.githubusercontent.com/u/3384712?s=280&v=4',
+                            'Citadel': 'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcTU0UCFsdvrDlX5MzjSH7Uy5LtBj3BXlFtWPrbbq0F9WtOLGFDtq-p8Ef1UOsKbR9a8jGE&usqp=CAU',
+                            'Tesla': 'https://upload.wikimedia.org/wikipedia/commons/thumb/b/bd/Tesla_Motors.svg/1200px-Tesla_Motors.svg.png',
+                            'Deloitte': 'https://pbs.twimg.com/profile_images/743077244218707968/fQE6lnor_400x400.jpg',
+                            'Sentry': 'https://cdn.worldvectorlogo.com/logos/sentry-3.svg',
+                            'Shopify': 'https://cdn-icons-png.freepik.com/512/2496/2496101.png',
+                          };
 
-                        // Get all matching companies from experience array
-                        const experienceCompanies = resume.experience?.map(exp => exp.company?.toUpperCase()) || [];
-                        const companiesWithLogos = Object.keys(companyLogos).filter(company =>
-                          experienceCompanies.some(expCompany => expCompany?.includes(company.toUpperCase()))
-                        );
+                          // Get all matching companies from experience array
+                          const experienceCompanies = resume.experience?.map(exp => exp.company?.toUpperCase()) || [];
+                          const companiesWithLogos = Object.keys(companyLogos).filter(company =>
+                            experienceCompanies.some(expCompany => expCompany?.includes(company.toUpperCase()))
+                          );
 
-                        return companiesWithLogos.length > 0 ? (
-                          companiesWithLogos.map(company => (
-                            <img key={company} src={companyLogos[company]} alt={company} className="h-6 object-contain" />
-                          ))
-                        ) : (
-                          resume.skills.slice(0, 3).map((skill, idx) => (
-                            <span
-                              key={idx}
-                              className="text-xs px-2 py-1 rounded-md bg-secondary text-foreground"
-                            >
-                              {skill}
-                            </span>
-                          ))
-                        );
-                      })()}
+                          return companiesWithLogos.length > 0 ? (
+                            companiesWithLogos.map(company => (
+                              <img key={company} src={companyLogos[company]} alt={company} className="h-6 object-contain" />
+                            ))
+                          ) : (
+                            resume.skills.slice(0, 3).map((skill, idx) => (
+                              <span
+                                key={idx}
+                                className="text-xs px-2 py-1 rounded-md bg-secondary text-foreground"
+                              >
+                                {skill}
+                              </span>
+                            ))
+                          );
+                        })()}
+                      </div>
+                      {!isBlurred && (
+                        <Button
+                          size="sm"
+                          variant="secondary"
+                          className="text-xs font-semibold bg-[#1a1a1a] text-white hover:bg-[#2a2a2a]"
+                          onClick={(e) => handleCompareClick(e, resume)}
+                        >
+                          Compare
+                        </Button>
+                      )}
                     </div>
                   </div>
                 </Card>
