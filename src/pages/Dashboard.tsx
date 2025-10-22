@@ -307,11 +307,6 @@ const Dashboard = () => {
                       <h3 className="font-semibold text-sm leading-tight">
                         {resume.title || resume.name || 'Untitled Resume'}
                       </h3>
-                      {resume.years_of_experience !== undefined && (
-                        <Badge variant="secondary" className="text-xs shrink-0">
-                          {resume.years_of_experience}y
-                        </Badge>
-                      )}
                     </div>
                     {resume.company && (
                       <p className="text-sm text-muted-foreground mb-1">{resume.company}</p>
