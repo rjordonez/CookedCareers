@@ -48,8 +48,8 @@ const ComparisonModal = ({ isOpen, onClose, comparedResume, comparisonData }: Co
         <div className="overflow-y-auto px-6 py-6" style={{ maxHeight: 'calc(95vh - 80px)' }}>
           {/* Score Section */}
           <div className="mb-6">
-            <div className="inline-block px-6 py-4 bg-[#1a1a1a] text-white rounded-2xl">
-              <p className="text-xs text-gray-400 mb-1">Overall Match</p>
+            <div className="inline-block px-6 py-4 bg-background border-2 border-border rounded-2xl">
+              <p className="text-xs text-muted-foreground mb-1">Overall Match</p>
               <p className="text-4xl font-bold">{comparisonData.score}%</p>
             </div>
           </div>
