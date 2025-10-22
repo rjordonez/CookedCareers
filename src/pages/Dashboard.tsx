@@ -66,7 +66,7 @@ const Dashboard = () => {
     refetchOnFocus: false,
     refetchOnReconnect: false,
   });
-  const isPro = subscriptionData?.is_active ?? false;
+  const isPro = subscriptionData?.is_pro ?? false;
   const hasUploadedResume = !!subscriptionData?.user_resume_url;
 
   const sortedResumes = data?.results || [];
