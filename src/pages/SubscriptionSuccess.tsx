@@ -1,11 +1,14 @@
 import { useEffect } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useSearchParams } from "react-router-dom";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { CheckCircle, Crown, ArrowRight } from "lucide-react";
+import { CheckCircle, Crown, ArrowRight, Calendar } from "lucide-react";
+import { useGetSubscriptionStatusQuery } from "@/features/subscription/subscriptionService";
 
 const SubscriptionSuccess = () => {
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
+  const { data: subscriptionInfo } = useGetSubscriptionStatusQuery();
 
   useEffect(() => {
     // Auto redirect after 5 seconds
@@ -15,6 +18,15 @@ const SubscriptionSuccess = () => {
 
     return () => clearTimeout(timer);
   }, [navigate]);
+
+  const isTrialing = subscriptionInfo?.is_trialing ?? false;
+  const trialEndDate = subscriptionInfo?.trial_end_date
+    ? new Date(subscriptionInfo.trial_end_date).toLocaleDateString('en-US', {
+        month: 'long',
+        day: 'numeric',
+        year: 'numeric'
+      })
+    : null;
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-background via-primary/5 to-background flex items-center justify-center p-6">
@@ -31,12 +43,23 @@ const SubscriptionSuccess = () => {
         <div className="space-y-3">
           <div className="flex items-center justify-center gap-2">
             <Crown className="w-6 h-6 text-amber-500" />
-            <h1 className="text-3xl font-bold">Welcome to Pro!</h1>
+            <h1 className="text-3xl font-bold">
+              {isTrialing ? "Your Trial Has Started!" : "Welcome to Pro!"}
+            </h1>
           </div>
 
           <p className="text-lg text-muted-foreground">
-            Your subscription has been activated successfully
+            {isTrialing
+              ? "Enjoy 3 days of full Pro access - no charges until the trial ends"
+              : "Your subscription has been activated successfully"}
           </p>
+
+          {isTrialing && trialEndDate && (
+            <div className="inline-flex items-center gap-2 bg-blue-500/10 text-blue-600 dark:text-blue-400 px-4 py-2 rounded-full text-sm font-medium">
+              <Calendar className="w-4 h-4" />
+              Trial ends {trialEndDate}
+            </div>
+          )}
         </div>
 
         <div className="bg-primary/5 rounded-lg p-6 space-y-4">

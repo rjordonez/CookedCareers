@@ -104,7 +104,7 @@ const Account = () => {
                   {subscription?.end_date && (
                     <div>
                       <label className="text-sm font-medium text-muted-foreground">
-                        Subscription Ends
+                        {subscription?.is_trialing ? "Trial Ends" : "Subscription Ends"}
                       </label>
                       <p className="text-lg">
                         {new Date(subscription.end_date).toLocaleDateString('en-US', {
@@ -113,6 +113,11 @@ const Account = () => {
                           day: 'numeric'
                         })}
                       </p>
+                      {subscription?.is_trialing && (
+                        <p className="text-sm text-muted-foreground mt-1">
+                          You won't be charged until the trial ends
+                        </p>
+                      )}
                     </div>
                   )}
                 </div>
@@ -142,10 +147,10 @@ const Account = () => {
                 {!subscription?.is_pro && (
                   <div className="pt-4 border-t">
                     <p className="text-sm text-muted-foreground mb-4">
-                      Upgrade to Pro to unlock premium features and access exclusive content
+                      Start your 3-day free trial to unlock premium features and access exclusive content
                     </p>
                     <Button className="w-full sm:w-auto">
-                      Upgrade to Pro
+                      Start 3-Day Free Trial
                     </Button>
                   </div>
                 )}
