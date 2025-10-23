@@ -17,6 +17,7 @@ import DashboardNav, { DashboardNavRef } from "@/components/DashboardNav";
 import ComparisonModal from "@/components/ComparisonModal";
 import UploadResumeModal from "@/components/UploadResumeModal";
 import ComparisonLoadingModal from "@/components/ComparisonLoadingModal";
+import ResumeCardSkeleton from "@/components/ResumeCardSkeleton";
 import type { Resume } from "@/features/resumes/resumeTypes";
 import { usePostHog } from "posthog-js/react";
 import { useToast } from "@/hooks/use-toast";
@@ -56,7 +57,8 @@ const Dashboard = () => {
   // Fetch resumes from API - skip until auth token getter is ready
   const { data, isLoading, isError, error } = useSearchResumesQuery(apiParams, {
     skip: !authReady || !isSignedIn,
-    refetchOnMountOrArgChange: 60, // Only refetch if data is older than 60s
+    refetchOnMountOrArgChange: 180, // Only refetch if data is older than 3 minutes
+    keepUnusedDataFor: 180, // Keep cached data for 3 minutes
   });
 
   // Fetch subscription status separately (only once on mount)
@@ -70,6 +72,21 @@ const Dashboard = () => {
   const hasUploadedResume = !!subscriptionData?.user_resume_url;
 
   const sortedResumes = data?.results || [];
+
+  // Detect if we're waiting for new data (page change, filter change, or search)
+  const isPageChanging = data ? filters.currentPage !== data.pagination.page : false;
+
+  // Normalize values for comparison (treat null, undefined, and empty string as equivalent)
+  const normalizeValue = (val: string | number | null | undefined) => val || null;
+
+  const isFilterChanging = data ? (
+    normalizeValue(filters.searchQuery) !== normalizeValue(data.filters_applied.query) ||
+    normalizeValue(filters.seniority) !== normalizeValue(data.filters_applied.seniority) ||
+    normalizeValue(filters.school) !== normalizeValue(data.filters_applied.school) ||
+    normalizeValue(filters.minExperience) !== normalizeValue(data.filters_applied.min_experience) ||
+    normalizeValue(filters.maxExperience) !== normalizeValue(data.filters_applied.max_experience)
+  ) : false;
+  const showSkeletons = isLoading || isPageChanging || isFilterChanging;
 
   // Sync local search with URL params on mount
   useEffect(() => {
@@ -330,14 +347,6 @@ const Dashboard = () => {
 
       <main className="max-w-7xl mx-auto px-6 pt-4 pb-6">
 
-
-        {isLoading && (
-          <div className="flex items-center justify-center py-20">
-            <Loader2 className="w-8 h-8 animate-spin text-primary" />
-            <span className="ml-3 text-muted-foreground">Loading resumes...</span>
-          </div>
-        )}
-
         {isError && (
           <Card className="p-8 text-center">
             <p className="text-destructive mb-2">Failed to load resumes</p>
@@ -347,15 +356,21 @@ const Dashboard = () => {
           </Card>
         )}
 
-        {!isLoading && !isError && data && data.results.length === 0 && (
+        {!showSkeletons && !isError && data && data.results.length === 0 && (
           <Card className="p-8 text-center">
             <p className="text-muted-foreground">No resumes found matching your criteria</p>
           </Card>
         )}
 
-        {!isLoading && !isError && data && sortedResumes.length > 0 && (
+        {!isError && (showSkeletons || (data && sortedResumes.length > 0)) && (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-8">
-            {sortedResumes.slice(0, 18).map((resume, index) => {
+            {showSkeletons ? (
+              // Show skeleton cards while loading or page is changing
+              Array.from({ length: 18 }).map((_, index) => (
+                <ResumeCardSkeleton key={`skeleton-${index}`} />
+              ))
+            ) : (
+              sortedResumes.slice(0, 18).map((resume, index) => {
               const globalIndex = (filters.currentPage - 1) * 18 + index;
               const hasSearch = filters.searchQuery.trim().length > 0;
               const isBlurred = !isPro && (hasSearch || globalIndex >= FREE_PREVIEW_COUNT);
@@ -461,21 +476,22 @@ const Dashboard = () => {
                 </Card>
               </div>
               );
-            })}
+            })
+            )}
           </div>
         )}
 
-        {!isLoading && !isError && data && sortedResumes.length >= 18 && (
+        {!isError && ((data && sortedResumes.length >= 18) || showSkeletons) && (
           <div className="flex items-center justify-center gap-2">
             <Button
               variant="outline"
               onClick={() => updateCurrentPage(Math.max(1, filters.currentPage - 1))}
-              disabled={filters.currentPage === 1}
+              disabled={filters.currentPage === 1 || showSkeletons}
             >
               Previous
             </Button>
             <span className="text-sm text-muted-foreground px-4">
-              Page {data.pagination.page} of 100+
+              Page {filters.currentPage} of 100+
             </span>
             <Button
               variant="outline"
@@ -484,7 +500,7 @@ const Dashboard = () => {
                 const nextPage = filters.currentPage >= 100 ? 1 : filters.currentPage + 1;
                 updateCurrentPage(nextPage);
               }}
-              disabled={false}
+              disabled={showSkeletons}
             >
               Next
             </Button>
