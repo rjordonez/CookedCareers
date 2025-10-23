@@ -73,9 +73,20 @@ const Dashboard = () => {
 
   const sortedResumes = data?.results || [];
 
-  // Detect if we're waiting for new page data
+  // Detect if we're waiting for new data (page change, filter change, or search)
   const isPageChanging = data ? filters.currentPage !== data.pagination.page : false;
-  const showSkeletons = isLoading || isPageChanging;
+
+  // Normalize values for comparison (treat null, undefined, and empty string as equivalent)
+  const normalizeValue = (val: string | number | null | undefined) => val || null;
+
+  const isFilterChanging = data ? (
+    normalizeValue(filters.searchQuery) !== normalizeValue(data.filters_applied.query) ||
+    normalizeValue(filters.seniority) !== normalizeValue(data.filters_applied.seniority) ||
+    normalizeValue(filters.school) !== normalizeValue(data.filters_applied.school) ||
+    normalizeValue(filters.minExperience) !== normalizeValue(data.filters_applied.min_experience) ||
+    normalizeValue(filters.maxExperience) !== normalizeValue(data.filters_applied.max_experience)
+  ) : false;
+  const showSkeletons = isLoading || isPageChanging || isFilterChanging;
 
   // Sync local search with URL params on mount
   useEffect(() => {
