@@ -56,7 +56,7 @@ export const UpgradeButton = ({ variant = "default", size = "default", className
       ) : (
         <>
           <Crown className="mr-2 h-4 w-4" />
-          Get Pro
+          Start 3-Day Free Trial
         </>
       )}
     </Button>
