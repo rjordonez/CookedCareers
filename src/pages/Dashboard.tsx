@@ -62,7 +62,7 @@ const Dashboard = () => {
   });
 
   // Fetch subscription status separately (only once on mount)
-  const { data: subscriptionData, refetch: refetchSubscription } = useGetSubscriptionStatusQuery(undefined, {
+  const { data: subscriptionData, isLoading: isLoadingSubscription, refetch: refetchSubscription } = useGetSubscriptionStatusQuery(undefined, {
     skip: !authReady || !isSignedIn,
     refetchOnMountOrArgChange: false,
     refetchOnFocus: false,
@@ -333,6 +333,7 @@ const Dashboard = () => {
       <DashboardNav
         ref={dashboardNavRef}
         isPro={isPro}
+        isLoadingSubscription={isLoadingSubscription}
         searchQuery={localSearchQuery}
         onSearchChange={setLocalSearchQuery}
         searchPlaceholder="Search resumes by job..."

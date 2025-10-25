@@ -14,6 +14,7 @@ import { useGetProjectsQuery } from "@/features/projects/projectService";
 import { useGetSubscriptionStatusQuery } from "@/features/subscription/subscriptionService";
 import DashboardNav from "@/components/DashboardNav";
 import { UpgradeButton } from "@/components/UpgradeButton";
+import ProjectCardSkeleton from "@/components/ProjectCardSkeleton";
 
 const FREE_PREVIEW_COUNT = 3;
 
@@ -34,10 +35,14 @@ const ProjectsDashboard = () => {
   });
 
   // Fetch subscription status (shared across app via RTK Query cache)
-  const { data: subscriptionData } = useGetSubscriptionStatusQuery(undefined, {
+  const { data: subscriptionData, isLoading: isLoadingSubscription } = useGetSubscriptionStatusQuery(undefined, {
     skip: !authReady || !isSignedIn,
   });
   const isPremium = subscriptionData?.is_pro ?? false;
+
+  // Detect if we're waiting for new data (page change)
+  const isPageChanging = data ? pagination.currentPage !== data.pagination.page : false;
+  const showSkeletons = isLoading || isPageChanging;
 
   useEffect(() => {
     if (isLoaded && !user) {
@@ -59,16 +64,9 @@ const ProjectsDashboard = () => {
 
   return (
     <div className="min-h-screen bg-background">
-      <DashboardNav isPro={isPremium} />
+      <DashboardNav isPro={isPremium} isLoadingSubscription={isLoadingSubscription} />
 
       <main className="max-w-7xl mx-auto px-6 pt-4 pb-6">
-        {isLoading && (
-          <div className="flex items-center justify-center py-20">
-            <Loader2 className="w-8 h-8 animate-spin text-primary" />
-            <span className="ml-3 text-muted-foreground">Loading projects...</span>
-          </div>
-        )}
-
         {isError && (
           <Card className="p-8 text-center">
             <p className="text-destructive mb-2">Failed to load projects</p>
@@ -78,15 +76,21 @@ const ProjectsDashboard = () => {
           </Card>
         )}
 
-        {!isLoading && !isError && data && data.projects.length === 0 && (
+        {!showSkeletons && !isError && data && data.projects.length === 0 && (
           <Card className="p-8 text-center">
             <p className="text-muted-foreground">No projects found</p>
           </Card>
         )}
 
-        {!isLoading && !isError && data && data.projects.length > 0 && (
+        {!isError && (showSkeletons || (data && data.projects.length > 0)) && (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
-            {data.projects.map((project, index) => {
+            {showSkeletons ? (
+              // Show skeleton cards while loading or page is changing
+              Array.from({ length: 12 }).map((_, index) => (
+                <ProjectCardSkeleton key={`skeleton-${index}`} />
+              ))
+            ) : (
+              data!.projects.map((project, index) => {
               const isProjectBlurred = isBlurred(index);
               return (
               <div key={`${project.owner_id}-${index}`} className="relative">
@@ -161,21 +165,22 @@ const ProjectsDashboard = () => {
                 </Card>
               </div>
               );
-            })}
+            })
+            )}
           </div>
         )}
 
-        {!isLoading && !isError && data && (
+        {!isError && ((data && data.projects.length >= 12) || showSkeletons) && (
           <div className="flex items-center justify-center gap-2">
             <Button
               variant="outline"
               onClick={() => dispatch(setCurrentPage(Math.max(1, pagination.currentPage - 1)))}
-              disabled={pagination.currentPage === 1}
+              disabled={pagination.currentPage === 1 || showSkeletons}
             >
               Previous
             </Button>
             <span className="text-sm text-muted-foreground px-4">
-              Page {data.pagination.page} of 100+
+              Page {pagination.currentPage} of 100+
             </span>
             <Button
               variant="outline"
@@ -184,7 +189,7 @@ const ProjectsDashboard = () => {
                 const nextPage = pagination.currentPage >= 100 ? 1 : pagination.currentPage + 1;
                 dispatch(setCurrentPage(nextPage));
               }}
-              disabled={false}
+              disabled={showSkeletons}
             >
               Next
             </Button>
