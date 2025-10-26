@@ -57,8 +57,8 @@ const Dashboard = () => {
   // Fetch resumes from API - skip until auth token getter is ready
   const { data, isLoading, isError, error } = useSearchResumesQuery(apiParams, {
     skip: !authReady || !isSignedIn,
-    refetchOnMountOrArgChange: 180, // Only refetch if data is older than 3 minutes
-    keepUnusedDataFor: 180, // Keep cached data for 3 minutes
+    refetchOnMountOrArgChange: 600, // Only refetch if data is older than 10 minutes
+    keepUnusedDataFor: 600, // Keep cached data for 10 minutes
   });
 
   // Fetch subscription status separately (only once on mount)

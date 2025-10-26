@@ -31,7 +31,8 @@ const ProjectsDashboard = () => {
   // Fetch projects from API
   const { data, isLoading, isError, error } = useGetProjectsQuery(projectParams, {
     skip: !authReady || !isSignedIn,
-    refetchOnMountOrArgChange: 60, // Only refetch if data is older than 60s
+    refetchOnMountOrArgChange: 600, // Only refetch if data is older than 10 minutes
+    keepUnusedDataFor: 600, // Keep cached data for 10 minutes
   });
 
   // Fetch subscription status (shared across app via RTK Query cache)
