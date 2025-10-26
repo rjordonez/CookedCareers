@@ -2,6 +2,7 @@ import { Link, useLocation } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Skeleton } from "@/components/ui/skeleton";
 import { Search, Settings, X, Upload } from "lucide-react";
 import { UserButton, useAuth } from "@clerk/clerk-react";
 import { UpgradeButton } from "@/components/UpgradeButton";
@@ -11,6 +12,7 @@ import { useToast } from "@/hooks/use-toast";
 
 interface DashboardNavProps {
   isPro: boolean;
+  isLoadingSubscription?: boolean;
   searchQuery?: string;
   onSearchChange?: (value: string) => void;
   searchPlaceholder?: string;
@@ -29,6 +31,7 @@ export interface DashboardNavRef {
 
 const DashboardNav = forwardRef<DashboardNavRef, DashboardNavProps>(({
   isPro,
+  isLoadingSubscription = false,
   searchQuery = "",
   onSearchChange,
   searchPlaceholder = "Search...",
@@ -170,7 +173,9 @@ const DashboardNav = forwardRef<DashboardNavRef, DashboardNavProps>(({
               <span className="hidden sm:inline">{isUploading ? 'Uploading...' : hasUploadedResume ? 'Resume Uploaded ✓' : 'My Resume'}</span>
             </Button>
 
-            {isPro ? (
+            {isLoadingSubscription ? (
+              <Skeleton className="hidden md:flex w-[160px] h-9 rounded-full" />
+            ) : isPro ? (
               <>
                 <ProBadge className="hidden md:flex" />
                 <Link to="/account">

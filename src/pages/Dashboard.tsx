@@ -57,12 +57,12 @@ const Dashboard = () => {
   // Fetch resumes from API - skip until auth token getter is ready
   const { data, isLoading, isError, error } = useSearchResumesQuery(apiParams, {
     skip: !authReady || !isSignedIn,
-    refetchOnMountOrArgChange: 180, // Only refetch if data is older than 3 minutes
-    keepUnusedDataFor: 180, // Keep cached data for 3 minutes
+    refetchOnMountOrArgChange: 600, // Only refetch if data is older than 10 minutes
+    keepUnusedDataFor: 600, // Keep cached data for 10 minutes
   });
 
   // Fetch subscription status separately (only once on mount)
-  const { data: subscriptionData, refetch: refetchSubscription } = useGetSubscriptionStatusQuery(undefined, {
+  const { data: subscriptionData, isLoading: isLoadingSubscription, refetch: refetchSubscription } = useGetSubscriptionStatusQuery(undefined, {
     skip: !authReady || !isSignedIn,
     refetchOnMountOrArgChange: false,
     refetchOnFocus: false,
@@ -333,6 +333,7 @@ const Dashboard = () => {
       <DashboardNav
         ref={dashboardNavRef}
         isPro={isPro}
+        isLoadingSubscription={isLoadingSubscription}
         searchQuery={localSearchQuery}
         onSearchChange={setLocalSearchQuery}
         searchPlaceholder="Search resumes by job..."
