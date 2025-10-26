@@ -10,6 +10,7 @@ import Index from "./pages/Index";
 import Auth from "./pages/Auth";
 import Dashboard from "./pages/Dashboard";
 import ProjectsDashboard from "./pages/ProjectsDashboard";
+import AnonymizerDashboard from "./pages/AnonymizerDashboard";
 import SubscriptionSuccess from "./pages/SubscriptionSuccess";
 import Account from "./pages/Account";
 import Privacy from "./pages/Privacy";
@@ -31,6 +32,7 @@ const App = () => (
               <Route path="/auth/*" element={<Auth />} />
               <Route path="/dashboard" element={<Dashboard />} />
               <Route path="/projects" element={<ProjectsDashboard />} />
+              <Route path="/anonymizer" element={<AnonymizerDashboard />} />
               <Route path="/subscription/success" element={<SubscriptionSuccess />} />
               <Route path="/account" element={<Account />} />
               <Route path="/privacy" element={<Privacy />} />
