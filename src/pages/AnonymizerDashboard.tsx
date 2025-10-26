@@ -73,6 +73,17 @@ export default function AnonymizerDashboard() {
     }
   }, [isLoaded, user, navigate]);
 
+  // Handle text selection changes
+  useEffect(() => {
+    const handleSelectionChange = () => {
+      const selection = window.getSelection();
+      setHasTextSelection(!!selection && selection.toString().trim().length > 0);
+    };
+
+    document.addEventListener('selectionchange', handleSelectionChange);
+    return () => document.removeEventListener('selectionchange', handleSelectionChange);
+  }, []);
+
   if (!isLoaded || !user) return null;
 
   const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -84,6 +95,8 @@ export default function AnonymizerDashboard() {
       return;
     }
 
+    // Reset state before uploading new file
+    dispatch(resetAnonymizer());
     setPdfFile(file);
 
     try {
@@ -94,11 +107,12 @@ export default function AnonymizerDashboard() {
 
       if (result.success) {
         dispatch(setFileId(result.file_id));
-        // Initialize all detections as blurred
+        // Initialize all detections as blurred with unique IDs
         const detectionsWithBlur: PIIDetectionWithBlur[] = result.detections.map(
-          (d: PIIDetection) => ({
+          (d: PIIDetection, idx: number) => ({
             ...d,
             blurred: true,
+            id: `detection-${idx}-${Date.now()}`, // Add unique ID
           })
         );
         dispatch(setDetections(detectionsWithBlur));
@@ -135,6 +149,10 @@ export default function AnonymizerDashboard() {
 
   const handleDownload = async () => {
     try {
+      console.log('📥 Download requested');
+      console.log('Total detections:', detections.length);
+      console.log('Total manual blurs:', manualBlurs.length);
+
       // Build replacements array from detected PII
       const piiReplacements = detections
         .filter((d) => d.blurred || d.replacementText) // Include if blurred or has replacement
@@ -147,6 +165,9 @@ export default function AnonymizerDashboard() {
           style: d.style, // Pass original styling
         }));
 
+      console.log('PII replacements to send:', piiReplacements.length);
+      console.log('PII replacements:', piiReplacements);
+
       // Add manual blur regions as simple redactions
       const manualReplacements = manualBlurs.map((blur) => ({
         page: blur.page,
@@ -157,22 +178,39 @@ export default function AnonymizerDashboard() {
         style: { font_name: '', font_size: 0, color: 0, flags: 0 }, // Empty style for redaction
       }));
 
+      console.log('Manual blur replacements:', manualReplacements.length);
+
       // Combine both types of replacements
       const allReplacements = [...piiReplacements, ...manualReplacements];
+
+      console.log('Total replacements being sent:', allReplacements.length);
+      console.log('File ID:', fileId);
 
       const result = await generateAnonymizedPDF({
         file_id: fileId,
         replacements: allReplacements,
       }).unwrap();
 
+      console.log('Backend response:', result);
+
       if (result.success && result.anonymized_url) {
+        // Fetch the PDF as a blob to avoid cross-origin download issues
+        const response = await fetch(result.anonymized_url);
+        const blob = await response.blob();
+
+        // Create a local blob URL
+        const blobUrl = URL.createObjectURL(blob);
+
         // Trigger download
         const link = document.createElement('a');
-        link.href = result.anonymized_url;
+        link.href = blobUrl;
         link.download = 'anonymized-resume.pdf';
         document.body.appendChild(link);
         link.click();
         document.body.removeChild(link);
+
+        // Clean up the blob URL
+        URL.revokeObjectURL(blobUrl);
 
         toast.success('Anonymized PDF generated successfully!');
       } else {
@@ -191,17 +229,6 @@ export default function AnonymizerDashboard() {
       fileInputRef.current.value = '';
     }
   };
-
-  // Handle text selection changes
-  useEffect(() => {
-    const handleSelectionChange = () => {
-      const selection = window.getSelection();
-      setHasTextSelection(!!selection && selection.toString().trim().length > 0);
-    };
-
-    document.addEventListener('selectionchange', handleSelectionChange);
-    return () => document.removeEventListener('selectionchange', handleSelectionChange);
-  }, []);
 
   const handleBlurSelection = () => {
     const selection = window.getSelection();
@@ -238,6 +265,39 @@ export default function AnonymizerDashboard() {
     selection.removeAllRanges();
     setHasTextSelection(false);
     toast.success('Selection added to blur regions');
+  };
+
+  // Helper: Check if two bounding boxes overlap
+  const bboxesOverlap = (bbox1: any, bbox2: any) => {
+    return !(
+      bbox1.x + bbox1.width < bbox2.x ||
+      bbox2.x + bbox2.width < bbox1.x ||
+      bbox1.y + bbox1.height < bbox2.y ||
+      bbox2.y + bbox2.height < bbox1.y
+    );
+  };
+
+  // Helper: Find all overlapping detections
+  const findOverlappingDetections = (clickedDetection: PIIDetectionWithBlur) => {
+    return detections.filter(
+      (d) => d.page === clickedDetection.page && bboxesOverlap(d.bbox, clickedDetection.bbox)
+    );
+  };
+
+  // Helper: Toggle detection with overlap support
+  const handleDetectionToggle = (clickedDetection: PIIDetectionWithBlur) => {
+    const overlapping = findOverlappingDetections(clickedDetection);
+
+    // Check if all overlapping are blurred
+    const allBlurred = overlapping.every(d => d.blurred);
+
+    // Toggle all overlapping detections
+    overlapping.forEach((d) => {
+      const idx = detections.findIndex((det) => det.id === d.id);
+      if (idx !== -1) {
+        dispatch(toggleDetectionBlur(idx));
+      }
+    });
   };
 
   const currentPageDetections = detections.filter((d) => d.page === currentPage - 1);
@@ -493,12 +553,12 @@ export default function AnonymizerDashboard() {
                         />
 
                         {/* Blur Overlays and Replacement Text */}
-                        {currentPageDetections.map((detection, idx) => {
+                        {currentPageDetections.map((detection) => {
                           const hasReplacement = detection.replacementText && detection.replacementText.trim();
 
                           return (
                             <div
-                              key={idx}
+                              key={detection.id || `${detection.page}-${detection.type}-${detection.bbox.x}-${detection.bbox.y}`}
                               className="absolute cursor-pointer transition-all group"
                               style={{
                                 left: `${detection.bbox.x * scale}px`,
@@ -508,13 +568,7 @@ export default function AnonymizerDashboard() {
                                 zIndex: 10,
                                 pointerEvents: 'auto',
                               }}
-                              onClick={() =>
-                                dispatch(
-                                  toggleDetectionBlur(
-                                    detections.findIndex((d) => d === detection)
-                                  )
-                                )
-                              }
+                              onClick={() => handleDetectionToggle(detection)}
                               title={detection.blurred ? "Click to unblur" : "Click to blur"}
                             >
                               {/* Background blur/redaction */}

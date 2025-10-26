@@ -78,6 +78,7 @@ export interface GenerateAnonymizedPDFResponse {
 export interface PIIDetectionWithBlur extends PIIDetection {
   blurred: boolean;
   replacementText?: string; // Custom text to display instead of original
+  id?: string; // Unique identifier for React keys and precise toggling
 }
 
 export interface ManualBlurRegion {
