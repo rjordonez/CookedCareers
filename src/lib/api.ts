@@ -29,6 +29,12 @@ export const baseApi = createApi({
       return headers;
     },
   }),
-  tagTypes: ['Resume', 'Project', 'Subscription'],
+  // Default refetch behavior for all queries - prevents unnecessary refetches on tab switches
+  refetchOnMountOrArgChange: false,
+  refetchOnFocus: false,
+  refetchOnReconnect: false,
+  // Keep cached data for 10 minutes by default
+  keepUnusedDataFor: 600,
+  tagTypes: ['Resume', 'Project', 'Subscription', 'Anonymizer'],
   endpoints: () => ({}),
 });

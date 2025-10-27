@@ -18,6 +18,15 @@ import ProjectCardSkeleton from "@/components/ProjectCardSkeleton";
 
 const FREE_PREVIEW_COUNT = 3;
 
+// Helper function to ensure URL has protocol
+const ensureHttps = (url: string): string => {
+  if (!url) return url;
+  if (url.startsWith('http://') || url.startsWith('https://')) {
+    return url;
+  }
+  return `https://${url}`;
+};
+
 const ProjectsDashboard = () => {
   const navigate = useNavigate();
   const { user, isLoaded, isSignedIn } = useUser();
@@ -97,7 +106,7 @@ const ProjectsDashboard = () => {
               <div key={`${project.owner_id}-${index}`} className="relative">
                 <Card
                   className="group overflow-hidden border border-border hover:shadow-xl hover:scale-105 hover:-translate-y-2 transition-all duration-300 cursor-pointer bg-card"
-                  onClick={() => !isProjectBlurred && project.project_url && window.open(project.project_url, '_blank')}
+                  onClick={() => !isProjectBlurred && project.project_url && window.open(ensureHttps(project.project_url), '_blank')}
                 >
                   <div className="aspect-[3/4] bg-gradient-to-br from-white to-gray-50 overflow-hidden relative border-b">
                     <div className={`w-full h-full p-6 flex flex-col ${
@@ -152,7 +161,7 @@ const ProjectsDashboard = () => {
                       <p className="text-sm text-muted-foreground line-clamp-1">{project.owner_email}</p>
                       {project.project_url && (
                         <a
-                          href={project.project_url}
+                          href={ensureHttps(project.project_url)}
                           target="_blank"
                           rel="noopener noreferrer"
                           onClick={(e) => e.stopPropagation()}

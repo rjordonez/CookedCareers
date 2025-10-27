@@ -46,6 +46,7 @@ const DashboardNav = forwardRef<DashboardNavRef, DashboardNavProps>(({
   const location = useLocation();
   const isResumesPage = location.pathname === "/dashboard";
   const isProjectsPage = location.pathname === "/projects";
+  const isAnonymizerPage = location.pathname === "/anonymizer";
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [isUploading, setIsUploading] = useState(false);
   const { toast } = useToast();
@@ -142,6 +143,14 @@ const DashboardNav = forwardRef<DashboardNavRef, DashboardNavProps>(({
                 }`}
               >
                 Projects
+              </Link>
+              <Link
+                to="/anonymizer"
+                className={`text-sm font-semibold transition-colors ${
+                  isAnonymizerPage ? 'text-foreground' : 'text-muted-foreground hover:text-foreground'
+                }`}
+              >
+                Anonymizer
               </Link>
             </div>
           </div>

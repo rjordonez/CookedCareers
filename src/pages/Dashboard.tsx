@@ -61,12 +61,9 @@ const Dashboard = () => {
     keepUnusedDataFor: 600, // Keep cached data for 10 minutes
   });
 
-  // Fetch subscription status separately (only once on mount)
+  // Fetch subscription status (cached by RTK Query - refetch options set in baseApi)
   const { data: subscriptionData, isLoading: isLoadingSubscription, refetch: refetchSubscription } = useGetSubscriptionStatusQuery(undefined, {
     skip: !authReady || !isSignedIn,
-    refetchOnMountOrArgChange: false,
-    refetchOnFocus: false,
-    refetchOnReconnect: false,
   });
   const isPro = subscriptionData?.is_pro ?? false;
   const hasUploadedResume = !!subscriptionData?.user_resume_url;
@@ -381,7 +378,7 @@ const Dashboard = () => {
                   className="overflow-hidden border-0 bg-muted rounded-2xl hover:shadow-xl hover:scale-105 hover:-translate-y-2 transition-all duration-300 cursor-pointer h-full"
                   onClick={() => handleResumeClick(resume, index)}
                 >
-                  <div className="aspect-[3/4] bg-gradient-to-br from-gray-100 to-gray-200 overflow-hidden relative p-4 flex items-center justify-center">
+                  <div className="aspect-[253/320] bg-gradient-to-br from-gray-100 to-gray-200 overflow-hidden relative p-4 flex items-center justify-center">
                     {resume.file_url && resume.file_url.toLowerCase().endsWith('.pdf') ? (
                       <div className={`w-full h-full bg-white overflow-hidden relative ${isBlurred ? 'blur-md' : ''}`}>
                         <object
