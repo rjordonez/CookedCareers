@@ -103,3 +103,53 @@ export const PII_TYPE_COLORS: Record<PIIType, string> = {
   github: 'bg-gray-100 text-gray-700',
   website: 'bg-indigo-100 text-indigo-700',
 };
+
+// Session management types
+export interface SessionSummary {
+  session_id: string;
+  file_id: string;
+  filename: string;
+  original_url: string;
+  num_pages: number;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface SessionData {
+  session_id: string;
+  file_id: string;
+  filename: string;
+  original_url: string;
+  detections: PIIDetectionWithBlur[];
+  manual_blurs: ManualBlurRegion[];
+  num_pages: number;
+}
+
+export interface SaveSessionRequest {
+  session_id?: string; // Optional - if exists, update; if not, create new
+  file_id: string;
+  filename: string;
+  original_url: string;
+  detections: PIIDetectionWithBlur[];
+  manual_blurs: ManualBlurRegion[];
+  num_pages: number;
+}
+
+export interface SaveSessionResponse {
+  success: boolean;
+  session_id: string;
+  message?: string;
+  error?: string;
+}
+
+export interface ListSessionsResponse {
+  success: boolean;
+  sessions: SessionSummary[];
+  error?: string;
+}
+
+export interface LoadSessionResponse {
+  success: boolean;
+  session: SessionData;
+  error?: string;
+}

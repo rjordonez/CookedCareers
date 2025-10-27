@@ -1,6 +1,7 @@
 import { createRoot } from "react-dom/client";
 import { Provider } from "react-redux";
-import { store } from "./store";
+import { PersistGate } from "redux-persist/integration/react";
+import { store, persistor } from "./store";
 import { ClerkProvider } from "@clerk/clerk-react";
 import { PostHogProvider } from "posthog-js/react";
 import App from "./App.tsx";
@@ -32,7 +33,9 @@ createRoot(document.getElementById("root")!).render(
       signUpForceRedirectUrl="/dashboard"
     >
       <Provider store={store}>
-        <App />
+        <PersistGate loading={null} persistor={persistor}>
+          <App />
+        </PersistGate>
       </Provider>
     </ClerkProvider>
   </PostHogProvider>

@@ -1,4 +1,4 @@
-import { useState, useRef, useEffect } from 'react';
+import { useState, useRef, useEffect, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Document, Page, pdfjs } from 'react-pdf';
 import { Upload, Download, Eye, EyeOff, Loader2, FileText, Wand2, X } from 'lucide-react';
@@ -14,7 +14,10 @@ import {
   setCurrentPage,
   setScale,
   setNumPages,
+  setSessionId,
   setFileId,
+  setFilename,
+  setOriginalUrl,
   setDetections,
   toggleDetectionBlur,
   toggleAllBlur,
@@ -25,9 +28,11 @@ import {
 } from '@/features/anonymizer/anonymizerSlice';
 import {
   useDetectPIIMutation,
-  useSaveAnonymizedMutation,
   useGenerateAnonymizedPDFMutation,
+  useLoadSessionQuery,
+  useSaveSessionMutation,
 } from '@/features/anonymizer/anonymizerService';
+import SessionsList from '@/components/SessionsList';
 import {
   PII_TYPE_COLORS,
   type PIIDetection,
@@ -51,15 +56,24 @@ export default function AnonymizerDashboard() {
   const [pdfFile, setPdfFile] = useState<File | null>(null);
   const [hasTextSelection, setHasTextSelection] = useState(false);
   const [isSelectionMode, setIsSelectionMode] = useState(false);
+  const [isRestoringSession, setIsRestoringSession] = useState(false);
+  const [view, setView] = useState<'list' | 'upload' | 'editor'>('list');
+  const [selectedSessionId, setSelectedSessionId] = useState<string | null>(null);
 
-  const { currentPage, scale, numPages, fileId, detections, manualBlurs } = useAppSelector(
+  const { currentPage, scale, numPages, sessionId, fileId, filename, originalUrl, detections, manualBlurs } = useAppSelector(
     (state) => state.anonymizer
   );
 
   const [detectPII, { isLoading: isDetecting }] = useDetectPIIMutation();
-  const [saveAnonymized, { isLoading: isSaving }] = useSaveAnonymizedMutation();
   const [generateAnonymizedPDF, { isLoading: isGenerating }] =
     useGenerateAnonymizedPDFMutation();
+  const [saveSession] = useSaveSessionMutation();
+
+  // Load session data when a session is selected
+  const { data: sessionData } = useLoadSessionQuery(
+    selectedSessionId || '',
+    { skip: !selectedSessionId }
+  );
 
   // Fetch subscription status
   const { data: subscriptionData, isLoading: isLoadingSubscription } = useGetSubscriptionStatusQuery(undefined, {
@@ -84,6 +98,83 @@ export default function AnonymizerDashboard() {
     return () => document.removeEventListener('selectionchange', handleSelectionChange);
   }, []);
 
+  // Load session data when selected
+  useEffect(() => {
+    if (sessionData?.success && sessionData.session) {
+      const session = sessionData.session;
+      setIsRestoringSession(true);
+
+      // Update Redux state
+      dispatch(setSessionId(session.session_id));
+      dispatch(setFileId(session.file_id));
+      dispatch(setFilename(session.filename));
+      dispatch(setOriginalUrl(session.original_url));
+      dispatch(setDetections(session.detections));
+      dispatch(setNumPages(session.num_pages));
+
+      // Handle manual blurs if they exist
+      if (session.manual_blurs && session.manual_blurs.length > 0) {
+        session.manual_blurs.forEach((blur) => {
+          dispatch(addManualBlur(blur));
+        });
+      }
+
+      // Fetch PDF
+      fetch(session.original_url)
+        .then((response) => response.blob())
+        .then((blob) => {
+          const file = new File([blob], session.filename, { type: 'application/pdf' });
+          setPdfFile(file);
+          setView('editor');
+        })
+        .catch((error) => {
+          console.error('Failed to load PDF:', error);
+          toast.error('Failed to load PDF');
+        })
+        .finally(() => {
+          setIsRestoringSession(false);
+        });
+    }
+  }, [sessionData, dispatch]);
+
+  // Save current session to backend
+  const saveCurrentSession = useCallback(async () => {
+    if (!fileId || !filename || detections.length === 0) {
+      return; // Nothing to save
+    }
+
+    try {
+      await saveSession({
+        session_id: sessionId || undefined,
+        file_id: fileId,
+        filename,
+        original_url: originalUrl,
+        detections,
+        manual_blurs: manualBlurs,
+        num_pages: numPages,
+      }).unwrap();
+    } catch (error) {
+      console.error('Failed to save session:', error);
+      // Don't throw - we don't want to block user actions
+    }
+  }, [fileId, filename, detections, manualBlurs, numPages, sessionId, originalUrl, saveSession]);
+
+  // Save on window close/refresh
+  useEffect(() => {
+    const handleBeforeUnload = (e: BeforeUnloadEvent) => {
+      if (view === 'editor' && fileId && detections.length > 0) {
+        // Modern browsers ignore custom messages, but we still call the function
+        saveCurrentSession();
+        // Some browsers require returnValue to be set
+        e.preventDefault();
+        e.returnValue = '';
+      }
+    };
+
+    window.addEventListener('beforeunload', handleBeforeUnload);
+    return () => window.removeEventListener('beforeunload', handleBeforeUnload);
+  }, [view, fileId, detections, saveCurrentSession]);
+
   if (!isLoaded || !user) return null;
 
   const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -107,6 +198,8 @@ export default function AnonymizerDashboard() {
 
       if (result.success) {
         dispatch(setFileId(result.file_id));
+        dispatch(setFilename(file.name));
+        dispatch(setOriginalUrl(result.original_url));
         // Initialize all detections as blurred with unique IDs
         const detectionsWithBlur: PIIDetectionWithBlur[] = result.detections.map(
           (d: PIIDetection, idx: number) => ({
@@ -117,6 +210,27 @@ export default function AnonymizerDashboard() {
         );
         dispatch(setDetections(detectionsWithBlur));
         dispatch(setNumPages(result.total_pages));
+
+        // Save initial session to backend
+        try {
+          const saveResult = await saveSession({
+            file_id: result.file_id,
+            filename: file.name,
+            original_url: result.original_url,
+            detections: detectionsWithBlur,
+            manual_blurs: [],
+            num_pages: result.total_pages,
+          }).unwrap();
+
+          if (saveResult.success) {
+            dispatch(setSessionId(saveResult.session_id));
+          }
+        } catch (error) {
+          console.error('Failed to save session:', error);
+          // Don't show error to user - session will be saved on next change
+        }
+
+        setView('editor');
         toast.success(`Found ${result.detections.length} personal information fields`);
       } else {
         toast.error(result.error || 'Failed to analyze PDF');
@@ -127,27 +241,10 @@ export default function AnonymizerDashboard() {
     }
   };
 
-  const handleSavePreferences = async () => {
-    try {
-      const blurredDetections = detections.filter((d) => d.blurred);
-
-      const result = await saveAnonymized({
-        file_id: fileId,
-        detections: blurredDetections,
-      }).unwrap();
-
-      if (result.success) {
-        toast.success(result.message || 'Anonymization preferences saved');
-      } else {
-        toast.error(result.error || 'Failed to save preferences');
-      }
-    } catch (error) {
-      toast.error('Save failed');
-      console.error(error);
-    }
-  };
-
   const handleDownload = async () => {
+    // Save before generating PDF
+    await saveCurrentSession();
+
     try {
       console.log('📥 Download requested');
       console.log('Total detections:', detections.length);
@@ -222,12 +319,30 @@ export default function AnonymizerDashboard() {
     }
   };
 
-  const resetUpload = () => {
+  const resetUpload = async () => {
+    // Save before leaving editor
+    await saveCurrentSession();
+
     setPdfFile(null);
     dispatch(resetAnonymizer());
+    setSelectedSessionId(null);
+    setView('list');
     if (fileInputRef.current) {
       fileInputRef.current.value = '';
     }
+  };
+
+  const handleSelectSession = (sessionId: string) => {
+    setSelectedSessionId(sessionId);
+    // The useEffect will handle loading the session data
+  };
+
+  const handleUploadNew = () => {
+    dispatch(resetAnonymizer());
+    setPdfFile(null);
+    setSelectedSessionId(null);
+    setView('upload');
+    setTimeout(() => fileInputRef.current?.click(), 100);
   };
 
   const handleBlurSelection = () => {
@@ -288,9 +403,6 @@ export default function AnonymizerDashboard() {
   const handleDetectionToggle = (clickedDetection: PIIDetectionWithBlur) => {
     const overlapping = findOverlappingDetections(clickedDetection);
 
-    // Check if all overlapping are blurred
-    const allBlurred = overlapping.every(d => d.blurred);
-
     // Toggle all overlapping detections
     overlapping.forEach((d) => {
       const idx = detections.findIndex((det) => det.id === d.id);
@@ -303,22 +415,24 @@ export default function AnonymizerDashboard() {
   const currentPageDetections = detections.filter((d) => d.page === currentPage - 1);
   const currentPageManualBlurs = manualBlurs.filter((b) => b.page === currentPage - 1);
 
-  const detectionStats = {
-    total: detections.length,
-    blurred: detections.filter((d) => d.blurred).length,
-    byType: detections.reduce((acc, d) => {
-      acc[d.type] = (acc[d.type] || 0) + 1;
-      return acc;
-    }, {} as Record<string, number>),
-  };
-
   return (
     <div className="min-h-screen bg-background">
       <DashboardNav isPro={isPro} isLoadingSubscription={isLoadingSubscription} />
 
       <main className="max-w-7xl mx-auto px-6 pt-4 pb-6">
 
-        {!pdfFile && (
+        {/* Sessions List View */}
+        {view === 'list' && (
+          <SessionsList
+            onSelectSession={handleSelectSession}
+            onUploadNew={handleUploadNew}
+            authReady={authReady}
+            isSignedIn={isSignedIn}
+          />
+        )}
+
+        {/* Upload View */}
+        {view === 'upload' && !pdfFile && !isRestoringSession && (
           <Card className="p-12 text-center border-2 border-dashed border-border hover:border-primary/50 transition-colors">
             <Upload className="w-16 h-16 mx-auto mb-6 text-muted-foreground" />
             <h2 className="text-2xl font-semibold mb-3">Upload Your Resume</h2>
@@ -340,23 +454,29 @@ export default function AnonymizerDashboard() {
               onClick={() => fileInputRef.current?.click()}
               disabled={isDetecting}
             >
-              {isDetecting ? (
-                <>
-                  <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-                  Analyzing...
-                </>
-              ) : (
-                <>
-                  <FileText className="w-4 h-4 mr-2" />
-                  Choose PDF File
-                </>
-              )}
+              <FileText className="w-4 h-4 mr-2" />
+              Choose PDF File
             </Button>
           </Card>
         )}
 
+        {/* Loading State */}
+        {(view === 'upload' || view === 'editor') && (isDetecting || isRestoringSession) && (
+          <Card className="p-12 text-center">
+            <Loader2 className="w-16 h-16 mx-auto mb-6 text-primary animate-spin" />
+            <h2 className="text-2xl font-semibold mb-3">
+              {isDetecting ? 'Analyzing Your Resume' : 'Loading...'}
+            </h2>
+            <p className="text-muted-foreground max-w-md mx-auto">
+              {isDetecting
+                ? "We're scanning your document for personal information like names, emails, phone numbers, and addresses. This will only take a moment..."
+                : 'Please wait...'}
+            </p>
+          </Card>
+        )}
+
         {/* Main Content */}
-        {pdfFile && !isDetecting && (
+        {view === 'editor' && pdfFile && !isDetecting && !isRestoringSession && (
           <div className="grid grid-cols-12 gap-6">
             {/* Left Sidebar - Controls */}
             <div className="col-span-12 lg:col-span-3 space-y-4">
@@ -462,7 +582,7 @@ export default function AnonymizerDashboard() {
                     )}
                   </Button>
                   <Button variant="ghost" className="w-full" onClick={resetUpload}>
-                    Upload New PDF
+                    Back to List
                   </Button>
                 </div>
               </Card>

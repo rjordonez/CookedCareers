@@ -5,7 +5,10 @@ interface AnonymizerState {
   currentPage: number;
   scale: number;
   numPages: number;
+  sessionId: string;
   fileId: string;
+  filename: string;
+  originalUrl: string;
   detections: PIIDetectionWithBlur[];
   manualBlurs: ManualBlurRegion[];
   isDrawingMode: boolean;
@@ -15,7 +18,10 @@ const initialState: AnonymizerState = {
   currentPage: 1,
   scale: 1.5,
   numPages: 0,
+  sessionId: '',
   fileId: '',
+  filename: '',
+  originalUrl: '',
   detections: [],
   manualBlurs: [],
   isDrawingMode: false,
@@ -34,8 +40,17 @@ const anonymizerSlice = createSlice({
     setNumPages: (state, action: PayloadAction<number>) => {
       state.numPages = action.payload;
     },
+    setSessionId: (state, action: PayloadAction<string>) => {
+      state.sessionId = action.payload;
+    },
     setFileId: (state, action: PayloadAction<string>) => {
       state.fileId = action.payload;
+    },
+    setFilename: (state, action: PayloadAction<string>) => {
+      state.filename = action.payload;
+    },
+    setOriginalUrl: (state, action: PayloadAction<string>) => {
+      state.originalUrl = action.payload;
     },
     setDetections: (state, action: PayloadAction<PIIDetectionWithBlur[]>) => {
       state.detections = action.payload;
@@ -78,7 +93,10 @@ export const {
   setCurrentPage,
   setScale,
   setNumPages,
+  setSessionId,
   setFileId,
+  setFilename,
+  setOriginalUrl,
   setDetections,
   toggleDetectionBlur,
   toggleAllBlur,

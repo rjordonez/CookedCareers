@@ -5,6 +5,10 @@ import type {
   SaveAnonymizedResponse,
   GenerateAnonymizedPDFRequest,
   GenerateAnonymizedPDFResponse,
+  SaveSessionRequest,
+  SaveSessionResponse,
+  ListSessionsResponse,
+  LoadSessionResponse,
 } from './anonymizerTypes';
 
 export const anonymizerApi = baseApi.injectEndpoints({
@@ -38,6 +42,26 @@ export const anonymizerApi = baseApi.injectEndpoints({
       }),
       invalidatesTags: ['Anonymizer'],
     }),
+
+    // Session management endpoints
+    listSessions: builder.query<ListSessionsResponse, void>({
+      query: () => '/api/anonymizer/sessions',
+      providesTags: ['Anonymizer'],
+    }),
+
+    loadSession: builder.query<LoadSessionResponse, string>({
+      query: (sessionId) => `/api/anonymizer/sessions/${sessionId}`,
+      providesTags: ['Anonymizer'],
+    }),
+
+    saveSession: builder.mutation<SaveSessionResponse, SaveSessionRequest>({
+      query: (data) => ({
+        url: '/api/anonymizer/save-session',
+        method: 'POST',
+        body: data,
+      }),
+      invalidatesTags: ['Anonymizer'],
+    }),
   }),
 });
 
@@ -45,4 +69,7 @@ export const {
   useDetectPIIMutation,
   useSaveAnonymizedMutation,
   useGenerateAnonymizedPDFMutation,
+  useListSessionsQuery,
+  useLoadSessionQuery,
+  useSaveSessionMutation,
 } = anonymizerApi;
