@@ -61,12 +61,9 @@ const Dashboard = () => {
     keepUnusedDataFor: 600, // Keep cached data for 10 minutes
   });
 
-  // Fetch subscription status separately (only once on mount)
+  // Fetch subscription status (cached by RTK Query - refetch options set in baseApi)
   const { data: subscriptionData, isLoading: isLoadingSubscription, refetch: refetchSubscription } = useGetSubscriptionStatusQuery(undefined, {
     skip: !authReady || !isSignedIn,
-    refetchOnMountOrArgChange: false,
-    refetchOnFocus: false,
-    refetchOnReconnect: false,
   });
   const isPro = subscriptionData?.is_pro ?? false;
   const hasUploadedResume = !!subscriptionData?.user_resume_url;
