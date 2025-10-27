@@ -65,7 +65,7 @@ export default function AnonymizerDashboard() {
   const [hasTextSelection, setHasTextSelection] = useState(false);
   const [isSelectionMode, setIsSelectionMode] = useState(false);
   const [isRestoringSession, setIsRestoringSession] = useState(false);
-  const [view, setView] = useState<'list' | 'upload' | 'editor'>('list');
+  const [view, setView] = useState<'list' | 'editor'>('list');
   const [selectedSessionId, setSelectedSessionId] = useState<string | null>(null);
   const [showShareModal, setShowShareModal] = useState(false);
   const [shareUrl, setShareUrl] = useState('');
@@ -353,8 +353,8 @@ export default function AnonymizerDashboard() {
     dispatch(resetAnonymizer());
     setPdfFile(null);
     setSelectedSessionId(null);
-    setView('upload');
-    setTimeout(() => fileInputRef.current?.click(), 100);
+    // Just trigger file picker directly, no view change
+    fileInputRef.current?.click();
   };
 
   const handleShare = async () => {
@@ -470,8 +470,19 @@ export default function AnonymizerDashboard() {
 
       <main className="max-w-7xl mx-auto px-6 pt-4 pb-6">
 
+        {/* Hidden file input for upload */}
+        <input
+          ref={fileInputRef}
+          type="file"
+          accept=".pdf"
+          onChange={handleFileUpload}
+          className="hidden"
+          id="pdf-upload"
+          disabled={isDetecting}
+        />
+
         {/* Sessions List View */}
-        {view === 'list' && (
+        {view === 'list' && !isDetecting && !isRestoringSession && (
           <SessionsList
             onSelectSession={handleSelectSession}
             onUploadNew={handleUploadNew}
@@ -480,37 +491,8 @@ export default function AnonymizerDashboard() {
           />
         )}
 
-        {/* Upload View */}
-        {view === 'upload' && !pdfFile && !isRestoringSession && (
-          <Card className="p-12 text-center border-2 border-dashed border-border hover:border-primary/50 transition-colors">
-            <Upload className="w-16 h-16 mx-auto mb-6 text-muted-foreground" />
-            <h2 className="text-2xl font-semibold mb-3">Upload Your Resume</h2>
-            <p className="text-muted-foreground mb-6 max-w-md mx-auto">
-              We'll automatically detect and blur personal information like names, emails,
-              phone numbers, and more. You control what stays visible.
-            </p>
-            <input
-              ref={fileInputRef}
-              type="file"
-              accept=".pdf"
-              onChange={handleFileUpload}
-              className="hidden"
-              id="pdf-upload"
-              disabled={isDetecting}
-            />
-            <Button
-              size="lg"
-              onClick={() => fileInputRef.current?.click()}
-              disabled={isDetecting}
-            >
-              <FileText className="w-4 h-4 mr-2" />
-              Choose PDF File
-            </Button>
-          </Card>
-        )}
-
         {/* Loading State */}
-        {(view === 'upload' || view === 'editor') && (isDetecting || isRestoringSession) && (
+        {(isDetecting || isRestoringSession) && (
           <Card className="p-12 text-center">
             <Loader2 className="w-16 h-16 mx-auto mb-6 text-primary animate-spin" />
             <h2 className="text-2xl font-semibold mb-3">
