@@ -1,13 +1,20 @@
 import { useState, useRef, useEffect, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Document, Page, pdfjs } from 'react-pdf';
-import { Upload, Download, Eye, EyeOff, Loader2, FileText, Wand2, X } from 'lucide-react';
+import { Upload, Download, Eye, EyeOff, Loader2, FileText, Wand2, X, Share2, Copy, Check } from 'lucide-react';
 import { useUser } from '@clerk/clerk-react';
 import { useAuthReady } from '@/components/AuthProvider';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+} from '@/components/ui/dialog';
 import { toast } from 'sonner';
 import { useAppDispatch, useAppSelector } from '@/hooks/useAppDispatch';
 import {
@@ -31,6 +38,7 @@ import {
   useGenerateAnonymizedPDFMutation,
   useLoadSessionQuery,
   useSaveSessionMutation,
+  useCreateShareLinkMutation,
 } from '@/features/anonymizer/anonymizerService';
 import SessionsList from '@/components/SessionsList';
 import {
@@ -59,6 +67,9 @@ export default function AnonymizerDashboard() {
   const [isRestoringSession, setIsRestoringSession] = useState(false);
   const [view, setView] = useState<'list' | 'upload' | 'editor'>('list');
   const [selectedSessionId, setSelectedSessionId] = useState<string | null>(null);
+  const [showShareModal, setShowShareModal] = useState(false);
+  const [shareUrl, setShareUrl] = useState('');
+  const [copied, setCopied] = useState(false);
 
   const { currentPage, scale, numPages, sessionId, fileId, filename, originalUrl, detections, manualBlurs } = useAppSelector(
     (state) => state.anonymizer
@@ -68,6 +79,7 @@ export default function AnonymizerDashboard() {
   const [generateAnonymizedPDF, { isLoading: isGenerating }] =
     useGenerateAnonymizedPDFMutation();
   const [saveSession] = useSaveSessionMutation();
+  const [createShareLink, { isLoading: isCreatingShare }] = useCreateShareLinkMutation();
 
   // Load session data when a session is selected
   const { data: sessionData } = useLoadSessionQuery(
@@ -345,6 +357,43 @@ export default function AnonymizerDashboard() {
     setTimeout(() => fileInputRef.current?.click(), 100);
   };
 
+  const handleShare = async () => {
+    if (!sessionId) {
+      toast.error('Please save your work first');
+      return;
+    }
+
+    // Save current state before creating share link
+    await saveCurrentSession();
+
+    try {
+      const result = await createShareLink({ session_id: sessionId }).unwrap();
+
+      if (result.success) {
+        setShareUrl(result.share_url);
+        setShowShareModal(true);
+        setCopied(false);
+      } else {
+        toast.error(result.error || 'Failed to create share link');
+      }
+    } catch (error) {
+      console.error('Failed to create share link:', error);
+      toast.error('Failed to create share link');
+    }
+  };
+
+  const handleCopyLink = async () => {
+    try {
+      await navigator.clipboard.writeText(shareUrl);
+      setCopied(true);
+      toast.success('Link copied to clipboard!');
+      setTimeout(() => setCopied(false), 2000);
+    } catch (error) {
+      console.error('Failed to copy:', error);
+      toast.error('Failed to copy link');
+    }
+  };
+
   const handleBlurSelection = () => {
     const selection = window.getSelection();
     if (!selection || selection.rangeCount === 0) return;
@@ -581,6 +630,24 @@ export default function AnonymizerDashboard() {
                       </>
                     )}
                   </Button>
+                  <Button
+                    variant="outline"
+                    className="w-full"
+                    onClick={handleShare}
+                    disabled={isCreatingShare || !sessionId}
+                  >
+                    {isCreatingShare ? (
+                      <>
+                        <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                        Creating Link...
+                      </>
+                    ) : (
+                      <>
+                        <Share2 className="w-4 h-4 mr-2" />
+                        Share Link
+                      </>
+                    )}
+                  </Button>
                   <Button variant="ghost" className="w-full" onClick={resetUpload}>
                     Back to List
                   </Button>
@@ -770,6 +837,39 @@ export default function AnonymizerDashboard() {
           </div>
         )}
       </main>
+
+      {/* Share Link Modal */}
+      <Dialog open={showShareModal} onOpenChange={setShowShareModal}>
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle>Share Anonymized Resume</DialogTitle>
+            <DialogDescription>
+              Anyone with this link can view your anonymized resume. They cannot edit it.
+            </DialogDescription>
+          </DialogHeader>
+          <div className="flex items-center space-x-2">
+            <Input
+              value={shareUrl}
+              readOnly
+              className="flex-1"
+            />
+            <Button
+              size="sm"
+              className="px-3"
+              onClick={handleCopyLink}
+            >
+              {copied ? (
+                <Check className="h-4 w-4" />
+              ) : (
+                <Copy className="h-4 w-4" />
+              )}
+            </Button>
+          </div>
+          <p className="text-sm text-muted-foreground">
+            This link will work as long as the session exists.
+          </p>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }

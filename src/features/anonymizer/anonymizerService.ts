@@ -9,6 +9,9 @@ import type {
   SaveSessionResponse,
   ListSessionsResponse,
   LoadSessionResponse,
+  CreateShareLinkRequest,
+  CreateShareLinkResponse,
+  GetSharedSessionResponse,
 } from './anonymizerTypes';
 
 export const anonymizerApi = baseApi.injectEndpoints({
@@ -62,6 +65,20 @@ export const anonymizerApi = baseApi.injectEndpoints({
       }),
       invalidatesTags: ['Anonymizer'],
     }),
+
+    // Share link endpoints
+    createShareLink: builder.mutation<CreateShareLinkResponse, CreateShareLinkRequest>({
+      query: (data) => ({
+        url: '/api/anonymizer/create-share-link',
+        method: 'POST',
+        body: data,
+      }),
+    }),
+
+    getSharedSession: builder.query<GetSharedSessionResponse, string>({
+      query: (token) => `/api/anonymizer/share/${token}`,
+      // Public endpoint - no auth required
+    }),
   }),
 });
 
@@ -72,4 +89,6 @@ export const {
   useListSessionsQuery,
   useLoadSessionQuery,
   useSaveSessionMutation,
+  useCreateShareLinkMutation,
+  useGetSharedSessionQuery,
 } = anonymizerApi;

@@ -153,3 +153,21 @@ export interface LoadSessionResponse {
   session: SessionData;
   error?: string;
 }
+
+// Share link types
+export interface CreateShareLinkRequest {
+  session_id: string;
+}
+
+export interface CreateShareLinkResponse {
+  success: boolean;
+  share_token: string;
+  share_url: string;
+  error?: string;
+}
+
+export interface GetSharedSessionResponse {
+  success: boolean;
+  session: SessionData;
+  error?: string;
+}
