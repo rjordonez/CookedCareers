@@ -748,7 +748,7 @@ export default function AnonymizerDashboard() {
                               {/* Replacement text overlay */}
                               {hasReplacement && detection.blurred && (
                                 <div
-                                  className="absolute inset-0 bg-white flex items-center px-0.5"
+                                  className="absolute inset-0 bg-white flex items-center px-0.5 overflow-visible"
                                   style={{
                                     fontSize: `${detection.style.font_size * scale}px`,
                                     lineHeight: `${detection.bbox.height * scale}px`,
@@ -760,7 +760,7 @@ export default function AnonymizerDashboard() {
                                     color: `rgb(${(detection.style.color >> 16) & 0xff}, ${(detection.style.color >> 8) & 0xff}, ${detection.style.color & 0xff})`,
                                   }}
                                 >
-                                  <span className="truncate w-full">
+                                  <span className="whitespace-nowrap">
                                     {detection.replacementText}
                                   </span>
                                 </div>
