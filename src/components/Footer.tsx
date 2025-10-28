@@ -39,15 +39,9 @@ const Footer = () => {
             >
               Projects
             </Link>
-            <a
-              href="https://calendly.com/jessie-nativespeaking/consultation-call"
-              target="_blank"
-              rel="noopener noreferrer"
-              className="hover:opacity-80 transition-opacity"
-              onClick={() => posthog?.capture('book_consultation_clicked', { location: 'footer' })}
-            >
+            <span className="hover:opacity-80 transition-opacity cursor-default">
               Book a call
-            </a>
+            </span>
           </div>
           <div className="flex flex-col gap-3">
             <a
