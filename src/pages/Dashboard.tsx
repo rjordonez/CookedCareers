@@ -90,12 +90,6 @@ const Dashboard = () => {
     setLocalSearchQuery(filters.searchQuery);
   }, [filters.searchQuery]);
 
-  useEffect(() => {
-    if (isLoaded && !user) {
-      navigate("/auth");
-    }
-  }, [isLoaded, user, navigate]);
-
   // Debounce search query - only update URL after 500ms of no typing
   // Skip if local query matches URL (prevents resetting page on pagination)
   useEffect(() => {
@@ -119,11 +113,43 @@ const Dashboard = () => {
   }, [localSearchQuery, filters.searchQuery, updateSearchQuery, posthog, user?.id]);
 
   const handleClearFilters = () => {
+    if (!isSignedIn) {
+      navigate('/auth');
+      return;
+    }
     setLocalSearchQuery("");
     clearFilters();
   };
 
+  const handleSearchChange = (value: string) => {
+    if (!isSignedIn) {
+      navigate('/auth');
+      return;
+    }
+    setLocalSearchQuery(value);
+  };
+
+  const handleSeniorityChange = (value: string) => {
+    if (!isSignedIn) {
+      navigate('/auth');
+      return;
+    }
+    updateSeniority(value === "all" ? "" : value);
+  };
+
+  const handleSchoolChange = (value: string) => {
+    if (!isSignedIn) {
+      navigate('/auth');
+      return;
+    }
+    updateSchool(value === "all" ? "" : value);
+  };
+
   const handleMyResumeClick = () => {
+    if (!isSignedIn) {
+      navigate('/auth');
+      return;
+    }
     if (hasUploadedResume) {
       // Show update modal
       setUploadModalMode('update');
@@ -140,6 +166,10 @@ const Dashboard = () => {
   };
 
   const handleExperienceChange = (value: string) => {
+    if (!isSignedIn) {
+      navigate('/auth');
+      return;
+    }
     if (value === "all") {
       updateExperienceRange({ min: undefined, max: undefined });
     } else if (value === "0-3") {
@@ -164,7 +194,21 @@ const Dashboard = () => {
     return "all";
   };
 
+  const handlePageChange = (page: number) => {
+    if (!isSignedIn) {
+      navigate('/auth');
+      return;
+    }
+    updateCurrentPage(page);
+  };
+
   const handleResumeClick = async (resume: Resume, index: number) => {
+    // Check auth first
+    if (!isSignedIn) {
+      navigate('/auth');
+      return;
+    }
+
     const globalIndex = (filters.currentPage - 1) * 18 + index;
     const hasSearch = filters.searchQuery.trim().length > 0;
     const canView = isPro || (!hasSearch && globalIndex < FREE_PREVIEW_COUNT);
@@ -189,6 +233,12 @@ const Dashboard = () => {
 
   const handleCompareClick = async (e: React.MouseEvent, resume: Resume) => {
     e.stopPropagation(); // Prevent opening the modal
+
+    // Check auth first
+    if (!isSignedIn) {
+      navigate('/auth');
+      return;
+    }
 
     // Set this resume as currently comparing
     setComparingResumeId(resume.id);
@@ -323,8 +373,6 @@ const Dashboard = () => {
     */
   };
 
-  if (!isLoaded || !user) return null;
-
   return (
     <div className="min-h-screen bg-background">
       <DashboardNav
@@ -332,10 +380,10 @@ const Dashboard = () => {
         isPro={isPro}
         isLoadingSubscription={isLoadingSubscription}
         searchQuery={localSearchQuery}
-        onSearchChange={setLocalSearchQuery}
+        onSearchChange={handleSearchChange}
         searchPlaceholder="Search resumes by job..."
         seniority={filters.seniority || "all"}
-        onSeniorityChange={(value) => updateSeniority(value === "all" ? "" : value)}
+        onSeniorityChange={handleSeniorityChange}
         hasActiveFilters={hasActiveFilters}
         onClearFilters={handleClearFilters}
         onMyResumeClick={handleMyResumeClick}
@@ -483,7 +531,7 @@ const Dashboard = () => {
           <div className="flex items-center justify-center gap-2">
             <Button
               variant="outline"
-              onClick={() => updateCurrentPage(Math.max(1, filters.currentPage - 1))}
+              onClick={() => handlePageChange(Math.max(1, filters.currentPage - 1))}
               disabled={filters.currentPage === 1 || showSkeletons}
             >
               Previous
@@ -496,7 +544,7 @@ const Dashboard = () => {
               onClick={() => {
                 // If we're at or past page 100, loop back to page 1
                 const nextPage = filters.currentPage >= 100 ? 1 : filters.currentPage + 1;
-                updateCurrentPage(nextPage);
+                handlePageChange(nextPage);
               }}
               disabled={showSkeletons}
             >

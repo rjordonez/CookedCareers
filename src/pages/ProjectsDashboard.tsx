@@ -1,4 +1,4 @@
-import { useEffect } from "react";
+import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
@@ -54,12 +54,6 @@ const ProjectsDashboard = () => {
   const isPageChanging = data ? pagination.currentPage !== data.pagination.page : false;
   const showSkeletons = isLoading || isPageChanging;
 
-  useEffect(() => {
-    if (isLoaded && !user) {
-      navigate("/auth");
-    }
-  }, [isLoaded, user, navigate]);
-
   const handleUpgrade = async () => {
     // TODO: Implement upgrade logic with Clerk metadata
     console.log("Upgrade to premium");
@@ -70,7 +64,23 @@ const ProjectsDashboard = () => {
     return !isPremium && globalIndex >= FREE_PREVIEW_COUNT;
   };
 
-  if (!isLoaded || !user) return null;
+  const handleProjectClick = (projectUrl: string | undefined, isProjectBlurred: boolean) => {
+    if (!isSignedIn) {
+      navigate('/auth');
+      return;
+    }
+    if (!isProjectBlurred && projectUrl) {
+      window.open(ensureHttps(projectUrl), '_blank');
+    }
+  };
+
+  const handlePageChange = (page: number) => {
+    if (!isSignedIn) {
+      navigate('/auth');
+      return;
+    }
+    dispatch(setCurrentPage(page));
+  };
 
   return (
     <div className="min-h-screen bg-background">
@@ -106,7 +116,7 @@ const ProjectsDashboard = () => {
               <div key={`${project.owner_id}-${index}`} className="relative">
                 <Card
                   className="group overflow-hidden border border-border hover:shadow-xl hover:scale-105 hover:-translate-y-2 transition-all duration-300 cursor-pointer bg-card"
-                  onClick={() => !isProjectBlurred && project.project_url && window.open(ensureHttps(project.project_url), '_blank')}
+                  onClick={() => handleProjectClick(project.project_url, isProjectBlurred)}
                 >
                   <div className="aspect-[3/4] bg-gradient-to-br from-white to-gray-50 overflow-hidden relative border-b">
                     <div className={`w-full h-full p-6 flex flex-col ${
@@ -184,7 +194,7 @@ const ProjectsDashboard = () => {
           <div className="flex items-center justify-center gap-2">
             <Button
               variant="outline"
-              onClick={() => dispatch(setCurrentPage(Math.max(1, pagination.currentPage - 1)))}
+              onClick={() => handlePageChange(Math.max(1, pagination.currentPage - 1))}
               disabled={pagination.currentPage === 1 || showSkeletons}
             >
               Previous
@@ -197,7 +207,7 @@ const ProjectsDashboard = () => {
               onClick={() => {
                 // If we're at or past page 100, loop back to page 1
                 const nextPage = pagination.currentPage >= 100 ? 1 : pagination.currentPage + 1;
-                dispatch(setCurrentPage(nextPage));
+                handlePageChange(nextPage);
               }}
               disabled={showSkeletons}
             >
