@@ -30,16 +30,13 @@ const CTASection = () => {
                 Join Now →
               </Button>
             </Link>
-            <a href="https://calendly.com/jessie-nativespeaking/consultation-call" target="_blank" rel="noopener noreferrer">
-              <Button
-                size="lg"
-                variant="outline"
-                className="rounded-full font-medium px-10 h-14 border-gray-600 text-white hover:bg-white/10"
-                onClick={() => posthog?.capture('book_consultation_clicked', { location: 'cta_section' })}
-              >
-                Book a consultation call
-              </Button>
-            </a>
+            <Button
+              size="lg"
+              variant="outline"
+              className="rounded-full font-medium px-10 h-14 border-gray-600 text-white hover:bg-white/10"
+            >
+              Book a consultation call
+            </Button>
           </div>
         </div>
       </div>
