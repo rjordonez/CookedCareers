@@ -45,7 +45,7 @@ const Footer = () => {
           </div>
           <div className="flex flex-col gap-3">
             <a
-              href="mailto:jessie@nativespeaking.ai"
+              href="mailto:erg"
               className="hover:opacity-80 transition-opacity"
               onClick={() => posthog?.capture('footer_contact_clicked')}
             >

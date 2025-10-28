@@ -42,7 +42,7 @@ const Privacy = () => {
             <p className="mb-4">
               If you have any questions about this Privacy Policy, please contact us at{" "}
               <a href="mailto:jessie@nativespeaking.ai" className="text-primary hover:underline">
-                jessie@nativespeaking.ai
+                //
               </a>
             </p>
           </section>
