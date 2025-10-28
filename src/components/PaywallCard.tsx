@@ -67,7 +67,7 @@ export const PaywallCard = ({ resume, onUpgrade }: PaywallCardProps) => {
               Upgrade to Pro
             </h4>
             <p className="text-sm text-muted-foreground mt-2">
-              Unlock unlimited resume access for just <span className="font-bold text-primary">$4.99/month</span>
+              Unlock unlimited resume access for just <span className="font-bold text-primary">$9.99/month</span>
             </p>
           </div>
 
