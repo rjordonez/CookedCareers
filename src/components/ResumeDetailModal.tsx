@@ -30,7 +30,7 @@ export const ResumeDetailModal = ({ resume, isOpen, onClose, isPremium }: Resume
           <Crown className="w-8 h-8 mx-auto mb-3 text-primary" />
           <h4 className="font-semibold mb-2">Contact Info - Pro Only</h4>
           <p className="text-sm text-muted-foreground mb-4">
-            Upgrade to access email, phone, and other contact details for just $4.99/month
+            Upgrade to access email, phone, and other contact details for just $9.99/month
           </p>
           <UpgradeButton />
         </div>
