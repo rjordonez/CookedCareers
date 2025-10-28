@@ -93,12 +93,6 @@ export default function AnonymizerDashboard() {
   });
   const isPro = subscriptionData?.is_pro ?? false;
 
-  useEffect(() => {
-    if (isLoaded && !user) {
-      navigate('/auth');
-    }
-  }, [isLoaded, user, navigate]);
-
   // Handle text selection changes
   useEffect(() => {
     const handleSelectionChange = () => {
@@ -187,9 +181,12 @@ export default function AnonymizerDashboard() {
     return () => window.removeEventListener('beforeunload', handleBeforeUnload);
   }, [view, fileId, detections, saveCurrentSession]);
 
-  if (!isLoaded || !user) return null;
-
   const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    if (!isSignedIn) {
+      navigate('/auth');
+      return;
+    }
+
     const file = e.target.files?.[0];
     if (!file) return;
 
@@ -254,6 +251,10 @@ export default function AnonymizerDashboard() {
   };
 
   const handleDownload = async () => {
+    if (!isSignedIn) {
+      navigate('/auth');
+      return;
+    }
     // Save before generating PDF
     await saveCurrentSession();
 
@@ -332,6 +333,10 @@ export default function AnonymizerDashboard() {
   };
 
   const resetUpload = async () => {
+    if (!isSignedIn) {
+      navigate('/auth');
+      return;
+    }
     // Save before leaving editor
     await saveCurrentSession();
 
@@ -345,11 +350,19 @@ export default function AnonymizerDashboard() {
   };
 
   const handleSelectSession = (sessionId: string) => {
+    if (!isSignedIn) {
+      navigate('/auth');
+      return;
+    }
     setSelectedSessionId(sessionId);
     // The useEffect will handle loading the session data
   };
 
   const handleUploadNew = () => {
+    if (!isSignedIn) {
+      navigate('/auth');
+      return;
+    }
     dispatch(resetAnonymizer());
     setPdfFile(null);
     setSelectedSessionId(null);
@@ -358,6 +371,11 @@ export default function AnonymizerDashboard() {
   };
 
   const handleShare = async () => {
+    if (!isSignedIn) {
+      navigate('/auth');
+      return;
+    }
+
     if (!sessionId) {
       toast.error('Please save your work first');
       return;
@@ -392,6 +410,68 @@ export default function AnonymizerDashboard() {
       console.error('Failed to copy:', error);
       toast.error('Failed to copy link');
     }
+  };
+
+  const handleToggleAllBlur = (shouldBlur: boolean) => {
+    if (!isSignedIn) {
+      navigate('/auth');
+      return;
+    }
+    dispatch(toggleAllBlur(shouldBlur));
+  };
+
+  const handleSetReplacementText = (index: number, text: string) => {
+    if (!isSignedIn) {
+      navigate('/auth');
+      return;
+    }
+    dispatch(setReplacementText({ index, text }));
+  };
+
+  const handleToggleSelectionMode = () => {
+    if (!isSignedIn) {
+      navigate('/auth');
+      return;
+    }
+    if (isSelectionMode && hasTextSelection) {
+      handleBlurSelection();
+    } else {
+      setIsSelectionMode(!isSelectionMode);
+    }
+  };
+
+  const handleCancelSelectionMode = () => {
+    if (!isSignedIn) {
+      navigate('/auth');
+      return;
+    }
+    setIsSelectionMode(false);
+    window.getSelection()?.removeAllRanges();
+    setHasTextSelection(false);
+  };
+
+  const handleRemoveManualBlur = (blurId: string) => {
+    if (!isSignedIn) {
+      navigate('/auth');
+      return;
+    }
+    dispatch(removeManualBlur(blurId));
+  };
+
+  const handlePageNavigation = (page: number) => {
+    if (!isSignedIn) {
+      navigate('/auth');
+      return;
+    }
+    dispatch(setCurrentPage(page));
+  };
+
+  const handleScaleChange = (newScale: number) => {
+    if (!isSignedIn) {
+      navigate('/auth');
+      return;
+    }
+    dispatch(setScale(newScale));
   };
 
   const handleBlurSelection = () => {
@@ -450,6 +530,10 @@ export default function AnonymizerDashboard() {
 
   // Helper: Toggle detection with overlap support
   const handleDetectionToggle = (clickedDetection: PIIDetectionWithBlur) => {
+    if (!isSignedIn) {
+      navigate('/auth');
+      return;
+    }
     const overlapping = findOverlappingDetections(clickedDetection);
 
     // Toggle all overlapping detections
@@ -536,9 +620,7 @@ export default function AnonymizerDashboard() {
                         placeholder={`Replace with... (e.g., "T200 School")`}
                         value={detection.replacementText || ''}
                         onChange={(e) =>
-                          dispatch(
-                            setReplacementText({ index: idx, text: e.target.value })
-                          )
+                          handleSetReplacementText(idx, e.target.value)
                         }
                         className="h-8 text-sm"
                       />
@@ -554,13 +636,7 @@ export default function AnonymizerDashboard() {
                   <Button
                     variant={isSelectionMode ? "default" : "outline"}
                     className="w-full"
-                    onClick={() => {
-                      if (isSelectionMode && hasTextSelection) {
-                        handleBlurSelection();
-                      } else {
-                        setIsSelectionMode(!isSelectionMode);
-                      }
-                    }}
+                    onClick={handleToggleSelectionMode}
                   >
                     <Wand2 className="w-4 h-4 mr-2" />
                     {isSelectionMode ? (hasTextSelection ? 'Blur Selected Text' : 'Selection Mode Active') : 'Enable Text Selection'}
@@ -569,11 +645,7 @@ export default function AnonymizerDashboard() {
                     <Button
                       variant="ghost"
                       className="w-full"
-                      onClick={() => {
-                        setIsSelectionMode(false);
-                        window.getSelection()?.removeAllRanges();
-                        setHasTextSelection(false);
-                      }}
+                      onClick={handleCancelSelectionMode}
                     >
                       <X className="w-4 h-4 mr-2" />
                       Cancel Selection Mode
@@ -582,7 +654,7 @@ export default function AnonymizerDashboard() {
                   <Button
                     variant="outline"
                     className="w-full"
-                    onClick={() => dispatch(toggleAllBlur(true))}
+                    onClick={() => handleToggleAllBlur(true)}
                   >
                     <EyeOff className="w-4 h-4 mr-2" />
                     Blur All
@@ -590,7 +662,7 @@ export default function AnonymizerDashboard() {
                   <Button
                     variant="outline"
                     className="w-full"
-                    onClick={() => dispatch(toggleAllBlur(false))}
+                    onClick={() => handleToggleAllBlur(false)}
                   >
                     <Eye className="w-4 h-4 mr-2" />
                     Show All
@@ -647,7 +719,7 @@ export default function AnonymizerDashboard() {
                       variant="outline"
                       size="sm"
                       disabled={currentPage === 1}
-                      onClick={() => dispatch(setCurrentPage(currentPage - 1))}
+                      onClick={() => handlePageNavigation(currentPage - 1)}
                     >
                       Previous
                     </Button>
@@ -655,7 +727,7 @@ export default function AnonymizerDashboard() {
                       variant="outline"
                       size="sm"
                       disabled={currentPage === numPages}
-                      onClick={() => dispatch(setCurrentPage(currentPage + 1))}
+                      onClick={() => handlePageNavigation(currentPage + 1)}
                     >
                       Next
                     </Button>
@@ -667,7 +739,7 @@ export default function AnonymizerDashboard() {
                     <Button
                       variant="outline"
                       size="sm"
-                      onClick={() => dispatch(setScale(Math.max(0.5, scale - 0.25)))}
+                      onClick={() => handleScaleChange(Math.max(0.5, scale - 0.25))}
                     >
                       -
                     </Button>
@@ -677,7 +749,7 @@ export default function AnonymizerDashboard() {
                     <Button
                       variant="outline"
                       size="sm"
-                      onClick={() => dispatch(setScale(Math.min(3, scale + 0.25)))}
+                      onClick={() => handleScaleChange(Math.min(3, scale + 0.25))}
                     >
                       +
                     </Button>
@@ -796,7 +868,7 @@ export default function AnonymizerDashboard() {
                               zIndex: 10,
                               pointerEvents: 'auto',
                             }}
-                            onClick={() => dispatch(removeManualBlur(blur.id))}
+                            onClick={() => handleRemoveManualBlur(blur.id)}
                             title="Click to remove"
                           >
                             <div className="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
