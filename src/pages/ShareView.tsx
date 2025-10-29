@@ -48,7 +48,7 @@ export default function ShareView() {
   if (isLoading) {
     return (
       <div className="min-h-screen bg-background">
-        <Navigation />
+        <Navigation unauthenticatedCtaText="Anonymize your resume" />
         <div className="flex items-center justify-center pt-32">
           <Card className="p-12 text-center">
             <Loader2 className="w-16 h-16 mx-auto mb-6 text-primary animate-spin" />
@@ -63,7 +63,7 @@ export default function ShareView() {
   if (error || !sessionData?.success) {
     return (
       <div className="min-h-screen bg-background">
-        <Navigation />
+        <Navigation unauthenticatedCtaText="Anonymize your resume" />
         <div className="flex items-center justify-center pt-32">
           <Card className="p-12 text-center">
             <FileText className="w-16 h-16 mx-auto mb-6 text-muted-foreground" />
@@ -89,7 +89,7 @@ export default function ShareView() {
 
   return (
     <div className="min-h-screen bg-background">
-      <Navigation />
+      <Navigation unauthenticatedCtaText="Anonymize your resume" />
 
       <main className="max-w-7xl mx-auto px-6 pt-24 pb-6">
         {/* Page Header */}
