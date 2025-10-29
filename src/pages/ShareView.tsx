@@ -6,6 +6,8 @@ import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
 import { useGetSharedSessionQuery } from '@/features/anonymizer/anonymizerService';
 import type { PIIDetectionWithBlur } from '@/features/anonymizer/anonymizerTypes';
+import Navigation from '@/components/Navigation';
+import Footer from '@/components/Footer';
 import 'react-pdf/dist/Page/AnnotationLayer.css';
 import 'react-pdf/dist/Page/TextLayer.css';
 
@@ -45,25 +47,33 @@ export default function ShareView() {
 
   if (isLoading) {
     return (
-      <div className="min-h-screen bg-background flex items-center justify-center">
-        <Card className="p-12 text-center">
-          <Loader2 className="w-16 h-16 mx-auto mb-6 text-primary animate-spin" />
-          <h2 className="text-2xl font-semibold mb-3">Loading Shared Resume...</h2>
-        </Card>
+      <div className="min-h-screen bg-background">
+        <Navigation />
+        <div className="flex items-center justify-center pt-32">
+          <Card className="p-12 text-center">
+            <Loader2 className="w-16 h-16 mx-auto mb-6 text-primary animate-spin" />
+            <h2 className="text-2xl font-semibold mb-3">Loading Shared Resume...</h2>
+          </Card>
+        </div>
+        <Footer />
       </div>
     );
   }
 
   if (error || !sessionData?.success) {
     return (
-      <div className="min-h-screen bg-background flex items-center justify-center">
-        <Card className="p-12 text-center">
-          <FileText className="w-16 h-16 mx-auto mb-6 text-muted-foreground" />
-          <h2 className="text-2xl font-semibold mb-3">Link Invalid or Expired</h2>
-          <p className="text-muted-foreground">
-            This share link is no longer valid. Please request a new link from the owner.
-          </p>
-        </Card>
+      <div className="min-h-screen bg-background">
+        <Navigation />
+        <div className="flex items-center justify-center pt-32">
+          <Card className="p-12 text-center">
+            <FileText className="w-16 h-16 mx-auto mb-6 text-muted-foreground" />
+            <h2 className="text-2xl font-semibold mb-3">Link Invalid or Expired</h2>
+            <p className="text-muted-foreground">
+              This share link is no longer valid. Please request a new link from the owner.
+            </p>
+          </Card>
+        </div>
+        <Footer />
       </div>
     );
   }
@@ -79,19 +89,17 @@ export default function ShareView() {
 
   return (
     <div className="min-h-screen bg-background">
-      <header className="border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
-        <div className="max-w-7xl mx-auto px-6 py-4 flex items-center justify-between">
-          <div className="flex items-center gap-3">
-            <FileText className="w-6 h-6 text-primary" />
-            <div>
-              <h1 className="text-lg font-semibold">{sessionData.session.filename}</h1>
-              <p className="text-sm text-muted-foreground">Shared Anonymized Resume (Read-Only)</p>
-            </div>
+      <Navigation />
+
+      <main className="max-w-7xl mx-auto px-6 pt-24 pb-6">
+        {/* Page Header */}
+        <div className="mb-6 flex items-center gap-3">
+          <FileText className="w-6 h-6 text-primary" />
+          <div>
+            <h1 className="text-lg font-semibold">{sessionData.session.filename}</h1>
+            <p className="text-sm text-muted-foreground">Shared Anonymized Resume (Read-Only)</p>
           </div>
         </div>
-      </header>
-
-      <main className="max-w-7xl mx-auto px-6 pt-4 pb-6">
         <Card className="p-6">
           {/* Toolbar */}
           <div className="mb-4 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
@@ -237,6 +245,8 @@ export default function ShareView() {
           </p>
         </Card>
       </main>
+
+      <Footer />
     </div>
   );
 }
