@@ -3,7 +3,11 @@ import { Link } from "react-router-dom";
 import { useUser } from "@clerk/clerk-react";
 import { usePostHog } from "posthog-js/react";
 
-const Navigation = () => {
+interface NavigationProps {
+  unauthenticatedCtaText?: string;
+}
+
+const Navigation = ({ unauthenticatedCtaText }: NavigationProps = {}) => {
   const { isSignedIn } = useUser();
   const posthog = usePostHog();
 
@@ -31,6 +35,16 @@ const Navigation = () => {
             onClick={() => posthog?.capture('nav_dashboard_clicked')}
           >
             Dashboard
+          </Button>
+        </Link>
+      ) : unauthenticatedCtaText ? (
+        <Link to="/auth" className="-me-3 min-w-fit shrink-0">
+          <Button
+            size="sm"
+            className="rounded-full text-xs md:text-sm font-semibold px-3 md:px-4 h-[44px] bg-[#1a1a1a] text-white hover:bg-[#2a2a2a]"
+            onClick={() => posthog?.capture('nav_custom_cta_clicked', { cta_text: unauthenticatedCtaText })}
+          >
+            {unauthenticatedCtaText}
           </Button>
         </Link>
       ) : (
