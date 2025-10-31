@@ -47,6 +47,7 @@ const DashboardNav = forwardRef<DashboardNavRef, DashboardNavProps>(({
   const isResumesPage = location.pathname === "/dashboard";
   const isProjectsPage = location.pathname === "/projects";
   const isAnonymizerPage = location.pathname === "/anonymizer";
+  const isReviewPage = location.pathname === "/resume-review" || location.pathname.startsWith("/resume-review/");
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [isUploading, setIsUploading] = useState(false);
   const { toast } = useToast();
@@ -151,6 +152,14 @@ const DashboardNav = forwardRef<DashboardNavRef, DashboardNavProps>(({
                 }`}
               >
                 Anonymizer
+              </Link>
+              <Link
+                to="/resume-review"
+                className={`text-sm font-semibold transition-colors ${
+                  isReviewPage ? 'text-foreground' : 'text-muted-foreground hover:text-foreground'
+                }`}
+              >
+                Review
               </Link>
             </div>
           </div>

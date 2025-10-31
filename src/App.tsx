@@ -11,12 +11,18 @@ import Auth from "./pages/Auth";
 import Dashboard from "./pages/Dashboard";
 import ProjectsDashboard from "./pages/ProjectsDashboard";
 import AnonymizerDashboard from "./pages/AnonymizerDashboard";
+import ResumeReviewDashboard from "./pages/ResumeReviewDashboard";
+import ResumeReviewDetail from "./pages/ResumeReviewDetail";
 import ShareView from "./pages/ShareView";
 import SubscriptionSuccess from "./pages/SubscriptionSuccess";
 import Account from "./pages/Account";
 import Privacy from "./pages/Privacy";
 import Terms from "./pages/Terms";
 import NotFound from "./pages/NotFound";
+import { pdfjs } from 'react-pdf';
+
+// Configure PDF.js worker globally
+pdfjs.GlobalWorkerOptions.workerSrc = '/pdf.worker.min.mjs';
 
 const queryClient = new QueryClient();
 
@@ -34,6 +40,8 @@ const App = () => (
               <Route path="/dashboard" element={<Dashboard />} />
               <Route path="/projects" element={<ProjectsDashboard />} />
               <Route path="/anonymizer" element={<AnonymizerDashboard />} />
+              <Route path="/resume-review" element={<ResumeReviewDashboard />} />
+              <Route path="/resume-review/:id" element={<ResumeReviewDetail />} />
               <Route path="/share/:token" element={<ShareView />} />
               <Route path="/subscription/success" element={<SubscriptionSuccess />} />
               <Route path="/account" element={<Account />} />

@@ -1,7 +1,7 @@
 import { useState, useRef, useEffect, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Document, Page, pdfjs } from 'react-pdf';
-import { Upload, Download, Eye, EyeOff, Loader2, FileText, Wand2, X, Share2, Copy, Check } from 'lucide-react';
+import { Document, Page } from 'react-pdf';
+import { Download, Eye, EyeOff, Loader2, Wand2, X, Share2, Copy, Check } from 'lucide-react';
 import { useUser } from '@clerk/clerk-react';
 import { useAuthReady } from '@/components/AuthProvider';
 import { Button } from '@/components/ui/button';
@@ -50,9 +50,6 @@ import { useGetSubscriptionStatusQuery } from '@/features/subscription/subscript
 import DashboardNav from '@/components/DashboardNav';
 import 'react-pdf/dist/Page/AnnotationLayer.css';
 import 'react-pdf/dist/Page/TextLayer.css';
-
-// Configure PDF.js worker
-pdfjs.GlobalWorkerOptions.workerSrc = '/pdf.worker.min.mjs';
 
 export default function AnonymizerDashboard() {
   const navigate = useNavigate();
