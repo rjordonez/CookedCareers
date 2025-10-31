@@ -13,6 +13,7 @@ import ProjectsDashboard from "./pages/ProjectsDashboard";
 import AnonymizerDashboard from "./pages/AnonymizerDashboard";
 import ResumeReviewDashboard from "./pages/ResumeReviewDashboard";
 import ResumeReviewDetail from "./pages/ResumeReviewDetail";
+import DevReviewPanel from "./pages/DevReviewPanel";
 import ShareView from "./pages/ShareView";
 import SubscriptionSuccess from "./pages/SubscriptionSuccess";
 import Account from "./pages/Account";
@@ -42,6 +43,7 @@ const App = () => (
               <Route path="/anonymizer" element={<AnonymizerDashboard />} />
               <Route path="/resume-review" element={<ResumeReviewDashboard />} />
               <Route path="/resume-review/:id" element={<ResumeReviewDetail />} />
+              <Route path="/dev" element={<DevReviewPanel />} />
               <Route path="/share/:token" element={<ShareView />} />
               <Route path="/subscription/success" element={<SubscriptionSuccess />} />
               <Route path="/account" element={<Account />} />
