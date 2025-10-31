@@ -1,12 +1,11 @@
 import { useState, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Upload, Loader2, FileText, ExternalLink, CheckCircle2 } from 'lucide-react';
+import { Upload, Loader2, FileText, ExternalLink, CheckCircle2, MessageSquare } from 'lucide-react';
 import { useAuth } from '@clerk/clerk-react';
 import { useAuthReady } from '@/components/AuthProvider';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
 import { Textarea } from '@/components/ui/textarea';
-import { toast } from 'sonner';
 import { useListSubmissionsQuery } from '@/features/review/reviewService';
 import { useGetSubscriptionStatusQuery } from '@/features/subscription/subscriptionService';
 import DashboardNav from '@/components/DashboardNav';
@@ -52,7 +51,6 @@ export default function DevReviewPanel() {
     const file = e.target.files?.[0];
     if (file) {
       if (!file.name.toLowerCase().endsWith('.pdf')) {
-        toast.error('Please upload a PDF file');
         return;
       }
       setReviewedFile(file);
@@ -61,7 +59,6 @@ export default function DevReviewPanel() {
 
   const handleUploadReview = async (submissionId: string) => {
     if (!reviewedFile) {
-      toast.error('Please select a reviewed resume file');
       return;
     }
 
@@ -86,17 +83,15 @@ export default function DevReviewPanel() {
       const result = await response.json();
 
       if (result.success) {
-        toast.success('Reviewed resume uploaded successfully!');
         setUploadingFor(null);
         setReviewedFile(null);
         setReviewNotes('');
         refetch();
       } else {
-        toast.error(result.message || 'Failed to upload reviewed resume');
+        console.error(result.message || 'Failed to upload reviewed resume');
       }
     } catch (error) {
       console.error('Upload error:', error);
-      toast.error('Failed to upload reviewed resume');
     } finally {
       setIsUploading(false);
     }
@@ -118,7 +113,6 @@ export default function DevReviewPanel() {
       window.open(blobUrl, '_blank');
     } catch (error) {
       console.error('Error opening PDF:', error);
-      toast.error('Failed to open PDF');
     }
   };
 
@@ -190,20 +184,20 @@ export default function DevReviewPanel() {
                       </div>
                       <div className="flex gap-2">
                         <Button
+                          className="bg-primary"
+                          size="sm"
+                          onClick={() => navigate(`/dev-review/${submission.id}`)}
+                        >
+                          <MessageSquare className="w-4 h-4 mr-2" />
+                          Review
+                        </Button>
+                        <Button
                           variant="outline"
                           size="sm"
                           onClick={() => handleViewOriginal(submission.file_url)}
                         >
                           <ExternalLink className="w-4 h-4 mr-2" />
                           View Original
-                        </Button>
-                        <Button
-                          variant="outline"
-                          size="sm"
-                          onClick={() => navigate(`/resume-review/${submission.id}`)}
-                        >
-                          <FileText className="w-4 h-4 mr-2" />
-                          View Details
                         </Button>
                       </div>
                     </div>

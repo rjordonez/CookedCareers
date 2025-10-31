@@ -8,7 +8,6 @@ import { UserButton, useAuth } from "@clerk/clerk-react";
 import { UpgradeButton } from "@/components/UpgradeButton";
 import { ProBadge } from "@/components/ProBadge";
 import { useRef, useState, useImperativeHandle, forwardRef } from "react";
-import { useToast } from "@/hooks/use-toast";
 
 interface DashboardNavProps {
   isPro: boolean;
@@ -50,7 +49,6 @@ const DashboardNav = forwardRef<DashboardNavRef, DashboardNavProps>(({
   const isReviewPage = location.pathname === "/resume-review" || location.pathname.startsWith("/resume-review/");
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [isUploading, setIsUploading] = useState(false);
-  const { toast } = useToast();
   const { getToken } = useAuth();
 
   // Expose triggerUpload to parent via ref
@@ -86,10 +84,6 @@ const DashboardNav = forwardRef<DashboardNavRef, DashboardNavProps>(({
       const data = await response.json();
 
       if (data.success) {
-        toast({
-          title: hasUploadedResume ? "Resume updated" : "Resume uploaded",
-          description: hasUploadedResume ? "Your resume has been updated successfully!" : "Your resume has been saved successfully!",
-        });
         // Notify parent of successful upload
         if (onUploadSuccess) {
           onUploadSuccess();
@@ -98,11 +92,7 @@ const DashboardNav = forwardRef<DashboardNavRef, DashboardNavProps>(({
         throw new Error(data.detail || data.error || 'Upload failed');
       }
     } catch (error: any) {
-      toast({
-        title: "Upload failed",
-        description: error.message || "Failed to upload resume. Please try again.",
-        variant: "destructive",
-      });
+      console.error("Upload failed:", error);
     } finally {
       setIsUploading(false);
       if (fileInputRef.current) {

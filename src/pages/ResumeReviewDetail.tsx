@@ -1,13 +1,13 @@
 import { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { Document, Page } from 'react-pdf';
-import { ArrowLeft, Download, Loader2, FileText, Clock, CheckCircle2 } from 'lucide-react';
+import { ArrowLeft, Download, Loader2, MessageSquare, CheckCircle2, Clock, FileText } from 'lucide-react';
 import { useUser, useAuth } from '@clerk/clerk-react';
 import { useAuthReady } from '@/components/AuthProvider';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { useGetSubmissionQuery } from '@/features/review/reviewService';
+import { useGetSubmissionQuery, useGetAnnotationsQuery } from '@/features/review/reviewService';
 import { useGetSubscriptionStatusQuery } from '@/features/subscription/subscriptionService';
 import DashboardNav from '@/components/DashboardNav';
 import 'react-pdf/dist/Page/AnnotationLayer.css';
@@ -23,7 +23,6 @@ export default function ResumeReviewDetail() {
   const [currentPage, setCurrentPage] = useState(1);
   const [numPages, setNumPages] = useState(0);
   const [scale, setScale] = useState(1.0);
-  const [viewMode, setViewMode] = useState<'original' | 'reviewed'>('original');
   const [pdfFile, setPdfFile] = useState<Blob | null>(null);
   const [loadingPdf, setLoadingPdf] = useState(false);
 
@@ -35,6 +34,11 @@ export default function ResumeReviewDetail() {
     skip: !authReady || !isSignedIn || !id,
   });
 
+  // Fetch annotations for this submission
+  const { data: annotationsData } = useGetAnnotationsQuery(id!, {
+    skip: !authReady || !isSignedIn || !id,
+  });
+
   // Fetch subscription status
   const { data: subscriptionData, isLoading: isLoadingSubscription } = useGetSubscriptionStatusQuery(undefined, {
     skip: !authReady || !isSignedIn,
@@ -42,19 +46,18 @@ export default function ResumeReviewDetail() {
   const isPro = subscriptionData?.is_pro ?? false;
 
   const submission = submissionData?.submission;
+  const annotations = annotationsData?.annotations || [];
+  const currentPageAnnotations = annotations.filter((a) => a.page_number === currentPage - 1);
 
-  // Fetch PDF with authentication when submission or view mode changes
+  // Fetch PDF with authentication when submission changes
   useEffect(() => {
-    if (!submission) return;
-
-    const url = viewMode === 'original' ? submission.file_url : submission.reviewed_file_url;
-    if (!url) return;
+    if (!submission?.file_url) return;
 
     const fetchPdf = async () => {
       setLoadingPdf(true);
       try {
         const token = await getToken();
-        const response = await fetch(url, {
+        const response = await fetch(submission.file_url, {
           headers: token ? { Authorization: `Bearer ${token}` } : {},
         });
 
@@ -64,7 +67,6 @@ export default function ResumeReviewDetail() {
 
         const blob = await response.blob();
         setPdfFile(blob);
-        setCurrentPage(1); // Reset to first page when switching
       } catch (error) {
         console.error('Error loading PDF:', error);
         setPdfFile(null);
@@ -74,7 +76,7 @@ export default function ResumeReviewDetail() {
     };
 
     fetchPdf();
-  }, [submission, viewMode, getToken]);
+  }, [submission, getToken]);
 
   const formatDate = (dateString: string) => {
     return new Date(dateString).toLocaleDateString('en-US', {
@@ -210,57 +212,18 @@ export default function ResumeReviewDetail() {
               </div>
             </Card>
 
-            {/* Reviewer Notes */}
-            {submission.notes && (
-              <Card className="p-4">
-                <h3 className="font-semibold mb-3">Reviewer Notes</h3>
-                <p className="text-sm text-muted-foreground whitespace-pre-wrap">
-                  {submission.notes}
-                </p>
-              </Card>
-            )}
-
             {/* Actions Card */}
             <Card className="p-4">
               <h3 className="font-semibold mb-3">Actions</h3>
               <div className="space-y-2">
-                {submission.status === 'completed' && submission.reviewed_file_url && (
-                  <>
-                    <Button
-                      variant={viewMode === 'original' ? 'default' : 'outline'}
-                      className="w-full"
-                      onClick={() => setViewMode('original')}
-                    >
-                      <FileText className="w-4 h-4 mr-2" />
-                      View Original
-                    </Button>
-                    <Button
-                      variant={viewMode === 'reviewed' ? 'default' : 'outline'}
-                      className="w-full"
-                      onClick={() => setViewMode('reviewed')}
-                    >
-                      <CheckCircle2 className="w-4 h-4 mr-2" />
-                      View Reviewed
-                    </Button>
-                  </>
-                )}
                 <Button
                   variant="outline"
                   className="w-full"
                   onClick={() => handleDownload(submission.file_url, submission.filename)}
                 >
                   <Download className="w-4 h-4 mr-2" />
-                  Download Original
+                  Download Resume
                 </Button>
-                {submission.status === 'completed' && submission.reviewed_file_url && (
-                  <Button
-                    className="w-full bg-primary"
-                    onClick={() => handleDownload(submission.reviewed_file_url!, `reviewed_${submission.filename}`)}
-                  >
-                    <Download className="w-4 h-4 mr-2" />
-                    Download Reviewed
-                  </Button>
-                )}
               </div>
             </Card>
           </div>
@@ -313,22 +276,7 @@ export default function ResumeReviewDetail() {
               </div>
 
               {/* PDF Viewer */}
-              {submission.status === 'pending' && viewMode === 'reviewed' ? (
-                <div className="border-2 rounded-lg p-12 text-center bg-gray-50">
-                  <Clock className="w-16 h-16 mx-auto mb-4 text-muted-foreground" />
-                  <h3 className="text-xl font-semibold mb-2">Review in Progress</h3>
-                  <p className="text-muted-foreground max-w-md mx-auto">
-                    Your resume is currently being reviewed. The reviewed version will appear here once completed.
-                  </p>
-                  <Button
-                    variant="outline"
-                    className="mt-6"
-                    onClick={() => window.location.reload()}
-                  >
-                    Refresh Page
-                  </Button>
-                </div>
-              ) : loadingPdf || !pdfFile ? (
+              {loadingPdf || !pdfFile ? (
                 <div className="border-2 rounded-lg p-12 text-center bg-gray-50">
                   <Loader2 className="w-16 h-16 mx-auto mb-4 text-primary animate-spin" />
                   <p className="text-muted-foreground">Loading PDF...</p>
@@ -358,6 +306,28 @@ export default function ResumeReviewDetail() {
                           renderTextLayer={false}
                           renderAnnotationLayer={false}
                         />
+
+                        {/* Annotation Overlays */}
+                        {currentPageAnnotations.map((annotation) => (
+                          <div
+                            key={annotation.id}
+                            className="absolute bg-yellow-300/40 border-2 border-yellow-400 cursor-pointer hover:bg-yellow-300/60 transition-all group"
+                            style={{
+                              left: `${annotation.position.x * scale}px`,
+                              top: `${annotation.position.y * scale}px`,
+                              width: `${annotation.position.width * scale}px`,
+                              height: `${annotation.position.height * scale}px`,
+                              zIndex: 10,
+                              pointerEvents: 'auto',
+                            }}
+                            title={annotation.content.comment}
+                          >
+                            <div className="absolute -top-8 left-0 bg-yellow-500 text-white text-xs px-2 py-1 rounded shadow-lg max-w-xs whitespace-normal opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none z-20">
+                              {annotation.content.comment}
+                            </div>
+                            <MessageSquare className="w-3 h-3 text-yellow-600 absolute top-0 right-0 -mt-1 -mr-1 bg-white rounded-full p-0.5" />
+                          </div>
+                        ))}
                       </Document>
                     </div>
                   </div>
@@ -366,11 +336,26 @@ export default function ResumeReviewDetail() {
 
               {/* Help Text */}
               <p className="text-sm text-gray-500 mt-4 text-center">
-                {submission.status === 'completed' && submission.reviewed_file_url
-                  ? `Viewing ${viewMode === 'original' ? 'original' : 'reviewed'} resume • Use the sidebar to switch versions`
-                  : 'Viewing original resume'}
+                {submission.status === 'completed'
+                  ? 'Viewing your resume with reviewer feedback'
+                  : 'Your resume is being reviewed'}
+                {annotations.length > 0 && (
+                  <span> • Hover over yellow highlights to see feedback</span>
+                )}
               </p>
             </Card>
+
+            {/* Reviewer Notes - Below PDF */}
+            {submission.notes && (
+              <Card className="p-6 mt-6">
+                <h3 className="font-semibold mb-3 text-lg">Reviewer Notes</h3>
+                <div className="prose prose-sm max-w-none">
+                  <p className="text-muted-foreground whitespace-pre-wrap">
+                    {submission.notes}
+                  </p>
+                </div>
+              </Card>
+            )}
           </div>
         </div>
       </main>

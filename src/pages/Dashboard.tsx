@@ -20,7 +20,6 @@ import ComparisonLoadingModal from "@/components/ComparisonLoadingModal";
 import ResumeCardSkeleton from "@/components/ResumeCardSkeleton";
 import type { Resume } from "@/features/resumes/resumeTypes";
 import { usePostHog } from "posthog-js/react";
-import { useToast } from "@/hooks/use-toast";
 
 const FREE_PREVIEW_COUNT = 6;
 
@@ -31,7 +30,6 @@ const Dashboard = () => {
   const [selectedResume, setSelectedResume] = useState<Resume | null>(null);
   const [localSearchQuery, setLocalSearchQuery] = useState("");
   const posthog = usePostHog();
-  const { toast } = useToast();
   const [createCheckoutSession] = useCreateCheckoutSessionMutation();
   const [compareResume] = useCompareResumeMutation();
   const [comparingResumeId, setComparingResumeId] = useState<string | null>(null);
@@ -222,11 +220,6 @@ const Dashboard = () => {
         window.location.href = result.checkout_url;
       } catch (error: any) {
         console.error("Failed to create checkout session:", error);
-        toast({
-          title: "Error",
-          description: error?.data?.detail || error?.error || "Failed to start upgrade process. Please try again.",
-          variant: "destructive",
-        });
       }
     }
   };
@@ -250,11 +243,6 @@ const Dashboard = () => {
       // Set the resume and comparison data to open the modal
       setComparisonResume(resume);
       setComparisonData(result);
-
-      toast({
-        title: "Comparison Complete",
-        description: `Your resume has been compared with ${result.db_resume_name}'s resume`,
-      });
     } catch (error: any) {
       console.error("Comparison failed:", error);
 
@@ -269,12 +257,6 @@ const Dashboard = () => {
         // Show upload modal instead of directly triggering upload
         setUploadModalMode('upload');
         setShowUploadModal(true);
-      } else {
-        toast({
-          title: "Comparison Failed",
-          description: error?.data?.detail || error?.message || "Something went wrong. Please try again.",
-          variant: "destructive",
-        });
       }
     } finally {
       // Clear comparing state
@@ -356,19 +338,11 @@ const Dashboard = () => {
       if (data.comparison) {
         setComparisonResume(resume);
         setComparisonData(data.comparison);
-        toast({
-          title: "Comparison Complete",
-          description: "Check the comparison results!",
-        });
       } else {
         throw new Error(data.error || 'Comparison failed');
       }
     } catch (error: any) {
-      toast({
-        title: "Comparison Failed",
-        description: error.message || "Please upload your resume first.",
-        variant: "destructive",
-      });
+      console.error('Comparison failed:', error);
     }
     */
   };

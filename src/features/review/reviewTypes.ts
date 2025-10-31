@@ -40,3 +40,50 @@ export interface DeleteSubmissionResponse {
   success: boolean;
   message: string;
 }
+
+// Annotation types
+export interface AnnotationPosition {
+  x: number;
+  y: number;
+  width: number;
+  height: number;
+}
+
+export interface AnnotationContent {
+  selectedText?: string;
+  comment: string;
+}
+
+export interface Annotation {
+  id: string;
+  submission_id: string;
+  annotation_type: 'highlight' | 'area' | 'drawing';
+  page_number: number;
+  position: AnnotationPosition;
+  content: AnnotationContent;
+  created_at: string;
+  updated_at?: string;
+}
+
+export interface CreateAnnotationRequest {
+  submission_id: string;
+  annotation_type: 'highlight' | 'area' | 'drawing';
+  page_number: number;
+  position: AnnotationPosition;
+  content: AnnotationContent;
+}
+
+export interface CreateAnnotationResponse {
+  success: boolean;
+  annotation: Annotation;
+}
+
+export interface GetAnnotationsResponse {
+  success: boolean;
+  annotations: Annotation[];
+}
+
+export interface DeleteAnnotationResponse {
+  success: boolean;
+  message: string;
+}

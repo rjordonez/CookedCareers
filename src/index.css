@@ -203,11 +203,6 @@ All colors MUST be HSL.
     animation: fade-in 0.6s ease-out forwards;
   }
 
-  /* Hide empty Sonner toast container */
-  section[aria-label*="Notifications"]:empty {
-    display: none;
-  }
-
   /* Remove focus outlines globally */
   *:focus,
   *:focus-visible {

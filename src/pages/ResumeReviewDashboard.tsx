@@ -5,7 +5,6 @@ import { useUser, useAuth } from '@clerk/clerk-react';
 import { useAuthReady } from '@/components/AuthProvider';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
-import { toast } from 'sonner';
 import {
   useSubmitReviewMutation,
   useListSubmissionsQuery,
@@ -56,7 +55,6 @@ export default function ResumeReviewDashboard() {
     }
 
     if (!file.name.toLowerCase().endsWith('.pdf')) {
-      toast.error('Please upload a PDF file');
       return;
     }
 
@@ -67,14 +65,12 @@ export default function ResumeReviewDashboard() {
       const result = await submitReview(formData).unwrap();
 
       if (result.success) {
-        toast.success('Resume submitted for review!');
         refetch(); // Refresh the submissions list
       } else {
-        toast.error('Failed to submit resume');
+        console.error('Failed to submit resume');
       }
     } catch (error) {
       console.error('Upload error:', error);
-      toast.error('Failed to submit resume');
     }
   };
 
@@ -122,14 +118,12 @@ export default function ResumeReviewDashboard() {
     try {
       const result = await deleteSubmission(submissionId).unwrap();
       if (result.success) {
-        toast.success('Submission deleted');
         refetch();
       } else {
-        toast.error('Failed to delete submission');
+        console.error('Failed to delete submission');
       }
     } catch (error) {
       console.error('Delete error:', error);
-      toast.error('Failed to delete submission');
     }
   };
 
@@ -159,10 +153,8 @@ export default function ResumeReviewDashboard() {
       document.body.removeChild(link);
 
       URL.revokeObjectURL(blobUrl);
-      toast.success('Download started');
     } catch (error) {
       console.error('Download error:', error);
-      toast.error('Download failed');
     }
   };
 

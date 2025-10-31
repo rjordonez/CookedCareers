@@ -15,7 +15,6 @@ import {
   DialogHeader,
   DialogTitle,
 } from '@/components/ui/dialog';
-import { toast } from 'sonner';
 import { useAppDispatch, useAppSelector } from '@/hooks/useAppDispatch';
 import {
   setCurrentPage,
@@ -132,7 +131,6 @@ export default function AnonymizerDashboard() {
         })
         .catch((error) => {
           console.error('Failed to load PDF:', error);
-          toast.error('Failed to load PDF');
         })
         .finally(() => {
           setIsRestoringSession(false);
@@ -188,7 +186,6 @@ export default function AnonymizerDashboard() {
     if (!file) return;
 
     if (!file.name.toLowerCase().endsWith('.pdf')) {
-      toast.error('Please upload a PDF file');
       return;
     }
 
@@ -237,13 +234,11 @@ export default function AnonymizerDashboard() {
         }
 
         setView('editor');
-        toast.success(`Found ${result.detections.length} personal information fields`);
       } else {
-        toast.error(result.error || 'Failed to analyze PDF');
+        console.error(result.error || 'Failed to analyze PDF');
       }
     } catch (error) {
-      toast.error('Upload failed');
-      console.error(error);
+      console.error('Upload failed:', error);
     }
   };
 
@@ -318,14 +313,11 @@ export default function AnonymizerDashboard() {
 
         // Clean up the blob URL
         URL.revokeObjectURL(blobUrl);
-
-        toast.success('Anonymized PDF generated successfully!');
       } else {
-        toast.error(result.error || 'Failed to generate PDF');
+        console.error(result.error || 'Failed to generate PDF');
       }
     } catch (error) {
-      toast.error('Failed to generate anonymized PDF');
-      console.error(error);
+      console.error('Failed to generate anonymized PDF:', error);
     }
   };
 
@@ -374,7 +366,6 @@ export default function AnonymizerDashboard() {
     }
 
     if (!sessionId) {
-      toast.error('Please save your work first');
       return;
     }
 
@@ -389,11 +380,10 @@ export default function AnonymizerDashboard() {
         setShowShareModal(true);
         setCopied(false);
       } else {
-        toast.error(result.error || 'Failed to create share link');
+        console.error(result.error || 'Failed to create share link');
       }
     } catch (error) {
       console.error('Failed to create share link:', error);
-      toast.error('Failed to create share link');
     }
   };
 
@@ -401,11 +391,9 @@ export default function AnonymizerDashboard() {
     try {
       await navigator.clipboard.writeText(shareUrl);
       setCopied(true);
-      toast.success('Link copied to clipboard!');
       setTimeout(() => setCopied(false), 2000);
     } catch (error) {
       console.error('Failed to copy:', error);
-      toast.error('Failed to copy link');
     }
   };
 
@@ -505,7 +493,6 @@ export default function AnonymizerDashboard() {
     // Clear selection
     selection.removeAllRanges();
     setHasTextSelection(false);
-    toast.success('Selection added to blur regions');
   };
 
   // Helper: Check if two bounding boxes overlap
