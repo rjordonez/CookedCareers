@@ -3,7 +3,6 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { useGetSubscriptionStatusQuery, useCreatePortalSessionMutation } from "@/features/subscription/subscriptionService";
 import { Loader2, CreditCard, Crown, ArrowLeft } from "lucide-react";
-import { toast } from "sonner";
 import { useNavigate } from "react-router-dom";
 
 const Account = () => {
@@ -17,7 +16,6 @@ const Account = () => {
       const { portal_url } = await createPortalSession().unwrap();
       window.location.href = portal_url;
     } catch (error) {
-      toast.error("Failed to open subscription portal. Please try again.");
       console.error("Portal session error:", error);
     }
   };

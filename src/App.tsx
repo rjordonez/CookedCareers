@@ -1,5 +1,3 @@
-import { Toaster } from "@/components/ui/toaster";
-import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
@@ -11,12 +9,20 @@ import Auth from "./pages/Auth";
 import Dashboard from "./pages/Dashboard";
 import ProjectsDashboard from "./pages/ProjectsDashboard";
 import AnonymizerDashboard from "./pages/AnonymizerDashboard";
+import ResumeReviewDashboard from "./pages/ResumeReviewDashboard";
+import ResumeReviewDetail from "./pages/ResumeReviewDetail";
+import DevReviewPanel from "./pages/DevReviewPanel";
+import DevReviewDetailPanel from "./pages/DevReviewDetailPanel";
 import ShareView from "./pages/ShareView";
 import SubscriptionSuccess from "./pages/SubscriptionSuccess";
 import Account from "./pages/Account";
 import Privacy from "./pages/Privacy";
 import Terms from "./pages/Terms";
 import NotFound from "./pages/NotFound";
+import { pdfjs } from 'react-pdf';
+
+// Configure PDF.js worker globally
+pdfjs.GlobalWorkerOptions.workerSrc = '/pdf.worker.min.mjs';
 
 const queryClient = new QueryClient();
 
@@ -24,8 +30,6 @@ const App = () => (
   <QueryClientProvider client={queryClient}>
     <AuthProvider>
       <TooltipProvider>
-        <Toaster />
-        <Sonner />
         <BrowserRouter>
           <PageTransition>
             <Routes>
@@ -34,6 +38,10 @@ const App = () => (
               <Route path="/dashboard" element={<Dashboard />} />
               <Route path="/projects" element={<ProjectsDashboard />} />
               <Route path="/anonymizer" element={<AnonymizerDashboard />} />
+              <Route path="/resume-review" element={<ResumeReviewDashboard />} />
+              <Route path="/resume-review/:id" element={<ResumeReviewDetail />} />
+              <Route path="/dev-review" element={<DevReviewPanel />} />
+              <Route path="/dev-review/:id" element={<DevReviewDetailPanel />} />
               <Route path="/share/:token" element={<ShareView />} />
               <Route path="/subscription/success" element={<SubscriptionSuccess />} />
               <Route path="/account" element={<Account />} />

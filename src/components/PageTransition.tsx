@@ -35,6 +35,8 @@ const PageTransition = ({ children }: PageTransitionProps) => {
   // Skip animation for dashboard routes and landing page
   const skipAnimation = location.pathname.startsWith('/dashboard') ||
                         location.pathname.startsWith('/projects') ||
+                        location.pathname.startsWith('/anonymizer') ||
+                        location.pathname.startsWith('/resume-review') ||
                         location.pathname === '/';
 
   useEffect(() => {

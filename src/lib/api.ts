@@ -35,6 +35,6 @@ export const baseApi = createApi({
   refetchOnReconnect: false,
   // Keep cached data for 10 minutes by default
   keepUnusedDataFor: 600,
-  tagTypes: ['Resume', 'Project', 'Subscription', 'Anonymizer'],
+  tagTypes: ['Resume', 'Project', 'Subscription', 'Anonymizer', 'Review'],
   endpoints: () => ({}),
 });

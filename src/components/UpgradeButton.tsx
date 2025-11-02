@@ -1,7 +1,6 @@
 import { Button } from "@/components/ui/button";
 import { Crown, Loader2 } from "lucide-react";
 import { useCreateCheckoutSessionMutation } from "@/features/subscription/subscriptionService";
-import { useToast } from "@/hooks/use-toast";
 import { usePostHog } from "posthog-js/react";
 
 interface UpgradeButtonProps {
@@ -12,7 +11,6 @@ interface UpgradeButtonProps {
 
 export const UpgradeButton = ({ variant = "default", size = "default", className }: UpgradeButtonProps) => {
   const [createCheckoutSession, { isLoading }] = useCreateCheckoutSessionMutation();
-  const { toast } = useToast();
   const posthog = usePostHog();
 
   const handleUpgrade = async () => {
@@ -31,11 +29,6 @@ export const UpgradeButton = ({ variant = "default", size = "default", className
       console.error("Failed to create checkout session:", error);
       posthog?.capture('checkout_session_failed', {
         error: error?.data?.detail || error?.error || 'Unknown error',
-      });
-      toast({
-        title: "Error",
-        description: error?.data?.detail || error?.error || "Failed to start upgrade process. Please try again.",
-        variant: "destructive",
       });
     }
   };
