@@ -8,6 +8,7 @@ import type {
   CreateAnnotationResponse,
   GetAnnotationsResponse,
   DeleteAnnotationResponse,
+  CreateReviewCheckoutResponse,
 } from './reviewTypes';
 
 export const reviewApi = baseApi.injectEndpoints({
@@ -73,6 +74,17 @@ export const reviewApi = baseApi.injectEndpoints({
       }),
       invalidatesTags: ['Review'],
     }),
+
+    // Create checkout session for review payment
+    createReviewCheckout: builder.mutation<CreateReviewCheckoutResponse, string>({
+      query: (submissionId) => ({
+        url: `/api/review/create-checkout/${submissionId}`,
+        method: 'POST',
+      }),
+      invalidatesTags: (_result, _error, submissionId) => [
+        { type: 'Review', id: submissionId },
+      ],
+    }),
   }),
 });
 
@@ -84,4 +96,5 @@ export const {
   useCreateAnnotationMutation,
   useGetAnnotationsQuery,
   useDeleteAnnotationMutation,
+  useCreateReviewCheckoutMutation,
 } = reviewApi;

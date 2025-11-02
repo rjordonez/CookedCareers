@@ -8,6 +8,7 @@ export interface ReviewSubmissionSummary {
   reviewed_file_url: string | null;
   submitted_at: string;
   completed_at: string | null;
+  paid: boolean;
 }
 
 export interface ReviewSubmissionDetail extends ReviewSubmissionSummary {
@@ -16,6 +17,8 @@ export interface ReviewSubmissionDetail extends ReviewSubmissionSummary {
   notes: string | null;
   created_at: string;
   updated_at: string;
+  stripe_session_id: string | null;
+  stripe_payment_intent_id: string | null;
 }
 
 // API Response types
@@ -86,4 +89,12 @@ export interface GetAnnotationsResponse {
 export interface DeleteAnnotationResponse {
   success: boolean;
   message: string;
+}
+
+// Payment types
+export interface CreateReviewCheckoutResponse {
+  success: boolean;
+  checkout_url?: string;
+  session_id?: string;
+  error?: string;
 }

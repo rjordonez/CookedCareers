@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { useParams, useNavigate } from 'react-router-dom';
+import { useParams, useNavigate, useSearchParams } from 'react-router-dom';
 import { Document, Page } from 'react-pdf';
 import { ArrowLeft, Download, Loader2, MessageSquare, CheckCircle2, Clock, FileText } from 'lucide-react';
 import { useUser, useAuth } from '@clerk/clerk-react';
@@ -7,15 +7,17 @@ import { useAuthReady } from '@/components/AuthProvider';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { useGetSubmissionQuery, useGetAnnotationsQuery } from '@/features/review/reviewService';
+import { useGetSubmissionQuery, useGetAnnotationsQuery, useCreateReviewCheckoutMutation } from '@/features/review/reviewService';
 import { useGetSubscriptionStatusQuery } from '@/features/subscription/subscriptionService';
 import DashboardNav from '@/components/DashboardNav';
+import { PaywallOverlay } from '@/components/PaywallOverlay';
 import 'react-pdf/dist/Page/AnnotationLayer.css';
 import 'react-pdf/dist/Page/TextLayer.css';
 
 export default function ResumeReviewDetail() {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
   const { isSignedIn } = useUser();
   const { authReady } = useAuthReady();
   const { getToken } = useAuth();
@@ -25,6 +27,8 @@ export default function ResumeReviewDetail() {
   const [scale, setScale] = useState(1.0);
   const [pdfFile, setPdfFile] = useState<Blob | null>(null);
   const [loadingPdf, setLoadingPdf] = useState(false);
+
+  const [createReviewCheckout, { isLoading: isCreatingCheckout }] = useCreateReviewCheckoutMutation();
 
   const {
     data: submissionData,
@@ -51,13 +55,21 @@ export default function ResumeReviewDetail() {
 
   // Fetch PDF with authentication when submission changes
   useEffect(() => {
-    if (!submission?.file_url) return;
+    if (!submission) return;
 
     const fetchPdf = async () => {
       setLoadingPdf(true);
       try {
         const token = await getToken();
-        const response = await fetch(submission.file_url, {
+
+        // If completed and unpaid: show reviewed PDF (blurred) - preview with annotations
+        // If completed and paid: show original PDF + interactive overlays
+        // If pending: show original
+        const pdfUrl = submission.status === 'completed' && !submission.paid && submission.reviewed_file_url
+          ? submission.reviewed_file_url
+          : submission.file_url;
+
+        const response = await fetch(pdfUrl, {
           headers: token ? { Authorization: `Bearer ${token}` } : {},
         });
 
@@ -115,7 +127,33 @@ export default function ResumeReviewDetail() {
     }
   };
 
-  if (!isSignedIn) {
+  const handlePayClick = async () => {
+    if (!id) return;
+
+    try {
+      const result = await createReviewCheckout(id).unwrap();
+      if (result.checkout_url) {
+        window.location.href = result.checkout_url;
+      } else {
+        console.error('No checkout URL received:', result.error);
+      }
+    } catch (error) {
+      console.error('Failed to create checkout session:', error);
+    }
+  };
+
+  // Check if user just completed payment
+  useEffect(() => {
+    const paymentStatus = searchParams.get('payment');
+    if (paymentStatus === 'success') {
+      // Optionally show a success message or toast
+      console.log('Payment successful!');
+      // Clean up URL
+      navigate(`/resume-review/${id}`, { replace: true });
+    }
+  }, [searchParams, navigate, id]);
+
+  if (authReady && !isSignedIn) {
     navigate('/auth');
     return null;
   }
@@ -285,50 +323,61 @@ export default function ResumeReviewDetail() {
                 <div className="border-2 rounded-lg overflow-auto max-h-[800px] bg-gray-100">
                   <div className="flex justify-center p-4">
                     <div className="relative inline-block">
-                      <Document
-                        file={pdfFile}
-                        onLoadSuccess={({ numPages }) => setNumPages(numPages)}
-                        loading={
-                          <div className="p-8 text-center">
-                            <Loader2 className="w-8 h-8 mx-auto animate-spin text-primary mb-2" />
-                            <p className="text-gray-600">Rendering PDF...</p>
-                          </div>
-                        }
-                        error={
-                          <div className="p-8 text-center text-red-600">
-                            <p>Failed to load PDF. Please try again.</p>
-                          </div>
-                        }
-                      >
-                        <Page
-                          pageNumber={currentPage}
-                          scale={scale}
-                          renderTextLayer={false}
-                          renderAnnotationLayer={false}
-                        />
-
-                        {/* Annotation Overlays */}
-                        {currentPageAnnotations.map((annotation) => (
-                          <div
-                            key={annotation.id}
-                            className="absolute bg-yellow-300/40 border-2 border-yellow-400 cursor-pointer hover:bg-yellow-300/60 transition-all group"
-                            style={{
-                              left: `${annotation.position.x * scale}px`,
-                              top: `${annotation.position.y * scale}px`,
-                              width: `${annotation.position.width * scale}px`,
-                              height: `${annotation.position.height * scale}px`,
-                              zIndex: 10,
-                              pointerEvents: 'auto',
-                            }}
-                            title={annotation.content.comment}
-                          >
-                            <div className="absolute -top-8 left-0 bg-yellow-500 text-white text-xs px-2 py-1 rounded shadow-lg max-w-xs whitespace-normal opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none z-20">
-                              {annotation.content.comment}
+                      {/* Blur the PDF if completed but not paid */}
+                      <div className={submission.status === 'completed' && !submission.paid ? 'blur-sm' : ''}>
+                        <Document
+                          file={pdfFile}
+                          onLoadSuccess={({ numPages }) => setNumPages(numPages)}
+                          loading={
+                            <div className="p-8 text-center">
+                              <Loader2 className="w-8 h-8 mx-auto animate-spin text-primary mb-2" />
+                              <p className="text-gray-600">Rendering PDF...</p>
                             </div>
-                            <MessageSquare className="w-3 h-3 text-yellow-600 absolute top-0 right-0 -mt-1 -mr-1 bg-white rounded-full p-0.5" />
-                          </div>
-                        ))}
-                      </Document>
+                          }
+                          error={
+                            <div className="p-8 text-center text-red-600">
+                              <p>Failed to load PDF. Please try again.</p>
+                            </div>
+                          }
+                        >
+                          <Page
+                            pageNumber={currentPage}
+                            scale={scale}
+                            renderTextLayer={false}
+                            renderAnnotationLayer={false}
+                          />
+
+                          {/* Annotation Overlays - Only show if paid */}
+                          {submission.paid && currentPageAnnotations.map((annotation) => (
+                            <div
+                              key={annotation.id}
+                              className="absolute bg-yellow-300/40 border-2 border-yellow-400 cursor-pointer hover:bg-yellow-300/60 transition-all group"
+                              style={{
+                                left: `${annotation.position.x * scale}px`,
+                                top: `${annotation.position.y * scale}px`,
+                                width: `${annotation.position.width * scale}px`,
+                                height: `${annotation.position.height * scale}px`,
+                                zIndex: 10,
+                                pointerEvents: 'auto',
+                              }}
+                              title={annotation.content.comment}
+                            >
+                              <div className="absolute -top-8 left-0 bg-yellow-500 text-white text-xs px-2 py-1 rounded shadow-lg max-w-xs whitespace-normal opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none z-20">
+                                {annotation.content.comment}
+                              </div>
+                              <MessageSquare className="w-3 h-3 text-yellow-600 absolute top-0 right-0 -mt-1 -mr-1 bg-white rounded-full p-0.5" />
+                            </div>
+                          ))}
+                        </Document>
+                      </div>
+
+                      {/* Paywall Overlay - Show if completed but not paid */}
+                      {submission.status === 'completed' && !submission.paid && (
+                        <PaywallOverlay
+                          onPayClick={handlePayClick}
+                          isLoading={isCreatingCheckout}
+                        />
+                      )}
                     </div>
                   </div>
                 </div>
@@ -345,8 +394,8 @@ export default function ResumeReviewDetail() {
               </p>
             </Card>
 
-            {/* Reviewer Notes - Below PDF */}
-            {submission.notes && (
+            {/* Reviewer Notes - Below PDF - Only show if paid */}
+            {submission.notes && submission.paid && (
               <Card className="p-6 mt-6">
                 <h3 className="font-semibold mb-3 text-lg">Reviewer Notes</h3>
                 <div className="prose prose-sm max-w-none">

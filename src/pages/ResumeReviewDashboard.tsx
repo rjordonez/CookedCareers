@@ -1,6 +1,6 @@
 import { useState, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Upload, Loader2, FileText, Download, Trash2, Eye, Clock, CheckCircle2 } from 'lucide-react';
+import { Upload, Loader2, FileText, Download, Trash2, Eye, Clock, CheckCircle2, DollarSign, Lock } from 'lucide-react';
 import { useUser, useAuth } from '@clerk/clerk-react';
 import { useAuthReady } from '@/components/AuthProvider';
 import { Button } from '@/components/ui/button';
@@ -255,6 +255,7 @@ export default function ResumeReviewDashboard() {
                   <TableRow>
                     <TableHead>Filename</TableHead>
                     <TableHead>Status</TableHead>
+                    <TableHead>Payment</TableHead>
                     <TableHead>Submitted</TableHead>
                     <TableHead>Completed</TableHead>
                     <TableHead className="text-right">Actions</TableHead>
@@ -282,6 +283,21 @@ export default function ResumeReviewDashboard() {
                           </Badge>
                         )}
                       </TableCell>
+                      <TableCell>
+                        {submission.status === 'completed' && (
+                          submission.paid ? (
+                            <Badge variant="default" className="bg-blue-500 hover:bg-blue-600">
+                              <DollarSign className="w-3 h-3 mr-1" />
+                              Paid
+                            </Badge>
+                          ) : (
+                            <Badge variant="outline" className="border-orange-500 text-orange-500">
+                              <Lock className="w-3 h-3 mr-1" />
+                              Unpaid
+                            </Badge>
+                          )
+                        )}
+                      </TableCell>
                       <TableCell className="text-sm text-muted-foreground">
                         {formatDate(submission.submitted_at)}
                       </TableCell>
@@ -300,7 +316,7 @@ export default function ResumeReviewDashboard() {
                             <Eye className="w-4 h-4 mr-1" />
                             View
                           </Button>
-                          {submission.status === 'completed' && (
+                          {submission.status === 'completed' && submission.paid && (
                             <Button
                               variant="ghost"
                               size="sm"
