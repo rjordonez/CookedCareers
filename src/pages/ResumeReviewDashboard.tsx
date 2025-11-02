@@ -9,6 +9,7 @@ import {
   useSubmitReviewMutation,
   useListSubmissionsQuery,
   useDeleteSubmissionMutation,
+  useCreateReviewCheckoutMutation,
 } from '@/features/review/reviewService';
 import { useGetSubscriptionStatusQuery } from '@/features/subscription/subscriptionService';
 import DashboardNav from '@/components/DashboardNav';
@@ -21,6 +22,14 @@ import {
   TableRow,
 } from '@/components/ui/table';
 import { Badge } from '@/components/ui/badge';
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from '@/components/ui/dialog';
 
 export default function ResumeReviewDashboard() {
   const navigate = useNavigate();
@@ -29,8 +38,11 @@ export default function ResumeReviewDashboard() {
   const { getToken } = useAuth();
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [isDragging, setIsDragging] = useState(false);
+  const [showPaymentDialog, setShowPaymentDialog] = useState(false);
+  const [newSubmissionId, setNewSubmissionId] = useState<string | null>(null);
 
   const [submitReview, { isLoading: isSubmitting }] = useSubmitReviewMutation();
+  const [createReviewCheckout, { isLoading: isCreatingCheckout }] = useCreateReviewCheckoutMutation();
   const {
     data: submissionsData,
     isLoading: isLoadingSubmissions,
@@ -66,12 +78,32 @@ export default function ResumeReviewDashboard() {
 
       if (result.success) {
         refetch(); // Refresh the submissions list
+        setNewSubmissionId(result.submission_id);
+        setShowPaymentDialog(true);
       } else {
         console.error('Failed to submit resume');
       }
     } catch (error) {
       console.error('Upload error:', error);
     }
+  };
+
+  const handlePayNow = async () => {
+    if (!newSubmissionId) return;
+
+    try {
+      const result = await createReviewCheckout(newSubmissionId).unwrap();
+      if (result.checkout_url) {
+        window.location.href = result.checkout_url;
+      }
+    } catch (error) {
+      console.error('Failed to create checkout session:', error);
+    }
+  };
+
+  const handlePayLater = () => {
+    setShowPaymentDialog(false);
+    setNewSubmissionId(null);
   };
 
   const handleFileUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -284,18 +316,16 @@ export default function ResumeReviewDashboard() {
                         )}
                       </TableCell>
                       <TableCell>
-                        {submission.status === 'completed' && (
-                          submission.paid ? (
-                            <Badge variant="default" className="bg-blue-500 hover:bg-blue-600">
-                              <DollarSign className="w-3 h-3 mr-1" />
-                              Paid
-                            </Badge>
-                          ) : (
-                            <Badge variant="outline" className="border-orange-500 text-orange-500">
-                              <Lock className="w-3 h-3 mr-1" />
-                              Unpaid
-                            </Badge>
-                          )
+                        {submission.paid ? (
+                          <Badge variant="default" className="bg-blue-500 hover:bg-blue-600">
+                            <DollarSign className="w-3 h-3 mr-1" />
+                            Paid
+                          </Badge>
+                        ) : (
+                          <Badge variant="outline" className="border-orange-500 text-orange-500">
+                            <Lock className="w-3 h-3 mr-1" />
+                            Unpaid
+                          </Badge>
                         )}
                       </TableCell>
                       <TableCell className="text-sm text-muted-foreground">
@@ -343,6 +373,31 @@ export default function ResumeReviewDashboard() {
           )}
         </Card>
       </main>
+
+      {/* Payment Option Dialog */}
+      <Dialog open={showPaymentDialog} onOpenChange={setShowPaymentDialog}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Resume Submitted Successfully!</DialogTitle>
+            <DialogDescription>
+              Would you like to pay $7.99 now to get your review?
+            </DialogDescription>
+          </DialogHeader>
+          <div className="py-4">
+            <p className="text-sm text-muted-foreground">
+              You can pay now or wait until your review is completed to decide.
+            </p>
+          </div>
+          <DialogFooter className="gap-2">
+            <Button variant="outline" onClick={handlePayLater} disabled={isCreatingCheckout}>
+              Submit Free
+            </Button>
+            <Button onClick={handlePayNow} disabled={isCreatingCheckout}>
+              {isCreatingCheckout ? 'Processing...' : 'Pay $7.99 Now'}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }

@@ -65,7 +65,7 @@ export default function ResumeReviewDetail() {
         // If completed and unpaid: show reviewed PDF (blurred) - preview with annotations
         // If completed and paid: show original PDF + interactive overlays
         // If pending: show original
-        const pdfUrl = submission.status === 'completed' && !submission.paid && submission.reviewed_file_url
+        const pdfUrl = submission?.status === 'completed' && !submission?.paid && submission?.reviewed_file_url
           ? submission.reviewed_file_url
           : submission.file_url;
 
@@ -158,21 +158,8 @@ export default function ResumeReviewDetail() {
     return null;
   }
 
-  if (isLoading) {
-    return (
-      <div className="min-h-screen bg-background">
-        <DashboardNav isPro={isPro} isLoadingSubscription={isLoadingSubscription} />
-        <main className="max-w-7xl mx-auto px-6 pt-4 pb-6">
-          <Card className="p-12 text-center">
-            <Loader2 className="w-16 h-16 mx-auto mb-6 text-primary animate-spin" />
-            <h2 className="text-2xl font-semibold mb-3">Loading submission...</h2>
-          </Card>
-        </main>
-      </div>
-    );
-  }
-
-  if (isError || !submission) {
+  // Show error only if API returned error
+  if (isError && !isLoading) {
     return (
       <div className="min-h-screen bg-background">
         <DashboardNav isPro={isPro} isLoadingSubscription={isLoadingSubscription} />
@@ -215,50 +202,58 @@ export default function ResumeReviewDetail() {
             <Card className="p-4">
               <h3 className="font-semibold mb-3">Submission Details</h3>
 
-              <div className="space-y-3">
-                <div>
-                  <p className="text-xs text-muted-foreground mb-1">Filename</p>
-                  <p className="text-sm font-medium break-words">{submission.filename}</p>
+              {isLoading || !submission ? (
+                <div className="space-y-3">
+                  <div className="h-4 bg-muted rounded animate-pulse" />
+                  <div className="h-4 bg-muted rounded animate-pulse w-3/4" />
+                  <div className="h-4 bg-muted rounded animate-pulse w-1/2" />
                 </div>
+              ) : (
+                <div className="space-y-3">
+                  <div>
+                    <p className="text-xs text-muted-foreground mb-1">Filename</p>
+                    <p className="text-sm font-medium break-words">{submission.filename}</p>
+                  </div>
 
-                <div>
-                  <p className="text-xs text-muted-foreground mb-1">Status</p>
-                  {submission.status === 'completed' ? (
-                    <Badge variant="default" className="bg-green-500 hover:bg-green-600">
-                      <CheckCircle2 className="w-3 h-3 mr-1" />
-                      Completed
-                    </Badge>
-                  ) : (
-                    <Badge variant="secondary">
-                      <Clock className="w-3 h-3 mr-1" />
-                      Pending Review
-                    </Badge>
+                  <div>
+                    <p className="text-xs text-muted-foreground mb-1">Status</p>
+                    {submission.status === 'completed' ? (
+                      <Badge variant="default" className="bg-green-500 hover:bg-green-600">
+                        <CheckCircle2 className="w-3 h-3 mr-1" />
+                        Completed
+                      </Badge>
+                    ) : (
+                      <Badge variant="secondary">
+                        <Clock className="w-3 h-3 mr-1" />
+                        Pending Review
+                      </Badge>
+                    )}
+                  </div>
+
+                  <div>
+                    <p className="text-xs text-muted-foreground mb-1">Submitted</p>
+                    <p className="text-sm">{formatDate(submission.submitted_at)}</p>
+                  </div>
+
+                  {submission.completed_at && (
+                    <div>
+                      <p className="text-xs text-muted-foreground mb-1">Completed</p>
+                      <p className="text-sm">{formatDate(submission.completed_at)}</p>
+                    </div>
                   )}
                 </div>
-
-                <div>
-                  <p className="text-xs text-muted-foreground mb-1">Submitted</p>
-                  <p className="text-sm">{formatDate(submission.submitted_at)}</p>
-                </div>
-
-                {submission.completed_at && (
-                  <div>
-                    <p className="text-xs text-muted-foreground mb-1">Completed</p>
-                    <p className="text-sm">{formatDate(submission.completed_at)}</p>
-                  </div>
-                )}
-              </div>
+              )}
             </Card>
 
             {/* Actions Card */}
-            {submission.status === 'completed' && submission.paid && submission.reviewed_file_url && (
+            {submission?.status === 'completed' && submission?.paid && submission?.reviewed_file_url && (
               <Card className="p-4">
                 <h3 className="font-semibold mb-3">Actions</h3>
                 <div className="space-y-2">
                   <Button
                     variant="outline"
                     className="w-full"
-                    onClick={() => handleDownload(submission.reviewed_file_url!, `reviewed_${submission.filename}`)}
+                    onClick={() => handleDownload(submission?.reviewed_file_url!, `reviewed_${submission?.filename}`)}
                   >
                     <Download className="w-4 h-4 mr-2" />
                     Download
@@ -326,7 +321,7 @@ export default function ResumeReviewDetail() {
                   <div className="flex justify-center p-4">
                     <div className="relative inline-block">
                       {/* Blur the PDF if completed but not paid */}
-                      <div className={submission.status === 'completed' && !submission.paid ? 'blur-sm' : ''}>
+                      <div className={submission?.status === 'completed' && !submission?.paid ? 'blur-sm' : ''}>
                         <Document
                           file={pdfFile}
                           onLoadSuccess={({ numPages }) => setNumPages(numPages)}
@@ -350,7 +345,7 @@ export default function ResumeReviewDetail() {
                           />
 
                           {/* Annotation Overlays - Only show if paid */}
-                          {submission.paid && currentPageAnnotations.map((annotation) => (
+                          {submission?.paid && currentPageAnnotations.map((annotation) => (
                             <div
                               key={annotation.id}
                               className="absolute bg-yellow-300/40 border-2 border-yellow-400 cursor-pointer hover:bg-yellow-300/60 transition-all group"
@@ -374,7 +369,7 @@ export default function ResumeReviewDetail() {
                       </div>
 
                       {/* Paywall Overlay - Show if completed but not paid */}
-                      {submission.status === 'completed' && !submission.paid && (
+                      {submission?.status === 'completed' && !submission?.paid && (
                         <PaywallOverlay
                           onPayClick={handlePayClick}
                           isLoading={isCreatingCheckout}
@@ -387,7 +382,7 @@ export default function ResumeReviewDetail() {
 
               {/* Help Text */}
               <p className="text-sm text-gray-500 mt-4 text-center">
-                {submission.status === 'completed'
+                {submission?.status === 'completed'
                   ? 'Viewing your resume with reviewer feedback'
                   : 'Your resume is being reviewed'}
                 {annotations.length > 0 && (
@@ -397,12 +392,12 @@ export default function ResumeReviewDetail() {
             </Card>
 
             {/* Reviewer Notes - Below PDF - Only show if paid */}
-            {submission.notes && submission.paid && (
+            {submission?.notes && submission?.paid && (
               <Card className="p-6 mt-6">
                 <h3 className="font-semibold mb-3 text-lg">Reviewer Notes</h3>
                 <div className="prose prose-sm max-w-none">
                   <p className="text-muted-foreground whitespace-pre-wrap">
-                    {submission.notes}
+                    {submission?.notes}
                   </p>
                 </div>
               </Card>

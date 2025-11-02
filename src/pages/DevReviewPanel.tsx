@@ -1,6 +1,6 @@
 import { useState, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Upload, Loader2, FileText, ExternalLink, CheckCircle2, MessageSquare } from 'lucide-react';
+import { Upload, Loader2, FileText, ExternalLink, CheckCircle2, MessageSquare, DollarSign } from 'lucide-react';
 import { useAuth } from '@clerk/clerk-react';
 import { useAuthReady } from '@/components/AuthProvider';
 import { Button } from '@/components/ui/button';
@@ -17,6 +17,7 @@ import {
   TableHeader,
   TableRow,
 } from '@/components/ui/table';
+import { Badge } from '@/components/ui/badge';
 
 export default function DevReviewPanel() {
   const navigate = useNavigate();
@@ -181,6 +182,19 @@ export default function DevReviewPanel() {
                       <div>
                         <p className="text-xs text-muted-foreground mb-1">Submitted</p>
                         <p className="text-sm">{formatDate(submission.submitted_at)}</p>
+                      </div>
+                      <div>
+                        <p className="text-xs text-muted-foreground mb-1">Payment Status</p>
+                        {submission.paid ? (
+                          <Badge variant="default" className="bg-green-500 hover:bg-green-600">
+                            <DollarSign className="w-3 h-3 mr-1" />
+                            Paid
+                          </Badge>
+                        ) : (
+                          <Badge variant="secondary">
+                            Unpaid
+                          </Badge>
+                        )}
                       </div>
                       <div className="flex gap-2">
                         <Button
