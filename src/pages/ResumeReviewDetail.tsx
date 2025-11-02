@@ -251,19 +251,21 @@ export default function ResumeReviewDetail() {
             </Card>
 
             {/* Actions Card */}
-            <Card className="p-4">
-              <h3 className="font-semibold mb-3">Actions</h3>
-              <div className="space-y-2">
-                <Button
-                  variant="outline"
-                  className="w-full"
-                  onClick={() => handleDownload(submission.file_url, submission.filename)}
-                >
-                  <Download className="w-4 h-4 mr-2" />
-                  Download Resume
-                </Button>
-              </div>
-            </Card>
+            {submission.status === 'completed' && submission.paid && submission.reviewed_file_url && (
+              <Card className="p-4">
+                <h3 className="font-semibold mb-3">Actions</h3>
+                <div className="space-y-2">
+                  <Button
+                    variant="outline"
+                    className="w-full"
+                    onClick={() => handleDownload(submission.reviewed_file_url!, `reviewed_${submission.filename}`)}
+                  >
+                    <Download className="w-4 h-4 mr-2" />
+                    Download
+                  </Button>
+                </div>
+              </Card>
+            )}
           </div>
 
           {/* Center - PDF Viewer */}
