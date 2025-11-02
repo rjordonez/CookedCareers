@@ -1,6 +1,7 @@
-import { useState, useRef } from 'react';
+import { useState, useRef, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Upload, Loader2, FileText, Download, Trash2, Eye, Clock, CheckCircle2, DollarSign, Lock } from 'lucide-react';
+import { Document, Page } from 'react-pdf';
+import { Loader2, FileText, Download, Trash2, Clock, CheckCircle2, DollarSign, Lock, MessageSquare, Plus } from 'lucide-react';
 import { useUser, useAuth } from '@clerk/clerk-react';
 import { useAuthReady } from '@/components/AuthProvider';
 import { Button } from '@/components/ui/button';
@@ -10,17 +11,10 @@ import {
   useListSubmissionsQuery,
   useDeleteSubmissionMutation,
   useCreateReviewCheckoutMutation,
+  useGetAnnotationsQuery,
 } from '@/features/review/reviewService';
 import { useGetSubscriptionStatusQuery } from '@/features/subscription/subscriptionService';
 import DashboardNav from '@/components/DashboardNav';
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from '@/components/ui/table';
 import { Badge } from '@/components/ui/badge';
 import {
   Dialog,
@@ -30,6 +24,8 @@ import {
   DialogHeader,
   DialogTitle,
 } from '@/components/ui/dialog';
+import 'react-pdf/dist/Page/AnnotationLayer.css';
+import 'react-pdf/dist/Page/TextLayer.css';
 
 export default function ResumeReviewDashboard() {
   const navigate = useNavigate();
@@ -190,16 +186,6 @@ export default function ResumeReviewDashboard() {
     }
   };
 
-  const formatDate = (dateString: string) => {
-    return new Date(dateString).toLocaleDateString('en-US', {
-      year: 'numeric',
-      month: 'short',
-      day: 'numeric',
-      hour: '2-digit',
-      minute: '2-digit',
-    });
-  };
-
   return (
     <div className="min-h-screen bg-background">
       <DashboardNav isPro={isPro} isLoadingSubscription={isLoadingSubscription} />
@@ -212,21 +198,11 @@ export default function ResumeReviewDashboard() {
           </p>
         </div>
 
-        {/* Upload Section */}
-        <Card className="p-6 mb-6">
-          <h2 className="text-xl font-semibold mb-4">Submit Resume for Review</h2>
-
-          <input
-            ref={fileInputRef}
-            type="file"
-            accept=".pdf"
-            onChange={handleFileUpload}
-            className="hidden"
-            disabled={isSubmitting}
-          />
-
-          <div
-            className={`border-2 border-dashed rounded-lg p-12 text-center transition-colors ${
+        {/* Card Grid */}
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+          {/* Upload Card - Always First */}
+          <Card
+            className={`overflow-hidden border-2 border-dashed rounded-2xl cursor-pointer transition-all duration-300 hover:shadow-xl hover:scale-105 hover:-translate-y-2 ${
               isDragging
                 ? 'border-primary bg-primary/5'
                 : 'border-muted-foreground/25 hover:border-primary/50'
@@ -234,144 +210,81 @@ export default function ResumeReviewDashboard() {
             onDragOver={handleDragOver}
             onDragLeave={handleDragLeave}
             onDrop={handleDrop}
+            onClick={() => !isSubmitting && fileInputRef.current?.click()}
           >
-            {isSubmitting ? (
-              <>
-                <Loader2 className="w-16 h-16 mx-auto mb-4 text-primary animate-spin" />
-                <p className="text-lg font-medium">Uploading...</p>
-              </>
-            ) : (
-              <>
-                <Upload className="w-16 h-16 mx-auto mb-4 text-muted-foreground" />
-                <h3 className="text-lg font-semibold mb-2">
-                  Drop your resume here or click to upload
-                </h3>
-                <p className="text-sm text-muted-foreground mb-4">
-                  Only PDF files are supported
-                </p>
-                <Button onClick={() => fileInputRef.current?.click()}>
-                  <FileText className="w-4 h-4 mr-2" />
-                  Choose File
-                </Button>
-              </>
-            )}
-          </div>
-        </Card>
-
-        {/* Submissions List */}
-        <Card className="p-6">
-          <div className="flex items-center justify-between mb-4">
-            <h2 className="text-xl font-semibold">Your Submissions</h2>
-            <Button variant="outline" size="sm" onClick={() => refetch()}>
-              Refresh
-            </Button>
-          </div>
-
-          {isLoadingSubmissions ? (
-            <div className="text-center py-12">
-              <Loader2 className="w-8 h-8 mx-auto animate-spin text-primary mb-2" />
-              <p className="text-muted-foreground">Loading submissions...</p>
+            <input
+              ref={fileInputRef}
+              type="file"
+              accept=".pdf"
+              onChange={handleFileUpload}
+              className="hidden"
+              disabled={isSubmitting}
+            />
+            <div className="aspect-[253/320] flex items-center justify-center bg-gradient-to-br from-gray-50 to-gray-100">
+              {isSubmitting ? (
+                <div className="text-center">
+                  <Loader2 className="w-12 h-12 mx-auto mb-3 text-primary animate-spin" />
+                  <p className="text-sm font-medium text-muted-foreground">Uploading...</p>
+                </div>
+              ) : (
+                <div className="text-center p-6">
+                  <div className="w-16 h-16 mx-auto mb-4 rounded-full bg-primary/10 flex items-center justify-center">
+                    <Plus className="w-8 h-8 text-primary" />
+                  </div>
+                  <h3 className="text-lg font-semibold mb-2">
+                    Upload Resume
+                  </h3>
+                  <p className="text-sm text-muted-foreground">
+                    Drop PDF here or click
+                  </p>
+                </div>
+              )}
             </div>
-          ) : submissions.length === 0 ? (
-            <div className="text-center py-12">
-              <FileText className="w-16 h-16 mx-auto mb-4 text-muted-foreground" />
-              <p className="text-lg font-medium mb-2">No submissions yet</p>
-              <p className="text-sm text-muted-foreground">
-                Upload your first resume to get started
+            <div className="p-4 bg-background">
+              <p className="text-xs text-center text-muted-foreground">
+                Get professional feedback
               </p>
             </div>
+          </Card>
+
+          {/* Submission Cards */}
+          {isLoadingSubmissions ? (
+            Array.from({ length: 5 }).map((_, index) => (
+              <Card key={`skeleton-${index}`} className="overflow-hidden border-0 bg-muted rounded-2xl h-full animate-pulse">
+                <div className="aspect-[253/320] bg-gradient-to-br from-gray-200 to-gray-300" />
+                <div className="p-4 space-y-3">
+                  <div className="h-4 bg-gray-300 rounded w-3/4" />
+                  <div className="h-3 bg-gray-300 rounded w-1/2" />
+                  <div className="flex gap-2">
+                    <div className="h-6 w-16 bg-gray-300 rounded" />
+                    <div className="h-6 w-16 bg-gray-300 rounded" />
+                  </div>
+                </div>
+              </Card>
+            ))
           ) : (
-            <div className="overflow-x-auto">
-              <Table>
-                <TableHeader>
-                  <TableRow>
-                    <TableHead>Filename</TableHead>
-                    <TableHead>Status</TableHead>
-                    <TableHead>Payment</TableHead>
-                    <TableHead>Submitted</TableHead>
-                    <TableHead>Completed</TableHead>
-                    <TableHead className="text-right">Actions</TableHead>
-                  </TableRow>
-                </TableHeader>
-                <TableBody>
-                  {submissions.map((submission) => (
-                    <TableRow key={submission.id}>
-                      <TableCell className="font-medium">
-                        <div className="flex items-center gap-2">
-                          <FileText className="w-4 h-4 text-muted-foreground" />
-                          {submission.filename}
-                        </div>
-                      </TableCell>
-                      <TableCell>
-                        {submission.status === 'completed' ? (
-                          <Badge variant="default" className="bg-green-500 hover:bg-green-600">
-                            <CheckCircle2 className="w-3 h-3 mr-1" />
-                            Completed
-                          </Badge>
-                        ) : (
-                          <Badge variant="secondary">
-                            <Clock className="w-3 h-3 mr-1" />
-                            Pending
-                          </Badge>
-                        )}
-                      </TableCell>
-                      <TableCell>
-                        {submission.paid ? (
-                          <Badge variant="default" className="bg-blue-500 hover:bg-blue-600">
-                            <DollarSign className="w-3 h-3 mr-1" />
-                            Paid
-                          </Badge>
-                        ) : (
-                          <Badge variant="outline" className="border-orange-500 text-orange-500">
-                            <Lock className="w-3 h-3 mr-1" />
-                            Unpaid
-                          </Badge>
-                        )}
-                      </TableCell>
-                      <TableCell className="text-sm text-muted-foreground">
-                        {formatDate(submission.submitted_at)}
-                      </TableCell>
-                      <TableCell className="text-sm text-muted-foreground">
-                        {submission.completed_at
-                          ? formatDate(submission.completed_at)
-                          : '-'}
-                      </TableCell>
-                      <TableCell className="text-right">
-                        <div className="flex items-center justify-end gap-2">
-                          <Button
-                            variant="ghost"
-                            size="sm"
-                            onClick={() => handleViewDetails(submission.id)}
-                          >
-                            <Eye className="w-4 h-4 mr-1" />
-                            View
-                          </Button>
-                          {submission.status === 'completed' && submission.paid && (
-                            <Button
-                              variant="ghost"
-                              size="sm"
-                              onClick={() => handleDownload(submission.reviewed_file_url!, `reviewed_${submission.filename}`)}
-                            >
-                              <Download className="w-4 h-4 mr-1" />
-                              Download
-                            </Button>
-                          )}
-                          <Button
-                            variant="ghost"
-                            size="sm"
-                            onClick={() => handleDelete(submission.id)}
-                          >
-                            <Trash2 className="w-4 h-4 text-destructive" />
-                          </Button>
-                        </div>
-                      </TableCell>
-                    </TableRow>
-                  ))}
-                </TableBody>
-              </Table>
-            </div>
+            submissions.map((submission) => (
+              <SubmissionCard
+                key={submission.id}
+                submission={submission}
+                onView={handleViewDetails}
+                onDownload={handleDownload}
+                onDelete={handleDelete}
+                getToken={getToken}
+              />
+            ))
           )}
-        </Card>
+        </div>
+
+        {submissions.length === 0 && !isLoadingSubmissions && (
+          <div className="text-center py-12 mt-6">
+            <FileText className="w-16 h-16 mx-auto mb-4 text-muted-foreground" />
+            <p className="text-lg font-medium mb-2">No submissions yet</p>
+            <p className="text-sm text-muted-foreground">
+              Upload your first resume to get started
+            </p>
+          </div>
+        )}
       </main>
 
       {/* Payment Option Dialog */}
@@ -398,6 +311,196 @@ export default function ResumeReviewDashboard() {
           </DialogFooter>
         </DialogContent>
       </Dialog>
+    </div>
+  );
+}
+
+// Submission Card Component
+function SubmissionCard({
+  submission,
+  onView,
+  onDownload,
+  onDelete,
+  getToken,
+}: {
+  submission: any;
+  onView: (id: string) => void;
+  onDownload: (url: string, filename: string) => void;
+  onDelete: (id: string) => void;
+  getToken: () => Promise<string | null>;
+}) {
+  const [pdfFile, setPdfFile] = useState<Blob | null>(null);
+  const [loadingPdf, setLoadingPdf] = useState(true);
+  const { data: annotationsData } = useGetAnnotationsQuery(submission.id, {
+    skip: submission.status !== 'completed' || !submission.paid,
+  });
+
+  const annotations = annotationsData?.annotations || [];
+  const firstPageAnnotations = annotations.filter((a: any) => a.page_number === 0);
+
+  // Fetch PDF with authentication
+  useEffect(() => {
+    const fetchPdf = async () => {
+      setLoadingPdf(true);
+      try {
+        const token = await getToken();
+        // Always show original PDF for card preview
+        const pdfUrl = submission.file_url;
+
+        const response = await fetch(pdfUrl, {
+          headers: token ? { Authorization: `Bearer ${token}` } : {},
+        });
+
+        if (!response.ok) {
+          throw new Error(`Failed to load PDF: ${response.status}`);
+        }
+
+        const blob = await response.blob();
+        setPdfFile(blob);
+      } catch (error) {
+        console.error('Error loading PDF:', error);
+        setPdfFile(null);
+      } finally {
+        setLoadingPdf(false);
+      }
+    };
+
+    fetchPdf();
+  }, [submission, getToken]);
+
+  const formatDate = (dateString: string) => {
+    return new Date(dateString).toLocaleDateString('en-US', {
+      year: 'numeric',
+      month: 'short',
+      day: 'numeric',
+    });
+  };
+
+  return (
+    <div className="relative h-full group">
+      <Card
+        className="overflow-hidden border-0 bg-muted rounded-2xl hover:shadow-xl hover:scale-105 hover:-translate-y-2 transition-all duration-300 cursor-pointer h-full"
+        onClick={() => onView(submission.id)}
+      >
+        {/* PDF Preview */}
+        <div className="aspect-[253/320] bg-gradient-to-br from-gray-100 to-gray-200 overflow-hidden relative">
+          {loadingPdf || !pdfFile ? (
+            <div className="w-full h-full flex items-center justify-center">
+              <Loader2 className="w-8 h-8 text-primary animate-spin" />
+            </div>
+          ) : (
+            <div className="w-full h-full bg-white overflow-hidden relative flex items-center justify-center">
+              <div className="relative inline-block" style={{ transform: 'scale(0.4)', transformOrigin: 'center' }}>
+                <Document
+                  file={pdfFile}
+                  loading={
+                    <div className="p-8 text-center">
+                      <Loader2 className="w-8 h-8 mx-auto animate-spin text-primary" />
+                    </div>
+                  }
+                  error={
+                    <div className="p-8 text-center text-muted-foreground">
+                      <p>Preview unavailable</p>
+                    </div>
+                  }
+                >
+                  <Page
+                    pageNumber={1}
+                    scale={1.5}
+                    renderTextLayer={false}
+                    renderAnnotationLayer={false}
+                  />
+
+                  {/* Annotation Overlays - Only show if paid and completed */}
+                  {submission.status === 'completed' && submission.paid && firstPageAnnotations.map((annotation: any) => (
+                    <div
+                      key={annotation.id}
+                      className="absolute bg-yellow-300/40 border-2 border-yellow-400"
+                      style={{
+                        left: `${annotation.position.x * 1.5}px`,
+                        top: `${annotation.position.y * 1.5}px`,
+                        width: `${annotation.position.width * 1.5}px`,
+                        height: `${annotation.position.height * 1.5}px`,
+                        zIndex: 10,
+                      }}
+                    >
+                      <MessageSquare className="w-2 h-2 text-yellow-600 absolute -top-1 -right-1 bg-white rounded-full p-0.5" />
+                    </div>
+                  ))}
+                </Document>
+              </div>
+            </div>
+          )}
+        </div>
+
+        {/* Card Info */}
+        <div className="p-4 space-y-3">
+          <div>
+            <h3 className="font-semibold text-sm leading-tight truncate mb-1">
+              {submission.filename}
+            </h3>
+            <p className="text-xs text-muted-foreground">
+              {formatDate(submission.submitted_at)}
+            </p>
+          </div>
+
+          <div className="flex flex-wrap gap-2 items-center justify-between">
+            <div className="flex gap-2">
+              {submission.status === 'completed' ? (
+                <Badge variant="default" className="bg-green-500 hover:bg-green-600 text-xs">
+                  <CheckCircle2 className="w-3 h-3 mr-1" />
+                  Completed
+                </Badge>
+              ) : (
+                <Badge variant="secondary" className="text-xs">
+                  <Clock className="w-3 h-3 mr-1" />
+                  Pending
+                </Badge>
+              )}
+              {submission.paid ? (
+                <Badge variant="default" className="bg-blue-500 hover:bg-blue-600 text-xs">
+                  <DollarSign className="w-3 h-3 mr-1" />
+                  Paid
+                </Badge>
+              ) : (
+                <Badge variant="outline" className="border-orange-500 text-orange-500 text-xs">
+                  <Lock className="w-3 h-3 mr-1" />
+                  Unpaid
+                </Badge>
+              )}
+            </div>
+          </div>
+
+          {/* Action Buttons */}
+          <div className="flex gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
+            {submission.status === 'completed' && submission.paid && (
+              <Button
+                variant="secondary"
+                size="sm"
+                className="text-xs flex-1"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  onDownload(submission.reviewed_file_url!, `reviewed_${submission.filename}`);
+                }}
+              >
+                <Download className="w-3 h-3 mr-1" />
+                Download
+              </Button>
+            )}
+            <Button
+              variant="ghost"
+              size="sm"
+              className="text-xs"
+              onClick={(e) => {
+                e.stopPropagation();
+                onDelete(submission.id);
+              }}
+            >
+              <Trash2 className="w-3 h-3 text-destructive" />
+            </Button>
+          </div>
+        </div>
+      </Card>
     </div>
   );
 }
