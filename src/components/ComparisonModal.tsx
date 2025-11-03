@@ -1,7 +1,8 @@
-import { Dialog, DialogContent } from "@/components/ui/dialog";
+import { Dialog, DialogContent, DialogTitle } from "@/components/ui/dialog";
 import type { Resume } from "@/features/resumes/resumeTypes";
 import type { CompareResumeResponse } from "@/features/user-resume/userResumeService";
 import { UpgradeButton } from "@/components/UpgradeButton";
+import { VisuallyHidden } from "@radix-ui/react-visually-hidden";
 
 interface ComparisonModalProps {
   isOpen: boolean;
@@ -24,6 +25,9 @@ const ComparisonModal = ({ isOpen, onClose, comparedResume, comparisonData, isPr
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
       <DialogContent className="max-w-[95vw] w-full max-h-[95vh] overflow-hidden bg-background p-0 gap-0">
+        <VisuallyHidden>
+          <DialogTitle>Resume Analysis</DialogTitle>
+        </VisuallyHidden>
         {/* Header */}
         <div className="border-b px-4 md:px-6 py-3 md:py-4">
           <h2 className="text-lg md:text-xl font-bold">Resume Analysis</h2>
@@ -126,7 +130,7 @@ const ComparisonModal = ({ isOpen, onClose, comparedResume, comparisonData, isPr
             <div className="relative">
               <h3 className="text-sm font-semibold mb-3">⚠ What You Should Write Instead</h3>
               <div className="space-y-3">
-                {comparisonData.what_to_write_instead.map((mistake, idx) => (
+                {(comparisonData.what_to_write_instead || []).map((mistake, idx) => (
                   <div key={idx} className={`p-4 bg-muted rounded-xl ${!isPro && idx >= 1 ? "blur-sm select-none" : ""}`}>
                     <div className="space-y-2.5">
                       <div>
@@ -170,7 +174,7 @@ const ComparisonModal = ({ isOpen, onClose, comparedResume, comparisonData, isPr
               <div>
                 <h3 className="text-sm font-semibold mb-3">✓ What's Working</h3>
                 <div className="space-y-2">
-                  {comparisonData.whats_working.slice(0, 2).map((strength, idx) => (
+                  {(comparisonData.whats_working || []).slice(0, 2).map((strength, idx) => (
                     <div key={idx} className={`p-3 bg-muted rounded-xl ${!isPro && idx >= 1 ? "blur-sm select-none" : ""}`}>
                       <p className={`text-xs leading-relaxed ${!isPro && idx >= 1 ? "select-none" : ""}`}>
                         {strength}
@@ -184,7 +188,7 @@ const ComparisonModal = ({ isOpen, onClose, comparedResume, comparisonData, isPr
               <div>
                 <h3 className="text-sm font-semibold mb-3">✗ What Needs Work</h3>
                 <div className="space-y-2">
-                  {comparisonData.what_needs_work.slice(0, 2).map((weakness, idx) => (
+                  {(comparisonData.what_needs_work || []).slice(0, 2).map((weakness, idx) => (
                     <div key={idx} className={`p-3 bg-muted rounded-xl ${!isPro ? "blur-sm select-none" : ""}`}>
                       <p className={`text-xs leading-relaxed ${!isPro ? "select-none" : ""}`}>
                         {weakness}
@@ -198,7 +202,7 @@ const ComparisonModal = ({ isOpen, onClose, comparedResume, comparisonData, isPr
               <div>
                 <h3 className="text-sm font-semibold mb-3">→ Next Steps</h3>
                 <div className="space-y-2">
-                  {comparisonData.next_steps.slice(0, 2).map((suggestion, idx) => (
+                  {(comparisonData.next_steps || []).slice(0, 2).map((suggestion, idx) => (
                     <div key={idx} className={`p-3 bg-muted rounded-xl ${!isPro ? "blur-sm select-none" : ""}`}>
                       <p className={`text-xs leading-relaxed ${!isPro ? "select-none" : ""}`}>
                         {suggestion}
