@@ -8,7 +8,9 @@ import { useNavigate } from "react-router-dom";
 const Account = () => {
   const { user } = useUser();
   const navigate = useNavigate();
-  const { data: subscription, isLoading: isLoadingSubscription } = useGetSubscriptionStatusQuery();
+  const { data: subscription, isLoading: isLoadingSubscription } = useGetSubscriptionStatusQuery(undefined, {
+    refetchOnMountOrArgChange: true,
+  });
   const [createPortalSession, { isLoading: isCreatingPortal }] = useCreatePortalSessionMutation();
 
   const handleManageSubscription = async () => {
@@ -24,7 +26,6 @@ const Account = () => {
     const statusColors: Record<string, string> = {
       active: "bg-green-100 text-green-800",
       canceled: "bg-red-100 text-red-800",
-      past_due: "bg-yellow-100 text-yellow-800",
       trialing: "bg-blue-100 text-blue-800",
     };
     return (
@@ -120,7 +121,9 @@ const Account = () => {
                   )}
                 </div>
 
-                {subscription?.is_pro && (
+                {/* Manage Subscription: Show for pro tier OR free/trialing */}
+                {(subscription?.tier === 'pro' ||
+                  (subscription?.tier === 'free' && subscription?.status === 'trialing')) && (
                   <div className="pt-4 border-t">
                     <Button
                       onClick={handleManageSubscription}
@@ -132,23 +135,44 @@ const Account = () => {
                           <Loader2 className="mr-2 h-4 w-4 animate-spin" />
                           Loading...
                         </>
+                      ) : subscription?.tier === 'pro' && subscription?.status === 'canceled' ? (
+                        "Resubscribe"
+                      ) : subscription?.tier === 'free' && subscription?.status === 'trialing' ? (
+                        "Manage Trial"
                       ) : (
                         "Manage Subscription"
                       )}
                     </Button>
                     <p className="text-sm text-muted-foreground mt-2">
-                      Update payment method, cancel subscription, or view billing history
+                      {subscription?.tier === 'pro' && subscription?.status === 'canceled'
+                        ? "Reactivate your subscription to regain access to premium features"
+                        : subscription?.tier === 'free' && subscription?.status === 'trialing'
+                        ? "Cancel your trial or update payment method"
+                        : "Update payment method, cancel subscription, or view billing history"}
                     </p>
                   </div>
                 )}
 
-                {!subscription?.is_pro && (
+                {/* Start Trial: Only show for free/active (never attempted) */}
+                {subscription?.tier === 'free' && subscription?.status === 'active' && (
                   <div className="pt-4 border-t">
                     <p className="text-sm text-muted-foreground mb-4">
                       Start your 3-day free trial to unlock premium features and access exclusive content
                     </p>
                     <Button className="w-full sm:w-auto">
                       Start 3-Day Free Trial
+                    </Button>
+                  </div>
+                )}
+
+                {/* Trial Canceled: Show message for free/canceled */}
+                {subscription?.tier === 'free' && subscription?.status === 'canceled' && (
+                  <div className="pt-4 border-t">
+                    <p className="text-sm text-muted-foreground mb-4">
+                      Your trial has ended. Start a new subscription to unlock premium features and access exclusive content
+                    </p>
+                    <Button className="w-full sm:w-auto">
+                      Subscribe to Pro
                     </Button>
                   </div>
                 )}

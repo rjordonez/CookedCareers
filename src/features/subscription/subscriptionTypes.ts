@@ -1,7 +1,7 @@
 // Subscription API Types
 
 export type SubscriptionTier = 'free' | 'pro';
-export type SubscriptionStatus = 'active' | 'canceled' | 'past_due' | 'trialing';
+export type SubscriptionStatus = 'active' | 'canceled' | 'trialing';
 
 export interface SubscriptionInfo {
   tier: SubscriptionTier;

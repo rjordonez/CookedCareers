@@ -8,7 +8,9 @@ import { useGetSubscriptionStatusQuery } from "@/features/subscription/subscript
 const SubscriptionSuccess = () => {
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
-  const { data: subscriptionInfo } = useGetSubscriptionStatusQuery();
+  const { data: subscriptionInfo } = useGetSubscriptionStatusQuery(undefined, {
+    refetchOnMountOrArgChange: true,
+  });
 
   useEffect(() => {
     // Auto redirect after 5 seconds
