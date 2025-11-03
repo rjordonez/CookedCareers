@@ -355,7 +355,7 @@ const Dashboard = () => {
         isLoadingSubscription={isLoadingSubscription}
         searchQuery={localSearchQuery}
         onSearchChange={handleSearchChange}
-        searchPlaceholder="Search resumes by job..."
+        searchPlaceholder="Search resumes by company... (ex. Google)"
         seniority={filters.seniority || "all"}
         onSeniorityChange={handleSeniorityChange}
         hasActiveFilters={hasActiveFilters}
