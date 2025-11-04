@@ -43,6 +43,14 @@ export const reviewApi = baseApi.injectEndpoints({
       ],
     }),
 
+    // Get details of a single submission (admin only - no ownership check)
+    getAdminSubmission: builder.query<GetSubmissionResponse, string>({
+      query: (submissionId) => `/api/review/admin/submissions/${submissionId}`,
+      providesTags: (_result, _error, submissionId) => [
+        { type: 'Review', id: submissionId },
+      ],
+    }),
+
     // Delete a submission
     deleteSubmission: builder.mutation<DeleteSubmissionResponse, string>({
       query: (submissionId) => ({
@@ -67,6 +75,14 @@ export const reviewApi = baseApi.injectEndpoints({
     // Get annotations for a submission
     getAnnotations: builder.query<GetAnnotationsResponse, string>({
       query: (submissionId) => `/api/review/submissions/${submissionId}/annotations`,
+      providesTags: (_result, _error, submissionId) => [
+        { type: 'Review', id: submissionId },
+      ],
+    }),
+
+    // Get annotations for a submission (admin only - no ownership check)
+    getAdminAnnotations: builder.query<GetAnnotationsResponse, string>({
+      query: (submissionId) => `/api/review/admin/submissions/${submissionId}/annotations`,
       providesTags: (_result, _error, submissionId) => [
         { type: 'Review', id: submissionId },
       ],
@@ -99,9 +115,11 @@ export const {
   useListSubmissionsQuery,
   useListAllSubmissionsQuery,
   useGetSubmissionQuery,
+  useGetAdminSubmissionQuery,
   useDeleteSubmissionMutation,
   useCreateAnnotationMutation,
   useGetAnnotationsQuery,
+  useGetAdminAnnotationsQuery,
   useDeleteAnnotationMutation,
   useCreateReviewCheckoutMutation,
 } = reviewApi;

@@ -9,8 +9,8 @@ import { Card } from '@/components/ui/card';
 import { Textarea } from '@/components/ui/textarea';
 import { Badge } from '@/components/ui/badge';
 import {
-  useGetSubmissionQuery,
-  useGetAnnotationsQuery,
+  useGetAdminSubmissionQuery,
+  useGetAdminAnnotationsQuery,
   useCreateAnnotationMutation,
   useDeleteAnnotationMutation,
 } from '@/features/review/reviewService';
@@ -56,20 +56,20 @@ export default function DevReviewDetailPanel() {
   const [reviewNotes, setReviewNotes] = useState('');
   const [isCompleting, setIsCompleting] = useState(false);
 
-  // Fetch submission
+  // Fetch submission (admin endpoint - no ownership check)
   const {
     data: submissionData,
     isLoading,
     isError,
-  } = useGetSubmissionQuery(id!, {
+  } = useGetAdminSubmissionQuery(id!, {
     skip: !authReady || !id,
   });
 
-  // Fetch annotations
+  // Fetch annotations (admin endpoint - no ownership check)
   const {
     data: annotationsData,
     refetch: refetchAnnotations,
-  } = useGetAnnotationsQuery(id!, {
+  } = useGetAdminAnnotationsQuery(id!, {
     skip: !authReady || !id,
   });
 
