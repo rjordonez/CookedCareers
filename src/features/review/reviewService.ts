@@ -29,6 +29,12 @@ export const reviewApi = baseApi.injectEndpoints({
       providesTags: ['Review'],
     }),
 
+    // Get all submissions (admin only - returns all users' submissions)
+    listAllSubmissions: builder.query<ListSubmissionsResponse, void>({
+      query: () => '/api/review/admin/submissions',
+      providesTags: ['Review'],
+    }),
+
     // Get details of a single submission
     getSubmission: builder.query<GetSubmissionResponse, string>({
       query: (submissionId) => `/api/review/submissions/${submissionId}`,
@@ -91,6 +97,7 @@ export const reviewApi = baseApi.injectEndpoints({
 export const {
   useSubmitReviewMutation,
   useListSubmissionsQuery,
+  useListAllSubmissionsQuery,
   useGetSubmissionQuery,
   useDeleteSubmissionMutation,
   useCreateAnnotationMutation,
