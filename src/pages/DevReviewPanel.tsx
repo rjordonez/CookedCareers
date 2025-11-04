@@ -6,7 +6,7 @@ import { useAuthReady } from '@/components/AuthProvider';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
 import { Textarea } from '@/components/ui/textarea';
-import { useListSubmissionsQuery } from '@/features/review/reviewService';
+import { useListAllSubmissionsQuery } from '@/features/review/reviewService';
 import { useGetSubscriptionStatusQuery } from '@/features/subscription/subscriptionService';
 import DashboardNav from '@/components/DashboardNav';
 import {
@@ -36,12 +36,12 @@ export default function DevReviewPanel() {
   });
   const isPro = subscriptionData?.is_pro ?? false;
 
-  // Fetch all submissions (admin view - shows all pending)
+  // Fetch all submissions (admin view - shows all users' submissions)
   const {
     data: submissionsData,
     isLoading: isLoadingSubmissions,
     refetch,
-  } = useListSubmissionsQuery(undefined, {
+  } = useListAllSubmissionsQuery(undefined, {
     skip: !authReady,
   });
 
