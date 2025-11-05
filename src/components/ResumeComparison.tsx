@@ -3,7 +3,7 @@ import { Button } from "@/components/ui/button";
 import { Slider } from "@/components/ui/slider";
 import { Link } from "react-router-dom";
 import { usePostHog } from "posthog-js/react";
-import resume1 from "@/assets/resumes/Benjamin Eisner_Google.png";
+import resume1 from "@/assets/resumes/Screenshot 2025-11-05 at 3.49.12 PM.png";
 import resume2 from "@/assets/resumes/Channing Pear_Google.png";
 
 const ResumeComparison = () => {
@@ -69,10 +69,12 @@ const ResumeComparison = () => {
       <div className="max-w-7xl mx-auto">
         <div className="text-center mb-16">
           <h2 className="text-4xl md:text-5xl font-bold mb-4">
-            Learn From Resumes That Got Hired
+            ATS Checker: Tailor Your Resume to Any Job
           </h2>
           <p className="text-xl text-muted-foreground max-w-2xl mx-auto">
-            See the exact formatting and content changes that transform your resume from ignored to interview-ready
+            Compare your resume to job postings instantly.
+            <br />
+            Get feedback on what to customize without spending hours tweaking.
           </p>
         </div>
 
@@ -127,10 +129,10 @@ const ResumeComparison = () => {
             <Link to="/auth">
               <Button
                 size="lg"
-                className="rounded-full bg-[#1a1a1a] text-white hover:bg-[#2a2a2a] px-8"
+                className="rounded-full bg-[#1a1a1a] text-white hover:bg-[#2a2a2a] font-bold text-lg px-10 h-14 shadow-lg hover:shadow-xl transition-shadow"
                 onClick={() => posthog?.capture('comparison_cta_clicked')}
               >
-                Learn From Winning Resumes
+                Optimize your resume
               </Button>
             </Link>
           </div>
