@@ -519,7 +519,7 @@ export default function DevReviewDetailPanel() {
                           }}
                           title={annotation.content.comment}
                         >
-                          <div className="absolute -top-8 left-0 bg-yellow-500 text-xs px-2 py-1 rounded shadow-lg whitespace-nowrap opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none">
+                          <div className="absolute -top-2 left-0 bg-yellow-500 text-white text-xs px-3 py-2 rounded shadow-lg max-w-xs max-h-48 overflow-y-auto break-words opacity-0 group-hover:opacity-100 transition-opacity pointer-events-auto z-20 transform -translate-y-full">
                             {annotation.content.comment}
                           </div>
                         </div>
@@ -545,11 +545,7 @@ export default function DevReviewDetailPanel() {
           <DialogHeader>
             <DialogTitle>Add Comment</DialogTitle>
             <DialogDescription>
-              {pendingAnnotation?.selectedText && (
-                <span className="text-sm">
-                  Selected: "<span className="font-medium text-primary">{pendingAnnotation.selectedText}</span>"
-                </span>
-              )}
+              Add your feedback for the highlighted text
             </DialogDescription>
           </DialogHeader>
           <div className="space-y-4">
