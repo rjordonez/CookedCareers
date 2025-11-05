@@ -2,6 +2,7 @@ import { useState, useRef, useEffect } from 'react';
 import { useParams } from 'react-router-dom';
 import { Document, Page, pdfjs } from 'react-pdf';
 import { Loader2, FileText } from 'lucide-react';
+import { usePDFViewer } from '@/hooks';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
 import { useGetSharedSessionQuery } from '@/features/anonymizer/anonymizerService';
@@ -18,9 +19,7 @@ export default function ShareView() {
   const { token } = useParams<{ token: string }>();
   const pdfContainerRef = useRef<HTMLDivElement>(null);
   const [pdfFile, setPdfFile] = useState<File | null>(null);
-  const [currentPage, setCurrentPage] = useState(1);
-  const [scale, setScale] = useState(1.5);
-  const [numPages, setNumPages] = useState(0);
+  const { currentPage, setCurrentPage, scale, numPages, setNumPages, nextPage, prevPage, canGoNext, canGoPrev } = usePDFViewer(1.5);
 
   const { data: sessionData, isLoading, error } = useGetSharedSessionQuery(token || '', {
     skip: !token,

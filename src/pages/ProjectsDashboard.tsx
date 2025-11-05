@@ -1,17 +1,14 @@
 import { useState } from "react";
-import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Crown, Loader2, ExternalLink } from "lucide-react";
-import { useUser } from "@clerk/clerk-react";
-import { useAuthReady } from "@/components/AuthProvider";
+import { useAuthState, useRequireAuth } from "@/hooks";
 import { useAppDispatch, useAppSelector } from "@/store/hooks";
 import {
   setCurrentPage,
   selectProjectParams,
 } from "@/features/projects/projectSlice";
 import { useGetProjectsQuery } from "@/features/projects/projectService";
-import { useGetSubscriptionStatusQuery } from "@/features/subscription/subscriptionService";
 import DashboardNav from "@/components/DashboardNav";
 import { UpgradeButton } from "@/components/UpgradeButton";
 import ProjectCardSkeleton from "@/components/ProjectCardSkeleton";
@@ -28,9 +25,8 @@ const ensureHttps = (url: string): string => {
 };
 
 const ProjectsDashboard = () => {
-  const navigate = useNavigate();
-  const { user, isLoaded, isSignedIn } = useUser();
-  const { authReady } = useAuthReady();
+  const { querySkipCondition, isPro, isLoadingSubscription } = useAuthState();
+  const { requireAuth } = useRequireAuth();
   const dispatch = useAppDispatch();
 
   // Get pagination from Redux state
@@ -39,16 +35,10 @@ const ProjectsDashboard = () => {
 
   // Fetch projects from API
   const { data, isLoading, isError, error } = useGetProjectsQuery(projectParams, {
-    skip: !authReady || !isSignedIn,
+    skip: querySkipCondition,
     refetchOnMountOrArgChange: 600, // Only refetch if data is older than 10 minutes
     keepUnusedDataFor: 600, // Keep cached data for 10 minutes
   });
-
-  // Fetch subscription status (shared across app via RTK Query cache)
-  const { data: subscriptionData, isLoading: isLoadingSubscription } = useGetSubscriptionStatusQuery(undefined, {
-    skip: !authReady || !isSignedIn,
-  });
-  const isPremium = subscriptionData?.is_pro ?? false;
 
   // Detect if we're waiting for new data (page change)
   const isPageChanging = data ? pagination.currentPage !== data.pagination.page : false;
@@ -61,30 +51,24 @@ const ProjectsDashboard = () => {
 
   const isBlurred = (index: number) => {
     const globalIndex = (pagination.currentPage - 1) * pagination.itemsPerPage + index;
-    return !isPremium && globalIndex >= FREE_PREVIEW_COUNT;
+    return !isPro && globalIndex >= FREE_PREVIEW_COUNT;
   };
 
   const handleProjectClick = (projectUrl: string | undefined, isProjectBlurred: boolean) => {
-    if (!isSignedIn) {
-      navigate('/auth');
-      return;
-    }
+    if (!requireAuth()) return;
     if (!isProjectBlurred && projectUrl) {
       window.open(ensureHttps(projectUrl), '_blank');
     }
   };
 
   const handlePageChange = (page: number) => {
-    if (!isSignedIn) {
-      navigate('/auth');
-      return;
-    }
+    if (!requireAuth()) return;
     dispatch(setCurrentPage(page));
   };
 
   return (
     <div className="min-h-screen bg-background">
-      <DashboardNav isPro={isPremium} isLoadingSubscription={isLoadingSubscription} />
+      <DashboardNav isPro={isPro} isLoadingSubscription={isLoadingSubscription} />
 
       <main className="max-w-7xl mx-auto px-6 pt-4 pb-6">
         {isError && (
