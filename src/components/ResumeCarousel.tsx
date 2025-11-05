@@ -124,10 +124,12 @@ const ResumeCarousel = () => {
       <div className="w-full px-6">
         <div className="text-center mb-16">
           <h2 className="text-4xl md:text-5xl font-bold mb-4">
-            Study Applications That Land Offers
+            Learn From Resumes That Got Hired
           </h2>
-          <p className="text-xl text-muted-foreground">
-            Resumes • Projects • Portfolios
+          <p className="text-xl text-muted-foreground max-w-3xl mx-auto">
+            Study real applications that landed offers.
+            <br />
+            Learn formatting, bullet points, and quantification that actually works.
           </p>
         </div>
 
@@ -183,8 +185,8 @@ const ResumeCarousel = () => {
 
         <div className="text-center mt-16">
           <Link to="/auth">
-            <Button size="lg" className="rounded-full font-medium px-10 h-14 shadow-lg hover:shadow-xl transition-shadow">
-              Get access to all samples
+            <Button size="lg" className="rounded-full font-bold text-lg px-10 h-14 shadow-lg hover:shadow-xl transition-shadow">
+              Access to all samples
             </Button>
           </Link>
         </div>

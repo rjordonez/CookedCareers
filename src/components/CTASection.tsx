@@ -9,36 +9,23 @@ const CTASection = () => {
   const posthog = usePostHog();
 
   return (
-    <section ref={ref} className="py-24 px-6 bg-background fade-in">
-      <div className="max-w-4xl mx-auto">
-        <div className="bg-[#1a1a1a] rounded-3xl p-12 text-center">
-          <h2 className="mb-3 text-white">
-            Your Next Interview Starts Here
-          </h2>
+    <section ref={ref} className="py-32 px-6 bg-background fade-in">
+      <div className="max-w-4xl mx-auto text-center">
+        <h2 className="text-4xl md:text-5xl font-bold mb-6">
+          88% get filtered by ATS.
+          <br />
+          Don't be one of them.
+        </h2>
 
-          <p className="text-gray-400 mb-10">
-            Learn from 1,000+ applications that turned into job offers
-          </p>
-
-          <div className="flex items-center justify-center gap-4 flex-wrap">
-            <Link to="/auth">
-              <Button
-                size="lg"
-                className="rounded-full font-medium px-10 h-14 shadow-lg hover:shadow-xl transition-shadow bg-white text-black hover:bg-gray-100"
-                onClick={() => posthog?.capture('cta_join_now_clicked')}
-              >
-                Join Now →
-              </Button>
-            </Link>
-            <Button
-              size="lg"
-              variant="outline"
-              className="rounded-full font-medium px-10 h-14 border-gray-600 text-white hover:bg-white/10"
-            >
-              Book a consultation call
-            </Button>
-          </div>
-        </div>
+        <Link to="/auth">
+          <Button
+            size="lg"
+            className="rounded-full font-semibold text-base px-8 h-12 shadow-md hover:shadow-lg transition-all bg-[#1a1a1a] text-white hover:bg-[#2a2a2a] mt-2"
+            onClick={() => posthog?.capture('cta_scan_resume_clicked')}
+          >
+            Get ATS-Ready Now →
+          </Button>
+        </Link>
       </div>
     </section>
   );

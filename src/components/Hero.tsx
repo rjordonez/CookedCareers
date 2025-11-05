@@ -58,22 +58,24 @@ const Hero = () => {
         </h1>
 
         <p className="max-w-[450px] mx-auto pt-6 text-center text-lg text-muted-foreground md:max-w-[550px] md:text-xl lg:max-w-[700px]">
-          Get your resume ATS-scanned correctly every time. <span className="font-bold text-foreground">Increase your interview rate 4x</span> with{' '}
+          Get your resume ATS-scanned correctly every time.
+          <br />
+          <span className="font-bold text-foreground">Increase your interview rate 4x</span> with{' '}
           <span className="inline-flex items-baseline">
             {mounted ? <SlotCounter value="1000" /> : '1000'}
             <span>+</span>
           </span>
-          {' '}real resumes that landed offers.
+          {' '}resumes that landed offers.
         </p>
 
         <div className="pt-10 flex flex-col items-center gap-4">
           <Link to="/auth">
             <Button
               size="lg"
-              className="rounded-full text-base font-semibold px-6 h-11 bg-[#1a1a1a] text-white hover:bg-[#2a2a2a]"
+              className="rounded-full font-bold text-lg px-10 h-14 bg-[#1a1a1a] text-white hover:bg-[#2a2a2a] shadow-lg hover:shadow-xl transition-shadow"
               onClick={() => posthog?.capture('hero_compare_for_free_clicked')}
             >
-              Compare for free
+              Join for free
             </Button>
           </Link>
         </div>
@@ -81,7 +83,7 @@ const Hero = () => {
         {/* Company Logos */}
         <div className="pt-16">
           <p className="text-center text-xs md:text-sm font-medium tracking-wide text-muted-foreground mb-6">
-            Our candidates have been hired at
+            Built from insights at top companies
           </p>
 
           <div className="relative overflow-hidden max-w-4xl mx-auto">

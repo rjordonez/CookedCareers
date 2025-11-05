@@ -1,129 +1,130 @@
-import alexKumar from "@/assets/pfps/alex_kumar.jpeg";
-import anaRodriguez from "@/assets/pfps/ana_rodriguez.jpeg";
-import davidKim from "@/assets/pfps/david_kim.jpeg";
-import emmaDavis from "@/assets/pfps/emma_davis.jpeg";
-import michaelChen from "@/assets/pfps/michael-chen.jpeg";
-import rachelThompson from "@/assets/pfps/rachel_thompson.jpeg";
-import robertGarcia from "@/assets/pfps/robert_garcia.jpeg";
-import sarahJohnson from "@/assets/pfps/sarah_johnson.jpeg";
-import weiLi from "@/assets/pfps/wei_li.jpeg";
 import { useScrollAnimation } from "@/hooks/useScrollAnimation";
-import { Star } from "lucide-react";
+import { Star, ChevronLeft, ChevronRight } from "lucide-react";
+import { useRef } from "react";
 
 const testimonials = [
   {
-    name: "Ananya S.",
-    school: "University of Illinois Urbana-Champaign (Master's, International)",
-    quote: "I was getting ghosted after dozens of applications. Seeing real resumes that worked gave me hope. Just got my first interview invite!",
-    photo: anaRodriguez,
-  },
-  {
-    name: "Jason L.",
-    school: "University of Texas at Austin",
-    quote: "Had no idea why I wasn't getting replies. This showed me what actually works, and recruiters finally started noticing me.",
-    photo: robertGarcia,
-  },
-  {
     name: "Priya K.",
-    school: "University of Washington",
-    quote: "Every application felt like a black hole. These examples gave me a clear path and I landed an interview immediately.",
-    photo: sarahJohnson,
-  },
-  {
-    name: "Wei C.",
-    school: "Georgia Tech (Master's, International)",
-    quote: "Months of silence made me feel stuck. Following guidance from successful candidates, I finally started getting responses.",
-    photo: weiLi,
-  },
-  {
-    name: "Sofia T.",
-    school: "Purdue University",
-    quote: "Desperately needed real examples. Seeing what worked helped me rewrite my resume and feel confident again.",
-    photo: rachelThompson,
-  },
-  {
-    name: "Marcus D.",
-    school: "UC Berkeley",
-    quote: "CookedCareer helped me understand what top companies actually look for. Landed 3 interviews in my first week.",
-    photo: michaelChen,
+    school: "University of Maryland",
+    title: "I was drowning in rejections",
+    quote: "Honestly, every application felt like throwing my resume into a black hole. But these real examples gave me a clear path forward and boom - landed an interview right away. The difference was night and day."
   },
   {
     name: "Emily R.",
-    school: "Carnegie Mellon",
-    quote: "Finally got past the resume screening. The real examples showed me exactly what was missing from mine.",
-    photo: emmaDavis,
-  },
-  {
-    name: "David K.",
-    school: "Stanford (International)",
-    quote: "As an international student, I had no idea what worked in the US market. This database was a game changer.",
-    photo: davidKim,
-  },
-  {
-    name: "Jessica M.",
-    school: "MIT",
-    quote: "Studied successful resumes for a week, rewrote mine, and got responses from Amazon and Microsoft within days.",
-    photo: sarahJohnson,
-  },
-  {
-    name: "Alex T.",
-    school: "Cornell University",
-    quote: "The pattern recognition was instant. Saw what made candidates stand out and applied it. Interview rate went from 0% to 40%.",
-    photo: alexKumar,
+    school: "UCLA",
+    title: "Finally broke through the ATS wall",
+    quote: "I kept getting auto-rejected and had no clue why. Looking at actual resumes that worked showed me exactly what I was missing. Within a week of fixing mine, recruiters started reaching out. Game changer."
   },
   {
     name: "Kavya P.",
-    school: "UT Austin (Master's)",
-    quote: "Went from no responses to multiple offers. Learning from real examples beats any resume template.",
-    photo: anaRodriguez,
+    school: "USC",
+    title: "This beat every template I tried",
+    quote: "I wasted so much time on generic resume templates. Seeing real examples from people who actually got hired was completely different - I could finally understand what worked and why. Went from zero offers to multiple."
+  },
+  {
+    name: "Wei C.",
+    school: "Northwestern University",
+    title: "Broke my months-long dry spell",
+    quote: "Months of silence were killing my confidence. I didn't know what I was doing wrong. Studying how successful candidates positioned their experience changed everything - finally started hearing back from companies."
+  },
+  {
+    name: "David K.",
+    school: "NYU",
+    title: "Perfect for international students",
+    quote: "Coming from abroad, I had zero idea what US companies wanted to see. This database was exactly what I needed - real resumes from people who made it. Gave me the confidence I was missing."
   },
   {
     name: "Ryan W.",
-    school: "UCLA",
-    quote: "Best investment I made for my job search. Seeing what actually worked saved me months of trial and error.",
-    photo: robertGarcia,
+    school: "Boston College",
+    title: "Saved me months of guessing",
+    quote: "Best money I ever spent on job searching. I went from basically no responses to getting callbacks from 35% of my applications. Just seeing what actually worked instead of guessing made all the difference."
   },
 ];
 
 
 const UniversityLogos = () => {
   const ref = useScrollAnimation();
+  const scrollContainerRef = useRef<HTMLDivElement>(null);
+
+  const scroll = (direction: 'left' | 'right') => {
+    if (scrollContainerRef.current) {
+      const scrollAmount = 356; // Card width (340px) + gap (16px)
+      const newScrollLeft = scrollContainerRef.current.scrollLeft +
+        (direction === 'left' ? -scrollAmount : scrollAmount);
+
+      scrollContainerRef.current.scrollTo({
+        left: newScrollLeft,
+        behavior: 'smooth'
+      });
+    }
+  };
 
   return (
-    <section ref={ref} className="py-24 px-6 bg-background fade-in">
-      <div className="max-w-6xl mx-auto">
-        <h2 className="text-center mb-16 text-3xl md:text-4xl lg:text-5xl font-bold">
-          What our users are saying.
+    <section ref={ref} className="py-24 px-6 bg-background fade-in overflow-hidden">
+      <div className="max-w-7xl mx-auto">
+        <h2 className="text-center mb-12 text-3xl md:text-4xl lg:text-5xl font-bold">
+          What Our Users Are Saying
         </h2>
 
-        {/* Masonry Grid */}
-        <div className="columns-1 md:columns-2 lg:columns-3 gap-6">
-          {testimonials.map((testimonial, index) => (
-            <div
-              key={index}
-              className="mb-4 md:mb-6 break-inside-avoid"
-            >
-              <div className="bg-background rounded-2xl p-6 border border-border">
-                <div className="flex items-center gap-3 mb-3">
-                  <img
-                    src={testimonial.photo}
-                    alt={testimonial.name}
-                    className="w-11 h-11 rounded-full object-cover"
-                  />
-                  <div className="flex-1 min-w-0">
+        {/* Horizontal Scrolling Container */}
+        <div className="relative">
+          {/* Left Arrow */}
+          <button
+            onClick={() => scroll('left')}
+            className="absolute left-0 top-1/2 -translate-y-1/2 z-10 bg-background border border-border rounded-full p-2 shadow-lg hover:bg-muted transition-colors"
+            aria-label="Scroll left"
+          >
+            <ChevronLeft className="w-6 h-6" />
+          </button>
+
+          {/* Right Arrow */}
+          <button
+            onClick={() => scroll('right')}
+            className="absolute right-0 top-1/2 -translate-y-1/2 z-10 bg-background border border-border rounded-full p-2 shadow-lg hover:bg-muted transition-colors"
+            aria-label="Scroll right"
+          >
+            <ChevronRight className="w-6 h-6" />
+          </button>
+
+          <div
+            ref={scrollContainerRef}
+            className="flex gap-6 overflow-x-auto pb-4 scrollbar-hide snap-x snap-mandatory px-12"
+          >
+            {testimonials.map((testimonial, index) => (
+              <div
+                key={index}
+                className="flex-shrink-0 w-[340px] snap-start"
+              >
+                <div className="bg-muted/30 rounded-2xl p-6 h-full border border-border hover:shadow-lg transition-shadow">
+                  {/* Star Rating */}
+                  <div className="flex gap-1 mb-4">
+                    {[...Array(5)].map((_, i) => (
+                      <Star key={i} className="w-5 h-5 fill-yellow-400 text-yellow-400" />
+                    ))}
+                  </div>
+
+                  {/* Title */}
+                  <h3 className="font-bold text-base mb-3 leading-tight">
+                    {testimonial.title}
+                  </h3>
+
+                  {/* Quote */}
+                  <p className="text-sm text-muted-foreground leading-relaxed mb-6">
+                    {testimonial.quote}
+                  </p>
+
+                  {/* Divider */}
+                  <div className="border-t border-border mb-4"></div>
+
+                  {/* Name and School */}
+                  <div>
                     <p className="font-semibold text-sm">{testimonial.name}</p>
                     <p className="text-xs text-muted-foreground">{testimonial.school}</p>
                   </div>
                 </div>
-                <div className="flex gap-0.5 mb-4">
-                  {[...Array(5)].map((_, i) => (
-                    <Star key={i} className="w-4 h-4 fill-yellow-400 text-yellow-400" />
-                  ))}
-                </div>
-                <p className="text-sm leading-relaxed">{testimonial.quote}</p>
               </div>
-            </div>
-          ))}
+            ))}
+          </div>
         </div>
       </div>
     </section>
