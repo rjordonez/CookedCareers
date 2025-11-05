@@ -3,11 +3,10 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Skeleton } from "@/components/ui/skeleton";
-import { Search, Settings, X, Upload } from "lucide-react";
-import { UserButton, useAuth } from "@clerk/clerk-react";
+import { Search, Settings, X } from "lucide-react";
+import { UserButton } from "@clerk/clerk-react";
 import { UpgradeButton } from "@/components/UpgradeButton";
 import { ProBadge } from "@/components/ProBadge";
-import { useRef, useState, useImperativeHandle, forwardRef } from "react";
 
 interface DashboardNavProps {
   isPro: boolean;
@@ -19,16 +18,9 @@ interface DashboardNavProps {
   onSeniorityChange?: (value: string) => void;
   hasActiveFilters?: boolean;
   onClearFilters?: () => void;
-  onMyResumeClick?: () => void;
-  hasUploadedResume?: boolean;
-  onUploadSuccess?: () => void;
 }
 
-export interface DashboardNavRef {
-  triggerUpload: () => void;
-}
-
-const DashboardNav = forwardRef<DashboardNavRef, DashboardNavProps>(({
+const DashboardNav = ({
   isPro,
   isLoadingSubscription = false,
   searchQuery = "",
@@ -38,68 +30,13 @@ const DashboardNav = forwardRef<DashboardNavRef, DashboardNavProps>(({
   onSeniorityChange,
   hasActiveFilters,
   onClearFilters,
-  onMyResumeClick,
-  hasUploadedResume = false,
-  onUploadSuccess
-}, ref) => {
+}: DashboardNavProps) => {
   const location = useLocation();
-  const isResumesPage = location.pathname === "/dashboard";
+  const isDashboardPage = location.pathname === "/dashboard";
+  const isResumesPage = location.pathname === "/resumes";
   const isProjectsPage = location.pathname === "/projects";
   const isAnonymizerPage = location.pathname === "/anonymizer";
   const isReviewPage = location.pathname === "/resume-review" || location.pathname.startsWith("/resume-review/");
-  const fileInputRef = useRef<HTMLInputElement>(null);
-  const [isUploading, setIsUploading] = useState(false);
-  const { getToken } = useAuth();
-
-  // Expose triggerUpload to parent via ref
-  useImperativeHandle(ref, () => ({
-    triggerUpload: () => {
-      fileInputRef.current?.click();
-    }
-  }));
-
-  const handleFileUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
-    const file = event.target.files?.[0];
-    if (!file) return;
-
-    setIsUploading(true);
-    const formData = new FormData();
-    formData.append('file', file);
-
-    try {
-      // Get Clerk JWT token
-      const token = await getToken();
-      if (!token) {
-        throw new Error('Authentication required. Please sign in again.');
-      }
-
-      const response = await fetch(`${import.meta.env.VITE_API_BASE_URL}/api/user-resume/upload`, {
-        method: 'POST',
-        headers: {
-          'Authorization': `Bearer ${token}`,
-        },
-        body: formData,
-      });
-
-      const data = await response.json();
-
-      if (data.success) {
-        // Notify parent of successful upload
-        if (onUploadSuccess) {
-          onUploadSuccess();
-        }
-      } else {
-        throw new Error(data.detail || data.error || 'Upload failed');
-      }
-    } catch (error: any) {
-      console.error("Upload failed:", error);
-    } finally {
-      setIsUploading(false);
-      if (fileInputRef.current) {
-        fileInputRef.current.value = '';
-      }
-    }
-  };
 
   return (
     <nav className="bg-background sticky top-0 z-50">
@@ -107,7 +44,7 @@ const DashboardNav = forwardRef<DashboardNavRef, DashboardNavProps>(({
         <div className="flex flex-wrap items-center justify-between gap-4">
           {/* Left: Logo + Navigation */}
           <div className="flex items-center gap-2 md:gap-6">
-            <Link to="/dashboard" className="flex items-center gap-2">
+            <Link to="/resumes" className="flex items-center gap-2">
               <div className="relative w-[36px] h-[36px] shrink-0">
                 {/* Grey paper layer (offset bottom-right) */}
                 <div className="absolute w-8 h-8 rounded-xl bg-gray-300 bottom-0 right-0"></div>
@@ -119,8 +56,16 @@ const DashboardNav = forwardRef<DashboardNavRef, DashboardNavProps>(({
             </Link>
 
             <div className="flex items-center gap-3 md:gap-6">
-              <Link
+              {/* <Link
                 to="/dashboard"
+                className={`text-sm font-semibold transition-colors ${
+                  isDashboardPage ? 'text-foreground' : 'text-muted-foreground hover:text-foreground'
+                }`}
+              >
+                Dashboard
+              </Link> */}
+              <Link
+                to="/resumes"
                 className={`text-sm font-semibold transition-colors ${
                   isResumesPage ? 'text-foreground' : 'text-muted-foreground hover:text-foreground'
                 }`}
@@ -154,33 +99,8 @@ const DashboardNav = forwardRef<DashboardNavRef, DashboardNavProps>(({
             </div>
           </div>
 
-          {/* Right: Upload Resume + Upgrade + Settings + Profile */}
+          {/* Right: Upgrade + Settings + Profile */}
           <div className="flex items-center gap-2 md:gap-4">
-            {/* Upload Resume Button */}
-            <input
-              ref={fileInputRef}
-              type="file"
-              accept=".pdf"
-              onChange={handleFileUpload}
-              className="hidden"
-            />
-            <Button
-              variant="outline"
-              size="sm"
-              className="flex items-center gap-2"
-              onClick={() => {
-                if (onMyResumeClick) {
-                  onMyResumeClick();
-                } else {
-                  fileInputRef.current?.click();
-                }
-              }}
-              disabled={isUploading}
-            >
-              <Upload className="w-4 h-4" />
-              <span className="hidden sm:inline">{isUploading ? 'Uploading...' : hasUploadedResume ? 'Resume Uploaded ✓' : 'My Resume'}</span>
-            </Button>
-
             {isLoadingSubscription ? (
               <Skeleton className="hidden md:flex w-[160px] h-9 rounded-full" />
             ) : isPro ? (
@@ -255,8 +175,6 @@ const DashboardNav = forwardRef<DashboardNavRef, DashboardNavProps>(({
       </div>
     </nav>
   );
-});
-
-DashboardNav.displayName = 'DashboardNav';
+};
 
 export default DashboardNav;

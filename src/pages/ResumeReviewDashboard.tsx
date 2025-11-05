@@ -2,8 +2,8 @@ import { useState, useRef, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Document, Page } from 'react-pdf';
 import { Loader2, FileText, Download, Trash2, Clock, CheckCircle2, DollarSign, Lock, MessageSquare, Plus } from 'lucide-react';
-import { useUser, useAuth } from '@clerk/clerk-react';
-import { useAuthReady } from '@/components/AuthProvider';
+import { useAuth } from '@clerk/clerk-react';
+import { useAuthState, useRequireAuth } from '@/hooks';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
 import {
@@ -13,7 +13,6 @@ import {
   useCreateReviewCheckoutMutation,
   useGetAnnotationsQuery,
 } from '@/features/review/reviewService';
-import { useGetSubscriptionStatusQuery } from '@/features/subscription/subscriptionService';
 import DashboardNav from '@/components/DashboardNav';
 import { Badge } from '@/components/ui/badge';
 import {
@@ -29,8 +28,8 @@ import 'react-pdf/dist/Page/TextLayer.css';
 
 export default function ResumeReviewDashboard() {
   const navigate = useNavigate();
-  const { isSignedIn } = useUser();
-  const { authReady } = useAuthReady();
+  const { querySkipCondition, isPro, isLoadingSubscription } = useAuthState();
+  const { requireAuth } = useRequireAuth();
   const { getToken } = useAuth();
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [isDragging, setIsDragging] = useState(false);
@@ -44,23 +43,14 @@ export default function ResumeReviewDashboard() {
     isLoading: isLoadingSubmissions,
     refetch,
   } = useListSubmissionsQuery(undefined, {
-    skip: !authReady || !isSignedIn,
+    skip: querySkipCondition,
   });
   const [deleteSubmission] = useDeleteSubmissionMutation();
-
-  // Fetch subscription status
-  const { data: subscriptionData, isLoading: isLoadingSubscription } = useGetSubscriptionStatusQuery(undefined, {
-    skip: !authReady || !isSignedIn,
-  });
-  const isPro = subscriptionData?.is_pro ?? false;
 
   const submissions = submissionsData?.submissions || [];
 
   const handleFileSelect = async (file: File) => {
-    if (!isSignedIn) {
-      navigate('/auth');
-      return;
-    }
+    if (!requireAuth()) return;
 
     if (!file.name.toLowerCase().endsWith('.pdf')) {
       return;
@@ -134,10 +124,7 @@ export default function ResumeReviewDashboard() {
   };
 
   const handleDelete = async (submissionId: string) => {
-    if (!isSignedIn) {
-      navigate('/auth');
-      return;
-    }
+    if (!requireAuth()) return;
 
     if (!confirm('Are you sure you want to delete this submission?')) {
       return;

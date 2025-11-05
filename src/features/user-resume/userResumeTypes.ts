@@ -32,25 +32,6 @@ export interface DeleteResumeResponse {
   message: string;
 }
 
-export interface CompareResumeResponse {
-  success: boolean;
-  overall_match_score: number;
-  user_resume_ats_score: number;
-  db_resume_ats_score: number;
-  what_to_write_instead: Array<{
-    original: string;
-    improved: string;
-  }>;
-  whats_working: string[];
-  what_needs_work: string[];
-  next_steps: string[];
-  db_resume_name: string;
-}
-
-export interface CompareResumeRequest {
-  resume_id: string;
-}
-
 export interface GetResumeHtmlResponse {
   success: boolean;
   html: string;

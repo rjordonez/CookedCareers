@@ -1,9 +1,7 @@
 import { useState, useRef, useEffect, useCallback } from 'react';
-import { useNavigate } from 'react-router-dom';
 import { Document, Page } from 'react-pdf';
 import { Download, Eye, EyeOff, Loader2, Wand2, X, Share2, Copy, Check } from 'lucide-react';
-import { useUser } from '@clerk/clerk-react';
-import { useAuthReady } from '@/components/AuthProvider';
+import { useAuthState, useRequireAuth } from '@/hooks';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
@@ -45,15 +43,13 @@ import {
   type PIIDetection,
   type PIIDetectionWithBlur,
 } from '@/features/anonymizer/anonymizerTypes';
-import { useGetSubscriptionStatusQuery } from '@/features/subscription/subscriptionService';
 import DashboardNav from '@/components/DashboardNav';
 import 'react-pdf/dist/Page/AnnotationLayer.css';
 import 'react-pdf/dist/Page/TextLayer.css';
 
 export default function AnonymizerDashboard() {
-  const navigate = useNavigate();
-  const { user, isLoaded, isSignedIn } = useUser();
-  const { authReady } = useAuthReady();
+  const { querySkipCondition, isPro, isLoadingSubscription, authReady, isSignedIn } = useAuthState();
+  const { requireAuth } = useRequireAuth();
   const dispatch = useAppDispatch();
   const fileInputRef = useRef<HTMLInputElement>(null);
   const pdfContainerRef = useRef<HTMLDivElement>(null);
@@ -82,12 +78,6 @@ export default function AnonymizerDashboard() {
     selectedSessionId || '',
     { skip: !selectedSessionId }
   );
-
-  // Fetch subscription status
-  const { data: subscriptionData, isLoading: isLoadingSubscription } = useGetSubscriptionStatusQuery(undefined, {
-    skip: !authReady || !isSignedIn,
-  });
-  const isPro = subscriptionData?.is_pro ?? false;
 
   // Handle text selection changes
   useEffect(() => {
@@ -177,10 +167,7 @@ export default function AnonymizerDashboard() {
   }, [view, fileId, detections, saveCurrentSession]);
 
   const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
-    if (!isSignedIn) {
-      navigate('/auth');
-      return;
-    }
+    if (!requireAuth()) return;
 
     const file = e.target.files?.[0];
     if (!file) return;
@@ -243,10 +230,7 @@ export default function AnonymizerDashboard() {
   };
 
   const handleDownload = async () => {
-    if (!isSignedIn) {
-      navigate('/auth');
-      return;
-    }
+    if (!requireAuth()) return;
     // Save before generating PDF
     await saveCurrentSession();
 
@@ -322,10 +306,7 @@ export default function AnonymizerDashboard() {
   };
 
   const resetUpload = async () => {
-    if (!isSignedIn) {
-      navigate('/auth');
-      return;
-    }
+    if (!requireAuth()) return;
     // Save before leaving editor
     await saveCurrentSession();
 
@@ -339,19 +320,13 @@ export default function AnonymizerDashboard() {
   };
 
   const handleSelectSession = (sessionId: string) => {
-    if (!isSignedIn) {
-      navigate('/auth');
-      return;
-    }
+    if (!requireAuth()) return;
     setSelectedSessionId(sessionId);
     // The useEffect will handle loading the session data
   };
 
   const handleUploadNew = () => {
-    if (!isSignedIn) {
-      navigate('/auth');
-      return;
-    }
+    if (!requireAuth()) return;
     dispatch(resetAnonymizer());
     setPdfFile(null);
     setSelectedSessionId(null);
@@ -360,10 +335,7 @@ export default function AnonymizerDashboard() {
   };
 
   const handleShare = async () => {
-    if (!isSignedIn) {
-      navigate('/auth');
-      return;
-    }
+    if (!requireAuth()) return;
 
     if (!sessionId) {
       return;
@@ -398,26 +370,17 @@ export default function AnonymizerDashboard() {
   };
 
   const handleToggleAllBlur = (shouldBlur: boolean) => {
-    if (!isSignedIn) {
-      navigate('/auth');
-      return;
-    }
+    if (!requireAuth()) return;
     dispatch(toggleAllBlur(shouldBlur));
   };
 
   const handleSetReplacementText = (index: number, text: string) => {
-    if (!isSignedIn) {
-      navigate('/auth');
-      return;
-    }
+    if (!requireAuth()) return;
     dispatch(setReplacementText({ index, text }));
   };
 
   const handleToggleSelectionMode = () => {
-    if (!isSignedIn) {
-      navigate('/auth');
-      return;
-    }
+    if (!requireAuth()) return;
     if (isSelectionMode && hasTextSelection) {
       handleBlurSelection();
     } else {
@@ -426,36 +389,24 @@ export default function AnonymizerDashboard() {
   };
 
   const handleCancelSelectionMode = () => {
-    if (!isSignedIn) {
-      navigate('/auth');
-      return;
-    }
+    if (!requireAuth()) return;
     setIsSelectionMode(false);
     window.getSelection()?.removeAllRanges();
     setHasTextSelection(false);
   };
 
   const handleRemoveManualBlur = (blurId: string) => {
-    if (!isSignedIn) {
-      navigate('/auth');
-      return;
-    }
+    if (!requireAuth()) return;
     dispatch(removeManualBlur(blurId));
   };
 
   const handlePageNavigation = (page: number) => {
-    if (!isSignedIn) {
-      navigate('/auth');
-      return;
-    }
+    if (!requireAuth()) return;
     dispatch(setCurrentPage(page));
   };
 
   const handleScaleChange = (newScale: number) => {
-    if (!isSignedIn) {
-      navigate('/auth');
-      return;
-    }
+    if (!requireAuth()) return;
     dispatch(setScale(newScale));
   };
 
@@ -514,10 +465,7 @@ export default function AnonymizerDashboard() {
 
   // Helper: Toggle detection with overlap support
   const handleDetectionToggle = (clickedDetection: PIIDetectionWithBlur) => {
-    if (!isSignedIn) {
-      navigate('/auth');
-      return;
-    }
+    if (!requireAuth()) return;
     const overlapping = findOverlappingDetections(clickedDetection);
 
     // Toggle all overlapping detections

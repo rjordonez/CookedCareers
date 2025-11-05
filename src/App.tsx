@@ -3,10 +3,10 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { Analytics } from "@vercel/analytics/react";
 import { AuthProvider } from "./components/AuthProvider";
-import PageTransition from "./components/PageTransition";
 import Index from "./pages/Index";
 import Auth from "./pages/Auth";
 import Dashboard from "./pages/Dashboard";
+import Resumes from "./pages/Resumes";
 import ProjectsDashboard from "./pages/ProjectsDashboard";
 import AnonymizerDashboard from "./pages/AnonymizerDashboard";
 import ResumeReviewDashboard from "./pages/ResumeReviewDashboard";
@@ -31,26 +31,25 @@ const App = () => (
     <AuthProvider>
       <TooltipProvider>
         <BrowserRouter>
-          <PageTransition>
-            <Routes>
-              <Route path="/" element={<Index />} />
-              <Route path="/auth/*" element={<Auth />} />
-              <Route path="/dashboard" element={<Dashboard />} />
-              <Route path="/projects" element={<ProjectsDashboard />} />
-              <Route path="/anonymizer" element={<AnonymizerDashboard />} />
-              <Route path="/resume-review" element={<ResumeReviewDashboard />} />
-              <Route path="/resume-review/:id" element={<ResumeReviewDetail />} />
-              <Route path="/dev-review" element={<DevReviewPanel />} />
-              <Route path="/dev-review/:id" element={<DevReviewDetailPanel />} />
-              <Route path="/share/:token" element={<ShareView />} />
-              <Route path="/subscription/success" element={<SubscriptionSuccess />} />
-              <Route path="/account" element={<Account />} />
-              <Route path="/privacy" element={<Privacy />} />
-              <Route path="/terms" element={<Terms />} />
-              {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
-              <Route path="*" element={<NotFound />} />
-            </Routes>
-          </PageTransition>
+          <Routes>
+            <Route path="/" element={<Index />} />
+            <Route path="/auth/*" element={<Auth />} />
+            <Route path="/dashboard" element={<Dashboard />} />
+            <Route path="/resumes" element={<Resumes />} />
+            <Route path="/projects" element={<ProjectsDashboard />} />
+            <Route path="/anonymizer" element={<AnonymizerDashboard />} />
+            <Route path="/resume-review" element={<ResumeReviewDashboard />} />
+            <Route path="/resume-review/:id" element={<ResumeReviewDetail />} />
+            <Route path="/dev-review" element={<DevReviewPanel />} />
+            <Route path="/dev-review/:id" element={<DevReviewDetailPanel />} />
+            <Route path="/share/:token" element={<ShareView />} />
+            <Route path="/subscription/success" element={<SubscriptionSuccess />} />
+            <Route path="/account" element={<Account />} />
+            <Route path="/privacy" element={<Privacy />} />
+            <Route path="/terms" element={<Terms />} />
+            {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
+            <Route path="*" element={<NotFound />} />
+          </Routes>
         </BrowserRouter>
         <Analytics />
       </TooltipProvider>
