@@ -1,4 +1,5 @@
 import { baseApi } from '@/lib/api';
+import type { UserResume, ListUserResumesResponse } from './userResumeTypes';
 
 // Response type matching backend API spec
 export interface CompareResumeResponse {
@@ -23,6 +24,13 @@ export interface CompareResumeRequest {
 
 export const userResumeApi = baseApi.injectEndpoints({
   endpoints: (builder) => ({
+    getUserResume: builder.query<UserResume | null, void>({
+      query: () => '/api/user-resumes',
+      transformResponse: (response: ListUserResumesResponse) => {
+        // Return the first (most recent) resume or null if none exist
+        return response.resumes && response.resumes.length > 0 ? response.resumes[0] : null;
+      },
+    }),
     compareResume: builder.mutation<CompareResumeResponse, CompareResumeRequest>({
       query: (body) => ({
         url: '/api/user-resume/compare',
@@ -33,4 +41,4 @@ export const userResumeApi = baseApi.injectEndpoints({
   }),
 });
 
-export const { useCompareResumeMutation } = userResumeApi;
+export const { useGetUserResumeQuery, useCompareResumeMutation } = userResumeApi;

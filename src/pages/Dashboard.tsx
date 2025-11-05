@@ -10,7 +10,7 @@ import { useAuthReady } from "@/components/AuthProvider";
 import { useResumeFilters } from "@/hooks/useResumeFilters";
 import { useSearchResumesQuery } from "@/features/resumes/resumeService";
 import { useGetSubscriptionStatusQuery, useCreateCheckoutSessionMutation } from "@/features/subscription/subscriptionService";
-import { useCompareResumeMutation } from "@/features/user-resume/userResumeService";
+import { useCompareResumeMutation, useGetUserResumeQuery } from "@/features/user-resume/userResumeService";
 import { ResumeDetailModal } from "@/components/ResumeDetailModal";
 import { UpgradeButton } from "@/components/UpgradeButton";
 import DashboardNav, { DashboardNavRef } from "@/components/DashboardNav";
@@ -60,11 +60,16 @@ const Dashboard = () => {
   });
 
   // Fetch subscription status (cached by RTK Query - refetch options set in baseApi)
-  const { data: subscriptionData, isLoading: isLoadingSubscription, refetch: refetchSubscription } = useGetSubscriptionStatusQuery(undefined, {
+  const { data: subscriptionData, isLoading: isLoadingSubscription } = useGetSubscriptionStatusQuery(undefined, {
     skip: !authReady || !isSignedIn,
   });
   const isPro = subscriptionData?.is_pro ?? false;
-  const hasUploadedResume = !!subscriptionData?.user_resume_url;
+
+  // Fetch user resume
+  const { data: userResume, refetch: refetchUserResume } = useGetUserResumeQuery(undefined, {
+    skip: !authReady || !isSignedIn,
+  });
+  const hasUploadedResume = !!userResume;
 
   const sortedResumes = data?.results || [];
 
@@ -159,8 +164,8 @@ const Dashboard = () => {
   };
 
   const handleUploadComplete = () => {
-    // Refetch subscription data to get updated user_resume_url
-    refetchSubscription();
+    // Refetch user resume data after upload
+    refetchUserResume();
   };
 
   const handleExperienceChange = (value: string) => {
@@ -544,7 +549,7 @@ const Dashboard = () => {
         comparedResume={comparisonResume}
         comparisonData={comparisonData}
         isPro={isPro}
-        userResumeUrl={subscriptionData?.user_resume_url}
+        userResumeUrl={userResume?.file_url}
       />
 
       <UploadResumeModal
