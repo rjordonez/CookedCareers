@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState } from 'react';
+import { useSearchParams } from 'react-router-dom';
 import { useAuthState, useRequireAuth } from '@/hooks';
 import DashboardLayout from '@/components/DashboardLayout';
 import { Button } from '@/components/ui/button';
@@ -12,6 +13,7 @@ import Delimiter from '@editorjs/delimiter';
 import { Save, Eye, Download, Loader2 } from 'lucide-react';
 import {
   useCreateResumeBuilderMutation,
+  useGetResumeBuilderQuery,
   useSaveResumeBuilderMutation,
   useGenerateResumePdfMutation,
 } from '@/features/user-resume/userResumeService';
@@ -19,22 +21,122 @@ import {
 const ResumeBuilder = () => {
   const { isPro, isLoadingSubscription } = useAuthState();
   const { requireAuth } = useRequireAuth();
+  const [searchParams] = useSearchParams();
   const editorRef = useRef<EditorJS | null>(null);
   const [isReady, setIsReady] = useState(false);
   const [showPreview, setShowPreview] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
-  const [resumeId, setResumeId] = useState<string | null>(null);
+  const resumeIdFromUrl = searchParams.get('id');
+  const [resumeId, setResumeId] = useState<string | null>(resumeIdFromUrl);
 
   // API Hooks
   const [createResume] = useCreateResumeBuilderMutation();
   const [saveResume] = useSaveResumeBuilderMutation();
   const [generatePdf, { isLoading: isGeneratingPdf }] = useGenerateResumePdfMutation();
 
+  // Load existing resume if ID is provided
+  const { data: existingResumeData, isLoading: isLoadingResume } = useGetResumeBuilderQuery(
+    resumeIdFromUrl || '',
+    {
+      skip: !resumeIdFromUrl,
+    }
+  );
+
   useEffect(() => {
     if (!requireAuth()) return;
 
+    // Wait for resume data to load if we're loading an existing resume
+    if (resumeIdFromUrl && isLoadingResume) return;
+
     // Initialize Editor.js
     if (!editorRef.current) {
+      // Use existing resume data if available, otherwise use default template
+      const defaultData: OutputData = {
+        blocks: [
+          {
+            type: 'header',
+            data: {
+              text: 'Your Name',
+              level: 1,
+            },
+          },
+          {
+            type: 'paragraph',
+            data: {
+              text: 'Email: your.email@example.com | Phone: (123) 456-7890 | Location: City, State',
+            },
+          },
+          {
+            type: 'delimiter',
+            data: {},
+          },
+          {
+            type: 'header',
+            data: {
+              text: 'Experience',
+              level: 2,
+            },
+          },
+          {
+            type: 'header',
+            data: {
+              text: 'Job Title - Company Name',
+              level: 3,
+            },
+          },
+          {
+            type: 'paragraph',
+            data: {
+              text: 'Date Range',
+            },
+          },
+          {
+            type: 'list',
+            data: {
+              style: 'unordered',
+              items: [
+                'Achievement or responsibility 1',
+                'Achievement or responsibility 2',
+                'Achievement or responsibility 3',
+              ],
+            },
+          },
+          {
+            type: 'header',
+            data: {
+              text: 'Education',
+              level: 2,
+            },
+          },
+          {
+            type: 'paragraph',
+            data: {
+              text: 'Degree - University Name | Graduation Year',
+            },
+          },
+          {
+            type: 'header',
+            data: {
+              text: 'Skills',
+              level: 2,
+            },
+          },
+          {
+            type: 'list',
+            data: {
+              style: 'unordered',
+              items: [
+                'Skill 1',
+                'Skill 2',
+                'Skill 3',
+              ],
+            },
+          },
+        ],
+      };
+
+      const editorData = existingResumeData?.resume?.builder_content || defaultData;
+
       const editor = new EditorJS({
         holder: 'editorjs',
         placeholder: 'Start building your resume...',
@@ -61,89 +163,7 @@ const ResumeBuilder = () => {
           underline: Underline,
           delimiter: Delimiter,
         },
-        data: {
-          blocks: [
-            {
-              type: 'header',
-              data: {
-                text: 'Your Name',
-                level: 1,
-              },
-            },
-            {
-              type: 'paragraph',
-              data: {
-                text: 'Email: your.email@example.com | Phone: (123) 456-7890 | Location: City, State',
-              },
-            },
-            {
-              type: 'delimiter',
-              data: {},
-            },
-            {
-              type: 'header',
-              data: {
-                text: 'Experience',
-                level: 2,
-              },
-            },
-            {
-              type: 'header',
-              data: {
-                text: 'Job Title - Company Name',
-                level: 3,
-              },
-            },
-            {
-              type: 'paragraph',
-              data: {
-                text: 'Date Range',
-              },
-            },
-            {
-              type: 'list',
-              data: {
-                style: 'unordered',
-                items: [
-                  'Achievement or responsibility 1',
-                  'Achievement or responsibility 2',
-                  'Achievement or responsibility 3',
-                ],
-              },
-            },
-            {
-              type: 'header',
-              data: {
-                text: 'Education',
-                level: 2,
-              },
-            },
-            {
-              type: 'paragraph',
-              data: {
-                text: 'Degree - University Name | Graduation Year',
-              },
-            },
-            {
-              type: 'header',
-              data: {
-                text: 'Skills',
-                level: 2,
-              },
-            },
-            {
-              type: 'list',
-              data: {
-                style: 'unordered',
-                items: [
-                  'Skill 1',
-                  'Skill 2',
-                  'Skill 3',
-                ],
-              },
-            },
-          ],
-        },
+        data: editorData,
         onReady: () => {
           setIsReady(true);
         },
@@ -158,7 +178,7 @@ const ResumeBuilder = () => {
         editorRef.current = null;
       }
     };
-  }, [requireAuth]);
+  }, [requireAuth, resumeIdFromUrl, isLoadingResume, existingResumeData]);
 
   const handleSave = async () => {
     if (!editorRef.current) return;
