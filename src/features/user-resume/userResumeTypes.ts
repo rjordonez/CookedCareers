@@ -54,3 +54,48 @@ export interface GetResumeHtmlResponse {
 export interface ExportResumePdfRequest {
   html: string;
 }
+
+// Resume Builder Types
+export interface ResumeBuilderContent {
+  id: string;
+  user_id: string;
+  title: string;
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  builder_content: any;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface CreateResumeBuilderResponse {
+  success: boolean;
+  resume_id: string;
+  message: string;
+}
+
+export interface GetResumeBuilderResponse {
+  success: boolean;
+  resume: ResumeBuilderContent;
+}
+
+export interface SaveResumeBuilderRequest {
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  editor_data: any;
+  title: string;
+}
+
+export interface SaveResumeBuilderResponse {
+  success: boolean;
+  message: string;
+  updated_at: string;
+}
+
+export interface GeneratePdfResponse {
+  success: boolean;
+  file_url: string;
+  message: string;
+}
+
+export interface DeleteResumeBuilderResponse {
+  success: boolean;
+  message: string;
+}

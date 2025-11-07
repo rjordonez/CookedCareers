@@ -9,7 +9,12 @@ import List from '@editorjs/list';
 import Paragraph from '@editorjs/paragraph';
 import Underline from '@editorjs/underline';
 import Delimiter from '@editorjs/delimiter';
-import { Save, Eye, Download } from 'lucide-react';
+import { Save, Eye, Download, Loader2 } from 'lucide-react';
+import {
+  useCreateResumeBuilderMutation,
+  useSaveResumeBuilderMutation,
+  useGenerateResumePdfMutation,
+} from '@/features/user-resume/userResumeService';
 
 const ResumeBuilder = () => {
   const { isPro, isLoadingSubscription } = useAuthState();
@@ -18,6 +23,12 @@ const ResumeBuilder = () => {
   const [isReady, setIsReady] = useState(false);
   const [showPreview, setShowPreview] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
+  const [resumeId, setResumeId] = useState<string | null>(null);
+
+  // API Hooks
+  const [createResume] = useCreateResumeBuilderMutation();
+  const [saveResume] = useSaveResumeBuilderMutation();
+  const [generatePdf, { isLoading: isGeneratingPdf }] = useGenerateResumePdfMutation();
 
   useEffect(() => {
     if (!requireAuth()) return;
@@ -155,12 +166,30 @@ const ResumeBuilder = () => {
     setIsSaving(true);
     try {
       const outputData = await editorRef.current.save();
-      console.log('Resume data:', outputData);
-      // TODO: Save to backend via API
-      alert('Resume saved successfully! (Backend integration coming soon)');
+
+      // Extract title from first header block
+      const firstBlock = outputData.blocks[0];
+      const title = firstBlock?.type === 'header' ? firstBlock.data.text : 'Untitled Resume';
+
+      let currentResumeId = resumeId;
+
+      // Lazy creation: create resume on first save if it doesn't exist
+      if (!currentResumeId) {
+        const createResult = await createResume({ title }).unwrap();
+        currentResumeId = createResult.resume_id;
+        setResumeId(currentResumeId);
+      }
+
+      // Save the resume
+      await saveResume({
+        resumeId: currentResumeId,
+        data: {
+          editor_data: outputData,
+          title: title,
+        },
+      }).unwrap();
     } catch (error) {
       console.error('Error saving resume:', error);
-      alert('Failed to save resume');
     } finally {
       setIsSaving(false);
     }
@@ -175,9 +204,40 @@ const ResumeBuilder = () => {
 
     try {
       const outputData = await editorRef.current.save();
-      console.log('Exporting resume:', outputData);
-      // TODO: Export to PDF via backend
-      alert('Export to PDF coming soon!');
+
+      // Extract title from first header block
+      const firstBlock = outputData.blocks[0];
+      const title = firstBlock?.type === 'header' ? firstBlock.data.text : 'Untitled Resume';
+
+      let currentResumeId = resumeId;
+
+      // Create resume if it doesn't exist
+      if (!currentResumeId) {
+        const createResult = await createResume({ title }).unwrap();
+        currentResumeId = createResult.resume_id;
+        setResumeId(currentResumeId);
+      }
+
+      // Auto-save before generating PDF
+      await saveResume({
+        resumeId: currentResumeId,
+        data: {
+          editor_data: outputData,
+          title: title,
+        },
+      }).unwrap();
+
+      // Generate PDF
+      const result = await generatePdf(currentResumeId).unwrap();
+
+      // Download the PDF
+      const link = document.createElement('a');
+      link.href = result.file_url;
+      link.download = `${title}.pdf`;
+      link.target = '_blank';
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
     } catch (error) {
       console.error('Error exporting resume:', error);
     }
@@ -255,10 +315,19 @@ const ResumeBuilder = () => {
               variant="outline"
               size="sm"
               onClick={handleExport}
-              disabled={!isReady}
+              disabled={!isReady || isGeneratingPdf}
             >
-              <Download className="w-4 h-4 mr-2" />
-              Export PDF
+              {isGeneratingPdf ? (
+                <>
+                  <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                  Generating PDF...
+                </>
+              ) : (
+                <>
+                  <Download className="w-4 h-4 mr-2" />
+                  Export PDF
+                </>
+              )}
             </Button>
             <Button
               size="sm"

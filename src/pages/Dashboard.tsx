@@ -187,19 +187,21 @@ const Dashboard = () => {
               </Card>
             ))
           ) : (
-            resumes.map((resume) => (
-              <ResumeCard
-                key={resume.id}
-                resume={resume}
-                onView={handleViewDetails}
-                onDownload={handleDownload}
-                getToken={getToken}
-              />
-            ))
+            resumes
+              .filter((resume) => resume.file_type !== 'builder')
+              .map((resume) => (
+                <ResumeCard
+                  key={resume.id}
+                  resume={resume}
+                  onView={handleViewDetails}
+                  onDownload={handleDownload}
+                  getToken={getToken}
+                />
+              ))
           )}
         </div>
 
-        {resumes.length === 0 && !isLoadingResumes && (
+        {resumes.filter((r) => r.file_type !== 'builder').length === 0 && !isLoadingResumes && (
           <div className="text-center py-12 mt-6">
             <FileText className="w-16 h-16 mx-auto mb-4 text-muted-foreground" />
             <p className="text-lg font-medium mb-2">No resumes yet</p>
