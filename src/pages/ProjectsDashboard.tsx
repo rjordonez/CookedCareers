@@ -9,7 +9,7 @@ import {
   selectProjectParams,
 } from "@/features/projects/projectSlice";
 import { useGetProjectsQuery } from "@/features/projects/projectService";
-import DashboardNav from "@/components/DashboardNav";
+import DashboardLayout from "@/components/DashboardLayout";
 import { UpgradeButton } from "@/components/UpgradeButton";
 import ProjectCardSkeleton from "@/components/ProjectCardSkeleton";
 
@@ -67,10 +67,8 @@ const ProjectsDashboard = () => {
   };
 
   return (
-    <div className="min-h-screen bg-background">
-      <DashboardNav isPro={isPro} isLoadingSubscription={isLoadingSubscription} />
-
-      <main className="max-w-7xl mx-auto px-6 pt-4 pb-6">
+    <DashboardLayout isPro={isPro} isLoadingSubscription={isLoadingSubscription}>
+      <div className="max-w-7xl mx-auto px-6 pt-4 pb-6">
         {isError && (
           <Card className="p-8 text-center">
             <p className="text-destructive mb-2">Failed to load projects</p>
@@ -199,8 +197,8 @@ const ProjectsDashboard = () => {
             </Button>
           </div>
         )}
-      </main>
-    </div>
+      </div>
+    </DashboardLayout>
   );
 };
 

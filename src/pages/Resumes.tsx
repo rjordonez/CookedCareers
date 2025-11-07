@@ -9,7 +9,7 @@ import { useSearchResumesQuery } from "@/features/resumes/resumeService";
 import { useCreateCheckoutSessionMutation } from "@/features/subscription/subscriptionService";
 import { ResumeDetailModal } from "@/components/ResumeDetailModal";
 import { UpgradeButton } from "@/components/UpgradeButton";
-import DashboardNav, { DashboardNavRef } from "@/components/DashboardNav";
+import DashboardLayout from "@/components/DashboardLayout";
 import ResumeCardSkeleton from "@/components/ResumeCardSkeleton";
 import type { Resume } from "@/features/resumes/resumeTypes";
 import { usePostHog } from "posthog-js/react";
@@ -161,20 +161,45 @@ const Resumes = () => {
   };
 
   return (
-    <div className="min-h-screen bg-background">
-      <DashboardNav
-        isPro={isPro}
-        isLoadingSubscription={isLoadingSubscription}
-        searchQuery={localSearchQuery}
-        onSearchChange={handleSearchChange}
-        searchPlaceholder="Search resumes by company... (ex. Google)"
-        seniority={filters.seniority || "all"}
-        onSeniorityChange={handleSeniorityChange}
-        hasActiveFilters={hasActiveFilters}
-        onClearFilters={handleClearFilters}
-      />
+    <DashboardLayout isPro={isPro} isLoadingSubscription={isLoadingSubscription}>
+      <div className="max-w-7xl mx-auto px-6 pt-4 pb-6">
+        {/* Search and Filters Bar */}
+        <div className="mb-6">
+          <div className="flex items-center gap-2">
+            <div className="relative flex-1">
+              <input
+                type="text"
+                placeholder="Search resumes by company... (ex. Google)"
+                value={localSearchQuery}
+                onChange={(e) => handleSearchChange(e.target.value)}
+                className="w-full h-12 pl-4 pr-4 rounded-full bg-muted border-none focus:ring-2 focus:ring-primary"
+              />
+            </div>
 
-      <main className="max-w-7xl mx-auto px-6 pt-4 pb-6">
+            <Select value={filters.seniority || "all"} onValueChange={handleSeniorityChange}>
+              <SelectTrigger className="w-[140px] h-12 rounded-full">
+                <SelectValue placeholder="Seniority" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">All Seniority</SelectItem>
+                <SelectItem value="intern">Intern</SelectItem>
+                <SelectItem value="junior">Junior</SelectItem>
+                <SelectItem value="senior">Senior</SelectItem>
+              </SelectContent>
+            </Select>
+
+            {hasActiveFilters && (
+              <Button
+                variant="ghost"
+                onClick={handleClearFilters}
+                size="icon"
+                className="w-12 h-12 rounded-full shrink-0"
+              >
+                <X className="w-4 h-4" />
+              </Button>
+            )}
+          </div>
+        </div>
 
         {isError && (
           <Card className="p-8 text-center">
@@ -324,7 +349,7 @@ const Resumes = () => {
             </Button>
           </div>
         )}
-      </main>
+      </div>
 
       <ResumeDetailModal
         resume={selectedResume}
@@ -332,7 +357,7 @@ const Resumes = () => {
         onClose={() => setSelectedResume(null)}
         isPremium={isPro}
       />
-    </div>
+    </DashboardLayout>
   );
 };
 

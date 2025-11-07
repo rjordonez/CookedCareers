@@ -43,7 +43,7 @@ import {
   type PIIDetection,
   type PIIDetectionWithBlur,
 } from '@/features/anonymizer/anonymizerTypes';
-import DashboardNav from '@/components/DashboardNav';
+import DashboardLayout from '@/components/DashboardLayout';
 import 'react-pdf/dist/Page/AnnotationLayer.css';
 import 'react-pdf/dist/Page/TextLayer.css';
 
@@ -481,10 +481,8 @@ export default function AnonymizerDashboard() {
   const currentPageManualBlurs = manualBlurs.filter((b) => b.page === currentPage - 1);
 
   return (
-    <div className="min-h-screen bg-background">
-      <DashboardNav isPro={isPro} isLoadingSubscription={isLoadingSubscription} />
-
-      <main className="max-w-7xl mx-auto px-6 pt-4 pb-6">
+    <DashboardLayout isPro={isPro} isLoadingSubscription={isLoadingSubscription}>
+      <div className="max-w-7xl mx-auto px-6 pt-4 pb-6">
 
         {/* Hidden file input for upload */}
         <input
@@ -822,7 +820,7 @@ export default function AnonymizerDashboard() {
             </div>
           </div>
         )}
-      </main>
+      </div>
 
       {/* Share Link Modal */}
       <Dialog open={showShareModal} onOpenChange={setShowShareModal}>
@@ -856,6 +854,6 @@ export default function AnonymizerDashboard() {
           </p>
         </DialogContent>
       </Dialog>
-    </div>
+    </DashboardLayout>
   );
 }
