@@ -7,6 +7,7 @@ import Index from "./pages/Index";
 import Auth from "./pages/Auth";
 import Dashboard from "./pages/Dashboard";
 import Resumes from "./pages/Resumes";
+import ResumeBuilder from "./pages/ResumeBuilder";
 import ProjectsDashboard from "./pages/ProjectsDashboard";
 import AnonymizerDashboard from "./pages/AnonymizerDashboard";
 import ResumeReviewRequest from "./pages/ResumeReviewRequest";
@@ -37,6 +38,7 @@ const App = () => (
             <Route path="/auth/*" element={<Auth />} />
             <Route path="/dashboard" element={<Dashboard />} />
             <Route path="/resumes" element={<Resumes />} />
+            <Route path="/resume-builder" element={<ResumeBuilder />} />
             <Route path="/projects" element={<ProjectsDashboard />} />
             <Route path="/anonymizer" element={<AnonymizerDashboard />} />
             <Route path="/resume-review" element={<ResumeReviewRequest />} />

@@ -1,0 +1,293 @@
+import { useEffect, useRef, useState } from 'react';
+import { useAuthState, useRequireAuth } from '@/hooks';
+import DashboardLayout from '@/components/DashboardLayout';
+import { Button } from '@/components/ui/button';
+import { Card } from '@/components/ui/card';
+import EditorJS, { OutputData } from '@editorjs/editorjs';
+import Header from '@editorjs/header';
+import List from '@editorjs/list';
+import Paragraph from '@editorjs/paragraph';
+import Underline from '@editorjs/underline';
+import Delimiter from '@editorjs/delimiter';
+import { Save, Eye, Download } from 'lucide-react';
+
+const ResumeBuilder = () => {
+  const { isPro, isLoadingSubscription } = useAuthState();
+  const { requireAuth } = useRequireAuth();
+  const editorRef = useRef<EditorJS | null>(null);
+  const [isReady, setIsReady] = useState(false);
+  const [showPreview, setShowPreview] = useState(false);
+  const [isSaving, setIsSaving] = useState(false);
+
+  useEffect(() => {
+    if (!requireAuth()) return;
+
+    // Initialize Editor.js
+    if (!editorRef.current) {
+      const editor = new EditorJS({
+        holder: 'editorjs',
+        placeholder: 'Start building your resume...',
+        tools: {
+          header: {
+            class: Header,
+            config: {
+              placeholder: 'Enter a header',
+              levels: [1, 2, 3],
+              defaultLevel: 2,
+            },
+          },
+          paragraph: {
+            class: Paragraph,
+            inlineToolbar: true,
+          },
+          list: {
+            class: List,
+            inlineToolbar: true,
+            config: {
+              defaultStyle: 'unordered',
+            },
+          },
+          underline: Underline,
+          delimiter: Delimiter,
+        },
+        data: {
+          blocks: [
+            {
+              type: 'header',
+              data: {
+                text: 'Your Name',
+                level: 1,
+              },
+            },
+            {
+              type: 'paragraph',
+              data: {
+                text: 'Email: your.email@example.com | Phone: (123) 456-7890 | Location: City, State',
+              },
+            },
+            {
+              type: 'delimiter',
+              data: {},
+            },
+            {
+              type: 'header',
+              data: {
+                text: 'Experience',
+                level: 2,
+              },
+            },
+            {
+              type: 'header',
+              data: {
+                text: 'Job Title - Company Name',
+                level: 3,
+              },
+            },
+            {
+              type: 'paragraph',
+              data: {
+                text: 'Date Range',
+              },
+            },
+            {
+              type: 'list',
+              data: {
+                style: 'unordered',
+                items: [
+                  'Achievement or responsibility 1',
+                  'Achievement or responsibility 2',
+                  'Achievement or responsibility 3',
+                ],
+              },
+            },
+            {
+              type: 'header',
+              data: {
+                text: 'Education',
+                level: 2,
+              },
+            },
+            {
+              type: 'paragraph',
+              data: {
+                text: 'Degree - University Name | Graduation Year',
+              },
+            },
+            {
+              type: 'header',
+              data: {
+                text: 'Skills',
+                level: 2,
+              },
+            },
+            {
+              type: 'list',
+              data: {
+                style: 'unordered',
+                items: [
+                  'Skill 1',
+                  'Skill 2',
+                  'Skill 3',
+                ],
+              },
+            },
+          ],
+        },
+        onReady: () => {
+          setIsReady(true);
+        },
+      });
+
+      editorRef.current = editor;
+    }
+
+    return () => {
+      if (editorRef.current) {
+        editorRef.current.destroy();
+        editorRef.current = null;
+      }
+    };
+  }, [requireAuth]);
+
+  const handleSave = async () => {
+    if (!editorRef.current) return;
+
+    setIsSaving(true);
+    try {
+      const outputData = await editorRef.current.save();
+      console.log('Resume data:', outputData);
+      // TODO: Save to backend via API
+      alert('Resume saved successfully! (Backend integration coming soon)');
+    } catch (error) {
+      console.error('Error saving resume:', error);
+      alert('Failed to save resume');
+    } finally {
+      setIsSaving(false);
+    }
+  };
+
+  const handlePreview = () => {
+    setShowPreview(!showPreview);
+  };
+
+  const handleExport = async () => {
+    if (!editorRef.current) return;
+
+    try {
+      const outputData = await editorRef.current.save();
+      console.log('Exporting resume:', outputData);
+      // TODO: Export to PDF via backend
+      alert('Export to PDF coming soon!');
+    } catch (error) {
+      console.error('Error exporting resume:', error);
+    }
+  };
+
+  return (
+    <DashboardLayout isPro={isPro} isLoadingSubscription={isLoadingSubscription}>
+      <style>{`
+        /* Editor.js custom styles for resume formatting */
+        .ce-paragraph,
+        .ce-header,
+        .cdx-list {
+          text-align: left !important;
+        }
+        .ce-header[data-level="1"] {
+          font-size: 1.875rem;
+          font-weight: 700;
+          margin-bottom: 0.5rem;
+        }
+        .ce-header[data-level="2"] {
+          font-size: 1.5rem;
+          font-weight: 600;
+          margin-top: 1.5rem;
+          margin-bottom: 0.5rem;
+        }
+        .ce-header[data-level="3"] {
+          font-size: 1.25rem;
+          font-weight: 600;
+          margin-top: 1rem;
+          margin-bottom: 0.25rem;
+        }
+        .cdx-list {
+          padding-left: 1.5rem;
+        }
+        .ce-delimiter {
+          margin: 1.5rem 0;
+        }
+      `}</style>
+      <div className="max-w-7xl mx-auto px-6 pt-8 pb-6">
+        {/* Header */}
+        <div className="mb-6 flex items-center justify-between">
+          <div>
+            <h1 className="text-3xl font-bold mb-2">Resume Builder</h1>
+            <p className="text-muted-foreground">
+              Create your professional resume
+            </p>
+          </div>
+
+          {/* Toolbar */}
+          <div className="flex gap-2">
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={handlePreview}
+              disabled={!isReady}
+            >
+              <Eye className="w-4 h-4 mr-2" />
+              {showPreview ? 'Hide Preview' : 'Preview'}
+            </Button>
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={handleExport}
+              disabled={!isReady}
+            >
+              <Download className="w-4 h-4 mr-2" />
+              Export PDF
+            </Button>
+            <Button
+              size="sm"
+              onClick={handleSave}
+              disabled={!isReady || isSaving}
+            >
+              <Save className="w-4 h-4 mr-2" />
+              {isSaving ? 'Saving...' : 'Save'}
+            </Button>
+          </div>
+        </div>
+
+        {/* Editor Container */}
+        <div className={`grid gap-6 ${showPreview ? 'grid-cols-1 lg:grid-cols-2' : 'grid-cols-1'}`}>
+          {/* Editor */}
+          <Card className="p-8">
+            <div
+              id="editorjs"
+              className="max-w-none min-h-[800px]"
+              style={{ textAlign: 'left' }}
+            />
+          </Card>
+
+          {/* Preview Panel */}
+          {showPreview && (
+            <Card className="p-8 bg-white">
+              <div className="mb-4 border-b pb-2">
+                <h3 className="font-semibold">Live Preview</h3>
+                <p className="text-xs text-muted-foreground">
+                  This is how your resume will look
+                </p>
+              </div>
+              <div className="prose prose-sm max-w-none">
+                <p className="text-sm text-muted-foreground">
+                  Preview will be rendered here...
+                </p>
+              </div>
+            </Card>
+          )}
+        </div>
+      </div>
+    </DashboardLayout>
+  );
+};
+
+export default ResumeBuilder;
