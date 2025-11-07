@@ -212,8 +212,22 @@ const ResumeBuilder = () => {
         .cdx-list {
           padding-left: 1.5rem;
         }
+        /* Delimiter - style as horizontal line instead of *** */
         .ce-delimiter {
           margin: 1.5rem 0;
+          line-height: 0;
+          text-align: center;
+          position: relative;
+          color: transparent;
+        }
+        .ce-delimiter::before {
+          content: '';
+          display: block;
+          border-top: 1px solid #d1d5db;
+          width: 100%;
+        }
+        .ce-delimiter .ce-delimiter__content {
+          display: none;
         }
       `}</style>
       <div className="max-w-7xl mx-auto px-6 pt-8 pb-6">
