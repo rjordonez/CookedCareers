@@ -105,13 +105,26 @@ export default function ResumeReviewRequest() {
   const handleSubmit = async () => {
     if (!requireAuth()) return;
 
-    if (!selectedFile) {
-      alert('Please select a resume file');
+    if (!useExisting && !selectedFile) {
+      alert('Please select a resume file or choose an existing resume');
+      return;
+    }
+
+    if (useExisting && !selectedExistingResume) {
+      alert('Please select an existing resume');
       return;
     }
 
     const formData = new FormData();
-    formData.append('file', selectedFile);
+
+    if (useExisting) {
+      // Use existing resume - send the submission ID
+      formData.append('existing_submission_id', selectedExistingResume);
+    } else {
+      // Upload new file
+      formData.append('file', selectedFile!);
+    }
+
     if (context) formData.append('context', context);
     formData.append('reviewer', reviewer);
     formData.append('speed', speed);
@@ -173,42 +186,95 @@ export default function ResumeReviewRequest() {
           <Card className="p-6">
             <Label className="text-base font-semibold mb-4 block">Select Resume for Review</Label>
 
-            <input
-              ref={fileInputRef}
-              type="file"
-              accept=".pdf"
-              onChange={handleFileInputChange}
-              className="hidden"
-            />
+            <div className="space-y-4">
+              {/* Toggle between upload and existing */}
+              <div className="flex gap-4 mb-4">
+                <Button
+                  type="button"
+                  variant={!useExisting ? "default" : "outline"}
+                  onClick={() => {
+                    setUseExisting(false);
+                    setSelectedExistingResume('');
+                  }}
+                  className="flex-1"
+                >
+                  Upload New
+                </Button>
+                <Button
+                  type="button"
+                  variant={useExisting ? "default" : "outline"}
+                  onClick={() => {
+                    setUseExisting(true);
+                    setSelectedFile(null);
+                  }}
+                  className="flex-1"
+                >
+                  Use Existing
+                </Button>
+              </div>
 
-            <div
-              className={`border-2 border-dashed rounded-lg p-8 text-center cursor-pointer transition-colors ${
-                isDragging
-                  ? 'border-primary bg-primary/5'
-                  : 'border-muted-foreground/25 hover:border-primary/50'
-              }`}
-              onDragOver={handleDragOver}
-              onDragLeave={handleDragLeave}
-              onDrop={handleDrop}
-              onClick={() => fileInputRef.current?.click()}
-            >
-              {selectedFile ? (
-                <div>
-                  <Upload className="w-12 h-12 mx-auto mb-3 text-primary" />
-                  <p className="text-sm font-medium">{selectedFile.name}</p>
-                  <p className="text-xs text-muted-foreground mt-1">
-                    Click to change file
-                  </p>
-                </div>
+              {!useExisting ? (
+                <>
+                  <input
+                    ref={fileInputRef}
+                    type="file"
+                    accept=".pdf"
+                    onChange={handleFileInputChange}
+                    className="hidden"
+                  />
+
+                  <div
+                    className={`border-2 border-dashed rounded-lg p-8 text-center cursor-pointer transition-colors ${
+                      isDragging
+                        ? 'border-primary bg-primary/5'
+                        : 'border-muted-foreground/25 hover:border-primary/50'
+                    }`}
+                    onDragOver={handleDragOver}
+                    onDragLeave={handleDragLeave}
+                    onDrop={handleDrop}
+                    onClick={() => fileInputRef.current?.click()}
+                  >
+                    {selectedFile ? (
+                      <div>
+                        <Upload className="w-12 h-12 mx-auto mb-3 text-primary" />
+                        <p className="text-sm font-medium">{selectedFile.name}</p>
+                        <p className="text-xs text-muted-foreground mt-1">
+                          Click to change file
+                        </p>
+                      </div>
+                    ) : (
+                      <div>
+                        <Upload className="w-12 h-12 mx-auto mb-3 text-muted-foreground" />
+                        <p className="text-sm font-medium mb-1">
+                          Drop your resume here or click to browse
+                        </p>
+                        <p className="text-xs text-muted-foreground">
+                          PDF files only
+                        </p>
+                      </div>
+                    )}
+                  </div>
+                </>
               ) : (
                 <div>
-                  <Upload className="w-12 h-12 mx-auto mb-3 text-muted-foreground" />
-                  <p className="text-sm font-medium mb-1">
-                    Drop your resume here or click to browse
-                  </p>
-                  <p className="text-xs text-muted-foreground">
-                    PDF files only
-                  </p>
+                  <Select value={selectedExistingResume} onValueChange={setSelectedExistingResume}>
+                    <SelectTrigger className="w-full h-12">
+                      <SelectValue placeholder="Choose from your uploaded resumes" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {existingResumes.length === 0 ? (
+                        <SelectItem value="no-resumes" disabled>
+                          No resumes found
+                        </SelectItem>
+                      ) : (
+                        existingResumes.map((resume) => (
+                          <SelectItem key={resume.id} value={resume.id}>
+                            {resume.filename}
+                          </SelectItem>
+                        ))
+                      )}
+                    </SelectContent>
+                  </Select>
                 </div>
               )}
             </div>
@@ -296,7 +362,7 @@ export default function ResumeReviewRequest() {
             </div>
             <Button
               onClick={handleSubmit}
-              disabled={!selectedFile || isSubmitting || isCreatingCheckout}
+              disabled={(!selectedFile && !selectedExistingResume) || isSubmitting || isCreatingCheckout}
               className="w-full h-12 text-base font-semibold"
             >
               {isSubmitting || isCreatingCheckout ? (
