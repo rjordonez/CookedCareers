@@ -1,5 +1,5 @@
 import { baseApi } from '@/lib/api';
-import type { UserResume, ListUserResumesResponse } from './userResumeTypes';
+import type { UserResume, ListUserResumesResponse, ListResumesResponse } from './userResumeTypes';
 
 export const userResumeApi = baseApi.injectEndpoints({
   endpoints: (builder) => ({
@@ -10,7 +10,19 @@ export const userResumeApi = baseApi.injectEndpoints({
         return response.resumes && response.resumes.length > 0 ? response.resumes[0] : null;
       },
     }),
+    listUserResumes: builder.query<ListResumesResponse, void>({
+      query: () => '/api/user-resume/list',
+      providesTags: ['Resume'],
+    }),
+    uploadUserResume: builder.mutation<{ success: boolean; message: string }, FormData>({
+      query: (formData) => ({
+        url: '/api/user-resume/upload',
+        method: 'POST',
+        body: formData,
+      }),
+      invalidatesTags: ['Resume'],
+    }),
   }),
 });
 
-export const { useGetUserResumeQuery } = userResumeApi;
+export const { useGetUserResumeQuery, useListUserResumesQuery, useUploadUserResumeMutation } = userResumeApi;

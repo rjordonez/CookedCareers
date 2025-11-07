@@ -15,9 +15,23 @@ export interface UserResume {
   updated_at: string;
 }
 
+export interface UserResumeItem {
+  id: string;
+  filename: string;
+  file_url: string;
+  file_type: string | null;
+  created_at: string;
+  updated_at: string;
+}
+
 export interface ListUserResumesResponse {
   success: boolean;
   resumes: UserResume[];
+}
+
+export interface ListResumesResponse {
+  success: boolean;
+  resumes: UserResumeItem[];
 }
 
 export interface UploadResumeResponse {

@@ -1,18 +1,13 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Document, Page } from 'react-pdf';
-import { Loader2, FileText, Download, Trash2, Clock, CheckCircle2, DollarSign, Lock, MessageSquare, Plus } from 'lucide-react';
+import { Loader2, FileText, Download, Plus } from 'lucide-react';
 import { useAuth } from '@clerk/clerk-react';
 import { useAuthState, useRequireAuth } from '@/hooks';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
-import {
-  useListSubmissionsQuery,
-  useDeleteSubmissionMutation,
-  useGetAnnotationsQuery,
-} from '@/features/review/reviewService';
+import { useUploadUserResumeMutation, useListUserResumesQuery } from '@/features/user-resume/userResumeService';
 import DashboardLayout from '@/components/DashboardLayout';
-import { Badge } from '@/components/ui/badge';
 import 'react-pdf/dist/Page/AnnotationLayer.css';
 import 'react-pdf/dist/Page/TextLayer.css';
 
@@ -21,38 +16,76 @@ const Dashboard = () => {
   const { querySkipCondition, isPro, isLoadingSubscription } = useAuthState();
   const { requireAuth } = useRequireAuth();
   const { getToken } = useAuth();
+  const fileInputRef = useRef<HTMLInputElement>(null);
+  const [isDragging, setIsDragging] = useState(false);
+  const [uploadResume, { isLoading: isUploading }] = useUploadUserResumeMutation();
   const {
-    data: submissionsData,
-    isLoading: isLoadingSubmissions,
+    data: resumesData,
+    isLoading: isLoadingResumes,
     refetch,
-  } = useListSubmissionsQuery(undefined, {
+  } = useListUserResumesQuery(undefined, {
     skip: querySkipCondition,
   });
-  const [deleteSubmission] = useDeleteSubmissionMutation();
 
-  const submissions = submissionsData?.submissions || [];
+  const resumes = resumesData?.resumes || [];
 
-  const handleDelete = async (submissionId: string) => {
+  const handleFileSelect = async (file: File) => {
     if (!requireAuth()) return;
 
-    if (!confirm('Are you sure you want to delete this submission?')) {
+    if (!file.name.toLowerCase().endsWith('.pdf')) {
+      alert('Please upload a PDF file');
       return;
     }
 
+    const formData = new FormData();
+    formData.append('file', file);
+
     try {
-      const result = await deleteSubmission(submissionId).unwrap();
+      const result = await uploadResume(formData).unwrap();
       if (result.success) {
-        refetch();
+        refetch(); // Refresh the resumes list
       } else {
-        console.error('Failed to delete submission');
+        console.error('Failed to upload resume');
       }
     } catch (error) {
-      console.error('Delete error:', error);
+      console.error('Upload error:', error);
     }
   };
 
-  const handleViewDetails = (submissionId: string) => {
-    navigate(`/resume-review/${submissionId}`);
+  const handleFileUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      handleFileSelect(file);
+    }
+    // Reset input
+    if (fileInputRef.current) {
+      fileInputRef.current.value = '';
+    }
+  };
+
+  const handleDragOver = (e: React.DragEvent) => {
+    e.preventDefault();
+    setIsDragging(true);
+  };
+
+  const handleDragLeave = (e: React.DragEvent) => {
+    e.preventDefault();
+    setIsDragging(false);
+  };
+
+  const handleDrop = (e: React.DragEvent) => {
+    e.preventDefault();
+    setIsDragging(false);
+
+    const file = e.dataTransfer.files[0];
+    if (file) {
+      handleFileSelect(file);
+    }
+  };
+
+  const handleViewDetails = (resumeId: string) => {
+    // Navigate to resume details or editor page
+    navigate(`/resumes/${resumeId}`);
   };
 
   const handleDownload = async (url: string, filename: string) => {
@@ -97,59 +130,76 @@ const Dashboard = () => {
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
           {/* New Upload Card */}
           <Card
-            className="overflow-hidden border-2 border-dashed rounded-2xl cursor-pointer transition-all duration-300 hover:shadow-xl hover:scale-105 hover:-translate-y-2 border-muted-foreground/25 hover:border-primary/50"
-            onClick={() => navigate('/resume-review')}
+            className={`overflow-hidden border-2 border-dashed rounded-2xl cursor-pointer transition-all duration-300 hover:shadow-xl hover:scale-105 hover:-translate-y-2 ${
+              isDragging
+                ? 'border-primary bg-primary/5'
+                : 'border-muted-foreground/25 hover:border-primary/50'
+            }`}
+            onDragOver={handleDragOver}
+            onDragLeave={handleDragLeave}
+            onDrop={handleDrop}
+            onClick={() => !isUploading && fileInputRef.current?.click()}
           >
+            <input
+              ref={fileInputRef}
+              type="file"
+              accept=".pdf"
+              onChange={handleFileUpload}
+              className="hidden"
+              disabled={isUploading}
+            />
             <div className="aspect-[253/320] flex items-center justify-center bg-gradient-to-br from-gray-50 to-gray-100">
-              <div className="text-center p-6">
-                <div className="w-16 h-16 mx-auto mb-4 rounded-full bg-primary/10 flex items-center justify-center">
-                  <Plus className="w-8 h-8 text-primary" />
+              {isUploading ? (
+                <div className="text-center">
+                  <Loader2 className="w-12 h-12 mx-auto mb-3 text-primary animate-spin" />
+                  <p className="text-sm font-medium text-muted-foreground">Uploading...</p>
                 </div>
-                <h3 className="text-lg font-semibold mb-2">
-                  Upload Resume
-                </h3>
-                <p className="text-sm text-muted-foreground">
-                  Add a new resume
-                </p>
-              </div>
+              ) : (
+                <div className="text-center p-6">
+                  <div className="w-16 h-16 mx-auto mb-4 rounded-full bg-primary/10 flex items-center justify-center">
+                    <Plus className="w-8 h-8 text-primary" />
+                  </div>
+                  <h3 className="text-lg font-semibold mb-2">
+                    Upload Resume
+                  </h3>
+                  <p className="text-sm text-muted-foreground">
+                    Drop PDF here or click
+                  </p>
+                </div>
+              )}
             </div>
             <div className="p-4 bg-background">
               <p className="text-xs text-center text-muted-foreground">
-                Create or upload a resume
+                Upload your resume for review
               </p>
             </div>
           </Card>
 
-          {/* Submission Cards */}
-          {isLoadingSubmissions ? (
+          {/* Resume Cards */}
+          {isLoadingResumes ? (
             Array.from({ length: 5 }).map((_, index) => (
               <Card key={`skeleton-${index}`} className="overflow-hidden border-0 bg-muted rounded-2xl h-full animate-pulse">
                 <div className="aspect-[253/320] bg-gradient-to-br from-gray-200 to-gray-300" />
                 <div className="p-4 space-y-3">
                   <div className="h-4 bg-gray-300 rounded w-3/4" />
                   <div className="h-3 bg-gray-300 rounded w-1/2" />
-                  <div className="flex gap-2">
-                    <div className="h-6 w-16 bg-gray-300 rounded" />
-                    <div className="h-6 w-16 bg-gray-300 rounded" />
-                  </div>
                 </div>
               </Card>
             ))
           ) : (
-            submissions.map((submission) => (
-              <SubmissionCard
-                key={submission.id}
-                submission={submission}
+            resumes.map((resume) => (
+              <ResumeCard
+                key={resume.id}
+                resume={resume}
                 onView={handleViewDetails}
                 onDownload={handleDownload}
-                onDelete={handleDelete}
                 getToken={getToken}
               />
             ))
           )}
         </div>
 
-        {submissions.length === 0 && !isLoadingSubmissions && (
+        {resumes.length === 0 && !isLoadingResumes && (
           <div className="text-center py-12 mt-6">
             <FileText className="w-16 h-16 mx-auto mb-4 text-muted-foreground" />
             <p className="text-lg font-medium mb-2">No resumes yet</p>
@@ -163,28 +213,27 @@ const Dashboard = () => {
   );
 };
 
-// Submission Card Component
-function SubmissionCard({
-  submission,
+// Resume Card Component
+function ResumeCard({
+  resume,
   onView,
   onDownload,
-  onDelete,
   getToken,
 }: {
-  submission: any;
+  resume: {
+    id: string;
+    filename: string;
+    file_url: string;
+    file_type: string | null;
+    created_at: string;
+    updated_at: string;
+  };
   onView: (id: string) => void;
   onDownload: (url: string, filename: string) => void;
-  onDelete: (id: string) => void;
   getToken: () => Promise<string | null>;
 }) {
   const [pdfFile, setPdfFile] = useState<Blob | null>(null);
   const [loadingPdf, setLoadingPdf] = useState(true);
-  const { data: annotationsData } = useGetAnnotationsQuery(submission.id, {
-    skip: submission.status !== 'completed' || !submission.paid,
-  });
-
-  const annotations = annotationsData?.annotations || [];
-  const firstPageAnnotations = annotations.filter((a: any) => a.page_number === 0);
 
   // Fetch PDF with authentication
   useEffect(() => {
@@ -192,7 +241,7 @@ function SubmissionCard({
       setLoadingPdf(true);
       try {
         const token = await getToken();
-        const pdfUrl = submission.file_url;
+        const pdfUrl = resume.file_url;
 
         const response = await fetch(pdfUrl, {
           headers: token ? { Authorization: `Bearer ${token}` } : {},
@@ -213,7 +262,7 @@ function SubmissionCard({
     };
 
     fetchPdf();
-  }, [submission, getToken]);
+  }, [resume, getToken]);
 
   const formatDate = (dateString: string) => {
     return new Date(dateString).toLocaleDateString('en-US', {
@@ -227,7 +276,7 @@ function SubmissionCard({
     <div className="relative h-full group">
       <Card
         className="overflow-hidden border-0 bg-muted rounded-2xl hover:shadow-xl hover:scale-105 hover:-translate-y-2 transition-all duration-300 cursor-pointer h-full"
-        onClick={() => onView(submission.id)}
+        onClick={() => onView(resume.id)}
       >
         {/* PDF Preview */}
         <div className="aspect-[253/320] bg-gradient-to-br from-gray-100 to-gray-200 overflow-hidden relative">
@@ -257,23 +306,6 @@ function SubmissionCard({
                     renderTextLayer={false}
                     renderAnnotationLayer={false}
                   />
-
-                  {/* Annotation Overlays - Only show if paid and completed */}
-                  {submission.status === 'completed' && submission.paid && firstPageAnnotations.map((annotation: any) => (
-                    <div
-                      key={annotation.id}
-                      className="absolute bg-yellow-300/40 border-2 border-yellow-400"
-                      style={{
-                        left: `${annotation.position.x * 1.5}px`,
-                        top: `${annotation.position.y * 1.5}px`,
-                        width: `${annotation.position.width * 1.5}px`,
-                        height: `${annotation.position.height * 1.5}px`,
-                        zIndex: 10,
-                      }}
-                    >
-                      <MessageSquare className="w-2 h-2 text-yellow-600 absolute -top-1 -right-1 bg-white rounded-full p-0.5" />
-                    </div>
-                  ))}
                 </Document>
               </div>
             </div>
@@ -284,66 +316,26 @@ function SubmissionCard({
         <div className="p-4 space-y-3">
           <div>
             <h3 className="font-semibold text-sm leading-tight truncate mb-1">
-              {submission.filename}
+              {resume.filename}
             </h3>
             <p className="text-xs text-muted-foreground">
-              {formatDate(submission.submitted_at)}
+              {formatDate(resume.created_at)}
             </p>
-          </div>
-
-          <div className="flex flex-wrap gap-2 items-center justify-between">
-            <div className="flex gap-2">
-              {submission.status === 'completed' ? (
-                <Badge variant="default" className="bg-green-500 hover:bg-green-600 text-xs">
-                  <CheckCircle2 className="w-3 h-3 mr-1" />
-                  Completed
-                </Badge>
-              ) : (
-                <Badge variant="secondary" className="text-xs">
-                  <Clock className="w-3 h-3 mr-1" />
-                  Pending
-                </Badge>
-              )}
-              {submission.paid ? (
-                <Badge variant="default" className="bg-blue-500 hover:bg-blue-600 text-xs">
-                  <DollarSign className="w-3 h-3 mr-1" />
-                  Paid
-                </Badge>
-              ) : (
-                <Badge variant="outline" className="border-orange-500 text-orange-500 text-xs">
-                  <Lock className="w-3 h-3 mr-1" />
-                  Unpaid
-                </Badge>
-              )}
-            </div>
           </div>
 
           {/* Action Buttons */}
           <div className="flex gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
-            {submission.status === 'completed' && submission.paid && (
-              <Button
-                variant="secondary"
-                size="sm"
-                className="text-xs flex-1"
-                onClick={(e) => {
-                  e.stopPropagation();
-                  onDownload(submission.reviewed_file_url!, `reviewed_${submission.filename}`);
-                }}
-              >
-                <Download className="w-3 h-3 mr-1" />
-                Download
-              </Button>
-            )}
             <Button
-              variant="ghost"
+              variant="secondary"
               size="sm"
-              className="text-xs"
+              className="text-xs flex-1"
               onClick={(e) => {
                 e.stopPropagation();
-                onDelete(submission.id);
+                onDownload(resume.file_url, resume.filename);
               }}
             >
-              <Trash2 className="w-3 h-3 text-destructive" />
+              <Download className="w-3 h-3 mr-1" />
+              Download
             </Button>
           </div>
         </div>
