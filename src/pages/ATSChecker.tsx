@@ -4,9 +4,12 @@ import { useAuthState, useRequireAuth } from '@/hooks';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
 import { Label } from '@/components/ui/label';
+import { Textarea } from '@/components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import DashboardLayout from '@/components/DashboardLayout';
 import { useListSubmissionsQuery } from '@/features/review/reviewService';
+import { useAnalyzeResumeMutation } from '@/features/ats/atsService';
+import type { ATSSuggestion } from '@/features/ats/atsTypes';
 
 export default function ATSChecker() {
   const { querySkipCondition, isPro, isLoadingSubscription } = useAuthState();
@@ -16,40 +19,19 @@ export default function ATSChecker() {
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const [selectedExistingResume, setSelectedExistingResume] = useState<string>('');
   const [useExisting, setUseExisting] = useState(false);
+  const [jobDescription, setJobDescription] = useState('');
   const [isDragging, setIsDragging] = useState(false);
-  const [isAnalyzing, setIsAnalyzing] = useState(false);
   const [hasAnalyzed, setHasAnalyzed] = useState(false);
   const [atsScore, setAtsScore] = useState(0);
+  const [suggestions, setSuggestions] = useState<ATSSuggestion[]>([]);
 
   const { data: submissionsData } = useListSubmissionsQuery(undefined, {
     skip: querySkipCondition,
   });
 
-  const existingResumes = submissionsData?.submissions || [];
+  const [analyzeResume, { isLoading: isAnalyzing }] = useAnalyzeResumeMutation();
 
-  // Mock suggestions - replace with actual API data
-  const suggestions = [
-    {
-      type: 'critical',
-      title: 'Missing contact information',
-      description: 'Add your phone number and email address at the top of your resume.',
-    },
-    {
-      type: 'warning',
-      title: 'Use standard section headings',
-      description: 'Replace "My Experience" with "Work Experience" for better ATS parsing.',
-    },
-    {
-      type: 'success',
-      title: 'Good use of keywords',
-      description: 'Your resume includes relevant industry keywords that ATS systems look for.',
-    },
-    {
-      type: 'info',
-      title: 'Add more metrics',
-      description: 'Include quantifiable achievements (e.g., "Increased sales by 25%").',
-    },
-  ];
+  const existingResumes = submissionsData?.submissions || [];
 
   const handleFileSelect = (file: File) => {
     if (!requireAuth()) return;
@@ -103,14 +85,32 @@ export default function ATSChecker() {
       return;
     }
 
-    setIsAnalyzing(true);
+    const formData = new FormData();
 
-    // Simulate API call - replace with actual ATS analysis API
-    setTimeout(() => {
-      setAtsScore(78); // Mock score
-      setHasAnalyzed(true);
-      setIsAnalyzing(false);
-    }, 2000);
+    if (useExisting) {
+      formData.append('existing_submission_id', selectedExistingResume);
+    } else {
+      formData.append('file', selectedFile!);
+    }
+
+    if (jobDescription) {
+      formData.append('job_description', jobDescription);
+    }
+
+    try {
+      const result = await analyzeResume(formData).unwrap();
+
+      if (result.success) {
+        setAtsScore(result.score);
+        setSuggestions(result.suggestions);
+        setHasAnalyzed(true);
+      } else {
+        alert('Failed to analyze resume');
+      }
+    } catch (error) {
+      console.error('Analysis error:', error);
+      alert('An error occurred while analyzing your resume');
+    }
   };
 
   const getScoreColor = (score: number) => {
@@ -238,22 +238,40 @@ export default function ATSChecker() {
                 </div>
               )}
 
-              <Button
-                onClick={handleAnalyze}
-                disabled={(!selectedFile && !selectedExistingResume) || isAnalyzing}
-                className="w-full h-12 text-base font-semibold"
-              >
-                {isAnalyzing ? (
-                  <>
-                    <Loader2 className="w-5 h-5 mr-2 animate-spin" />
-                    Analyzing...
-                  </>
-                ) : (
-                  'Analyze Resume'
-                )}
-              </Button>
             </div>
           </Card>
+
+          {/* Job Description (Optional) */}
+          <Card className="p-6">
+            <Label className="text-base font-semibold mb-4 block">
+              Job Description (Optional)
+            </Label>
+            <p className="text-sm text-muted-foreground mb-4">
+              Paste the job description to get tailored feedback on how well your resume matches the role.
+            </p>
+            <Textarea
+              placeholder="Paste the job description here to compare your resume against specific requirements..."
+              value={jobDescription}
+              onChange={(e) => setJobDescription(e.target.value)}
+              className="min-h-[150px]"
+            />
+          </Card>
+
+          {/* Analyze Button */}
+          <Button
+            onClick={handleAnalyze}
+            disabled={(!selectedFile && !selectedExistingResume) || isAnalyzing}
+            className="w-full h-12 text-base font-semibold"
+          >
+            {isAnalyzing ? (
+              <>
+                <Loader2 className="w-5 h-5 mr-2 animate-spin" />
+                Analyzing...
+              </>
+            ) : (
+              'Analyze Resume'
+            )}
+          </Button>
 
           {/* Results Section */}
           {hasAnalyzed && (
@@ -323,21 +341,21 @@ export default function ATSChecker() {
                 <div className="space-y-4">
                   {suggestions.map((suggestion, index) => {
                     const Icon =
-                      suggestion.type === 'critical' ? AlertCircle :
-                      suggestion.type === 'warning' ? AlertCircle :
-                      suggestion.type === 'success' ? CheckCircle2 :
+                      suggestion.category === 'critical' ? AlertCircle :
+                      suggestion.category === 'warning' ? AlertCircle :
+                      suggestion.category === 'success' ? CheckCircle2 :
                       AlertCircle;
 
                     const iconColor =
-                      suggestion.type === 'critical' ? 'text-red-600' :
-                      suggestion.type === 'warning' ? 'text-yellow-600' :
-                      suggestion.type === 'success' ? 'text-green-600' :
+                      suggestion.category === 'critical' ? 'text-red-600' :
+                      suggestion.category === 'warning' ? 'text-yellow-600' :
+                      suggestion.category === 'success' ? 'text-green-600' :
                       'text-blue-600';
 
                     const bgColor =
-                      suggestion.type === 'critical' ? 'bg-red-50 border-red-200' :
-                      suggestion.type === 'warning' ? 'bg-yellow-50 border-yellow-200' :
-                      suggestion.type === 'success' ? 'bg-green-50 border-green-200' :
+                      suggestion.category === 'critical' ? 'bg-red-50 border-red-200' :
+                      suggestion.category === 'warning' ? 'bg-yellow-50 border-yellow-200' :
+                      suggestion.category === 'success' ? 'bg-green-50 border-green-200' :
                       'bg-blue-50 border-blue-200';
 
                     return (

@@ -25,8 +25,9 @@ export default function ResumeReviewRequest() {
   const [selectedExistingResume, setSelectedExistingResume] = useState<string>('');
   const [useExisting, setUseExisting] = useState(false);
   const [context, setContext] = useState('');
-  const [reviewer, setReviewer] = useState('cooked-team');
+  const [reviewer, setReviewer] = useState('team');
   const [speed, setSpeed] = useState('standard');
+  const [shouldPayNow, setShouldPayNow] = useState(false);
   const [isDragging, setIsDragging] = useState(false);
 
   const [submitReview, { isLoading: isSubmitting }] = useSubmitReviewMutation();
@@ -39,15 +40,15 @@ export default function ResumeReviewRequest() {
   const existingResumes = submissionsData?.submissions || [];
 
   const reviewerOptions = [
-    { value: 'cooked-team', label: 'Cooked Career Team', price: 'Free', description: 'Professional review by our team' },
-    { value: 'big-tech', label: 'Big Tech Recruiter', price: '$20', description: 'FAANG recruiter expertise' },
-    { value: 'startup', label: 'Startup Recruiter', price: '$15', description: 'Startup hiring perspective' },
-    { value: 'technical', label: 'Technical Engineer', price: '$10', description: 'Technical screening focus' },
+    { value: 'team', label: 'Cooked Career Team', price: 0, priceDisplay: 'Free', description: 'Professional review by our team' },
+    { value: 'big_tech', label: 'Big Tech Recruiter', price: 20, priceDisplay: '$20', description: 'FAANG recruiter expertise' },
+    { value: 'startup', label: 'Startup Recruiter', price: 15, priceDisplay: '$15', description: 'Startup hiring perspective' },
+    { value: 'technical', label: 'Technical Engineer', price: 10, priceDisplay: '$10', description: 'Technical screening focus' },
   ];
 
   const speedOptions = [
-    { value: 'standard', label: 'Standard (3 days)', price: 'Free' },
-    { value: 'express', label: 'Express (1 day)', price: '+$19' },
+    { value: 'standard', label: 'Standard (3 days)', price: 0, priceDisplay: 'Free' },
+    { value: 'express', label: 'Express (1 day)', price: 19, priceDisplay: '+$19' },
   ];
 
   const handleFileSelect = (file: File) => {
@@ -88,18 +89,18 @@ export default function ResumeReviewRequest() {
     }
   };
 
+  const getBasePrice = () => {
+    const option = reviewerOptions.find(r => r.value === reviewer);
+    return option?.price || 0;
+  };
+
+  const getDeliveryFee = () => {
+    const option = speedOptions.find(s => s.value === speed);
+    return option?.price || 0;
+  };
+
   const calculateTotal = () => {
-    let total = 0;
-
-    // Reviewer cost
-    if (reviewer === 'big-tech') total += 20;
-    else if (reviewer === 'startup') total += 15;
-    else if (reviewer === 'technical') total += 10;
-
-    // Speed cost
-    if (speed === 'express') total += 19;
-
-    return total;
+    return getBasePrice() + getDeliveryFee();
   };
 
   const handleSubmit = async () => {
@@ -125,9 +126,13 @@ export default function ResumeReviewRequest() {
       formData.append('file', selectedFile!);
     }
 
-    if (context) formData.append('context', context);
-    formData.append('reviewer', reviewer);
-    formData.append('speed', speed);
+    // Add new required fields
+    if (context) formData.append('review_context', context);
+    formData.append('reviewer_type', reviewer);
+    formData.append('delivery_speed', speed);
+    formData.append('base_price', getBasePrice().toString());
+    formData.append('delivery_fee', getDeliveryFee().toString());
+    formData.append('total_price', calculateTotal().toString());
 
     try {
       const result = await submitReview(formData).unwrap();
@@ -135,14 +140,14 @@ export default function ResumeReviewRequest() {
       if (result.success) {
         const totalCost = calculateTotal();
 
-        // If there's a cost, redirect to checkout
-        if (totalCost > 0) {
+        // If there's a cost AND user chose to pay now, redirect to checkout
+        if (totalCost > 0 && shouldPayNow) {
           const checkoutResult = await createReviewCheckout(result.submission_id).unwrap();
           if (checkoutResult.checkout_url) {
             window.location.href = checkoutResult.checkout_url;
           }
         } else {
-          // Free submission, redirect to dashboard
+          // Free submission OR pay later, redirect to dashboard
           navigate('/resume-review/dashboard');
         }
       } else {
@@ -316,7 +321,7 @@ export default function ResumeReviewRequest() {
                       </p>
                     </div>
                     <div className="text-right">
-                      <p className="font-bold text-lg">{option.price}</p>
+                      <p className="font-bold text-lg">{option.priceDisplay}</p>
                     </div>
                   </div>
                 ))}
@@ -345,12 +350,59 @@ export default function ResumeReviewRequest() {
                         {option.label}
                       </Label>
                     </div>
-                    <p className="font-bold text-lg">{option.price}</p>
+                    <p className="font-bold text-lg">{option.priceDisplay}</p>
                   </div>
                 ))}
               </div>
             </RadioGroup>
           </Card>
+
+          {/* Payment Timing - Only show if there's a cost */}
+          {calculateTotal() > 0 && (
+            <Card className="p-6">
+              <Label className="text-base font-semibold mb-4 block">Payment Timing</Label>
+              <RadioGroup value={shouldPayNow ? 'now' : 'later'} onValueChange={(val) => setShouldPayNow(val === 'now')}>
+                <div className="space-y-3">
+                  <div
+                    className={`flex items-start space-x-3 p-4 rounded-lg border-2 cursor-pointer transition-colors ${
+                      !shouldPayNow
+                        ? 'border-primary bg-primary/5'
+                        : 'border-muted hover:border-primary/50'
+                    }`}
+                    onClick={() => setShouldPayNow(false)}
+                  >
+                    <RadioGroupItem value="later" id="pay-later" className="mt-1" />
+                    <div className="flex-1">
+                      <Label htmlFor="pay-later" className="font-semibold cursor-pointer">
+                        Pay After Review
+                      </Label>
+                      <p className="text-sm text-muted-foreground mt-1">
+                        Submit now, pay only after you receive and approve the review
+                      </p>
+                    </div>
+                  </div>
+                  <div
+                    className={`flex items-start space-x-3 p-4 rounded-lg border-2 cursor-pointer transition-colors ${
+                      shouldPayNow
+                        ? 'border-primary bg-primary/5'
+                        : 'border-muted hover:border-primary/50'
+                    }`}
+                    onClick={() => setShouldPayNow(true)}
+                  >
+                    <RadioGroupItem value="now" id="pay-now" className="mt-1" />
+                    <div className="flex-1">
+                      <Label htmlFor="pay-now" className="font-semibold cursor-pointer">
+                        Pay Now
+                      </Label>
+                      <p className="text-sm text-muted-foreground mt-1">
+                        Complete payment immediately to prioritize your review
+                      </p>
+                    </div>
+                  </div>
+                </div>
+              </RadioGroup>
+            </Card>
+          )}
 
           {/* Total and Submit */}
           <Card className="p-6 bg-muted">
@@ -370,6 +422,8 @@ export default function ResumeReviewRequest() {
                   <Loader2 className="w-5 h-5 mr-2 animate-spin" />
                   Submitting...
                 </>
+              ) : shouldPayNow && calculateTotal() > 0 ? (
+                'Submit & Pay Now'
               ) : (
                 'Submit Request'
               )}
