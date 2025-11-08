@@ -1,4 +1,4 @@
-import { useState, useRef, useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Document, Page } from 'react-pdf';
 import { Loader2, FileText, Download, Trash2, Clock, CheckCircle2, DollarSign, Lock, MessageSquare, Plus } from 'lucide-react';
@@ -7,22 +7,12 @@ import { useAuthState, useRequireAuth } from '@/hooks';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
 import {
-  useSubmitReviewMutation,
   useListSubmissionsQuery,
   useDeleteSubmissionMutation,
-  useCreateReviewCheckoutMutation,
   useGetAnnotationsQuery,
 } from '@/features/review/reviewService';
-import DashboardNav from '@/components/DashboardNav';
+import DashboardLayout from '@/components/DashboardLayout';
 import { Badge } from '@/components/ui/badge';
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
-} from '@/components/ui/dialog';
 import 'react-pdf/dist/Page/AnnotationLayer.css';
 import 'react-pdf/dist/Page/TextLayer.css';
 
@@ -31,13 +21,6 @@ export default function ResumeReviewDashboard() {
   const { querySkipCondition, isPro, isLoadingSubscription } = useAuthState();
   const { requireAuth } = useRequireAuth();
   const { getToken } = useAuth();
-  const fileInputRef = useRef<HTMLInputElement>(null);
-  const [isDragging, setIsDragging] = useState(false);
-  const [showPaymentDialog, setShowPaymentDialog] = useState(false);
-  const [newSubmissionId, setNewSubmissionId] = useState<string | null>(null);
-
-  const [submitReview, { isLoading: isSubmitting }] = useSubmitReviewMutation();
-  const [createReviewCheckout, { isLoading: isCreatingCheckout }] = useCreateReviewCheckoutMutation();
   const {
     data: submissionsData,
     isLoading: isLoadingSubmissions,
@@ -48,80 +31,6 @@ export default function ResumeReviewDashboard() {
   const [deleteSubmission] = useDeleteSubmissionMutation();
 
   const submissions = submissionsData?.submissions || [];
-
-  const handleFileSelect = async (file: File) => {
-    if (!requireAuth()) return;
-
-    if (!file.name.toLowerCase().endsWith('.pdf')) {
-      return;
-    }
-
-    const formData = new FormData();
-    formData.append('file', file);
-
-    try {
-      const result = await submitReview(formData).unwrap();
-
-      if (result.success) {
-        refetch(); // Refresh the submissions list
-        setNewSubmissionId(result.submission_id);
-        setShowPaymentDialog(true);
-      } else {
-        console.error('Failed to submit resume');
-      }
-    } catch (error) {
-      console.error('Upload error:', error);
-    }
-  };
-
-  const handlePayNow = async () => {
-    if (!newSubmissionId) return;
-
-    try {
-      const result = await createReviewCheckout(newSubmissionId).unwrap();
-      if (result.checkout_url) {
-        window.location.href = result.checkout_url;
-      }
-    } catch (error) {
-      console.error('Failed to create checkout session:', error);
-    }
-  };
-
-  const handlePayLater = () => {
-    setShowPaymentDialog(false);
-    setNewSubmissionId(null);
-  };
-
-  const handleFileUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (file) {
-      handleFileSelect(file);
-    }
-    // Reset input
-    if (fileInputRef.current) {
-      fileInputRef.current.value = '';
-    }
-  };
-
-  const handleDragOver = (e: React.DragEvent) => {
-    e.preventDefault();
-    setIsDragging(true);
-  };
-
-  const handleDragLeave = (e: React.DragEvent) => {
-    e.preventDefault();
-    setIsDragging(false);
-  };
-
-  const handleDrop = (e: React.DragEvent) => {
-    e.preventDefault();
-    setIsDragging(false);
-
-    const file = e.dataTransfer.files[0];
-    if (file) {
-      handleFileSelect(file);
-    }
-  };
 
   const handleDelete = async (submissionId: string) => {
     if (!requireAuth()) return;
@@ -174,58 +83,54 @@ export default function ResumeReviewDashboard() {
   };
 
   return (
-    <div className="min-h-screen bg-background">
-      <DashboardNav isPro={isPro} isLoadingSubscription={isLoadingSubscription} />
-
-      <main className="max-w-7xl mx-auto px-6 pt-4 pb-6">
-        <div className="mb-6">
+    <DashboardLayout isPro={isPro} isLoadingSubscription={isLoadingSubscription}>
+      <div className="max-w-7xl mx-auto px-6 pt-8 pb-6">
+        {/* Header */}
+        <div className="mb-8">
           <h1 className="text-3xl font-bold mb-2">Resume Review</h1>
           <p className="text-muted-foreground">
-            Submit your resume for professional review and get feedback
+            Track your resume review submissions
           </p>
+        </div>
+
+        {/* Navigation Tabs */}
+        <div className="flex gap-4 mb-6 border-b">
+          <button
+            onClick={() => navigate('/resume-review')}
+            className="px-4 py-2 font-medium text-sm text-muted-foreground hover:text-foreground"
+          >
+            New Request
+          </button>
+          <button
+            className="px-4 py-2 font-medium text-sm border-b-2 border-primary text-primary"
+          >
+            My Reviews
+          </button>
+        </div>
+
+        <div className="mb-6">
+          <h2 className="text-xl font-semibold mb-4">My Reviews</h2>
         </div>
 
         {/* Card Grid */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          {/* Upload Card - Always First */}
+          {/* New Request Card */}
           <Card
-            className={`overflow-hidden border-2 border-dashed rounded-2xl cursor-pointer transition-all duration-300 hover:shadow-xl hover:scale-105 hover:-translate-y-2 ${
-              isDragging
-                ? 'border-primary bg-primary/5'
-                : 'border-muted-foreground/25 hover:border-primary/50'
-            }`}
-            onDragOver={handleDragOver}
-            onDragLeave={handleDragLeave}
-            onDrop={handleDrop}
-            onClick={() => !isSubmitting && fileInputRef.current?.click()}
+            className="overflow-hidden border-2 border-dashed rounded-2xl cursor-pointer transition-all duration-300 hover:shadow-xl hover:scale-105 hover:-translate-y-2 border-muted-foreground/25 hover:border-primary/50"
+            onClick={() => navigate('/resume-review')}
           >
-            <input
-              ref={fileInputRef}
-              type="file"
-              accept=".pdf"
-              onChange={handleFileUpload}
-              className="hidden"
-              disabled={isSubmitting}
-            />
             <div className="aspect-[253/320] flex items-center justify-center bg-gradient-to-br from-gray-50 to-gray-100">
-              {isSubmitting ? (
-                <div className="text-center">
-                  <Loader2 className="w-12 h-12 mx-auto mb-3 text-primary animate-spin" />
-                  <p className="text-sm font-medium text-muted-foreground">Uploading...</p>
+              <div className="text-center p-6">
+                <div className="w-16 h-16 mx-auto mb-4 rounded-full bg-primary/10 flex items-center justify-center">
+                  <Plus className="w-8 h-8 text-primary" />
                 </div>
-              ) : (
-                <div className="text-center p-6">
-                  <div className="w-16 h-16 mx-auto mb-4 rounded-full bg-primary/10 flex items-center justify-center">
-                    <Plus className="w-8 h-8 text-primary" />
-                  </div>
-                  <h3 className="text-lg font-semibold mb-2">
-                    Upload Resume
-                  </h3>
-                  <p className="text-sm text-muted-foreground">
-                    Drop PDF here or click
-                  </p>
-                </div>
-              )}
+                <h3 className="text-lg font-semibold mb-2">
+                  New Review Request
+                </h3>
+                <p className="text-sm text-muted-foreground">
+                  Submit a resume for review
+                </p>
+              </div>
             </div>
             <div className="p-4 bg-background">
               <p className="text-xs text-center text-muted-foreground">
@@ -272,33 +177,8 @@ export default function ResumeReviewDashboard() {
             </p>
           </div>
         )}
-      </main>
-
-      {/* Payment Option Dialog */}
-      <Dialog open={showPaymentDialog} onOpenChange={setShowPaymentDialog}>
-        <DialogContent>
-          <DialogHeader>
-            <DialogTitle>Resume Submitted Successfully!</DialogTitle>
-            <DialogDescription>
-              Would you like to pay $7.99 now to get your review?
-            </DialogDescription>
-          </DialogHeader>
-          <div className="py-4">
-            <p className="text-sm text-muted-foreground">
-              You can pay now or wait until your review is completed to decide.
-            </p>
-          </div>
-          <DialogFooter className="gap-2">
-            <Button variant="outline" onClick={handlePayLater} disabled={isCreatingCheckout}>
-              Submit Free
-            </Button>
-            <Button onClick={handlePayNow} disabled={isCreatingCheckout}>
-              {isCreatingCheckout ? 'Processing...' : 'Pay $7.99 Now'}
-            </Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
-    </div>
+      </div>
+    </DashboardLayout>
   );
 }
 

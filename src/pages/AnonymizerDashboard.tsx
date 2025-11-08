@@ -43,7 +43,7 @@ import {
   type PIIDetection,
   type PIIDetectionWithBlur,
 } from '@/features/anonymizer/anonymizerTypes';
-import DashboardNav from '@/components/DashboardNav';
+import DashboardLayout from '@/components/DashboardLayout';
 import 'react-pdf/dist/Page/AnnotationLayer.css';
 import 'react-pdf/dist/Page/TextLayer.css';
 
@@ -481,10 +481,8 @@ export default function AnonymizerDashboard() {
   const currentPageManualBlurs = manualBlurs.filter((b) => b.page === currentPage - 1);
 
   return (
-    <div className="min-h-screen bg-background">
-      <DashboardNav isPro={isPro} isLoadingSubscription={isLoadingSubscription} />
-
-      <main className="max-w-7xl mx-auto px-6 pt-4 pb-6">
+    <DashboardLayout isPro={isPro} isLoadingSubscription={isLoadingSubscription}>
+      <div className="max-w-7xl mx-auto px-6 pt-4 pb-6">
 
         {/* Hidden file input for upload */}
         <input
@@ -527,6 +525,15 @@ export default function AnonymizerDashboard() {
           <div className="grid grid-cols-12 gap-6">
             {/* Left Sidebar - Controls */}
             <div className="col-span-12 lg:col-span-3 space-y-4">
+              {/* Quick Actions */}
+              <Card className="p-4">
+                <div className="space-y-2">
+                  <Button variant="ghost" className="w-full justify-start" onClick={resetUpload}>
+                    Back to List
+                  </Button>
+                </div>
+              </Card>
+
               {/* Replacement Text Inputs */}
               <Card className="p-4">
                 <h3 className="font-semibold mb-3">Replace Text</h3>
@@ -560,85 +567,6 @@ export default function AnonymizerDashboard() {
                   ))}
                 </div>
               </Card>
-
-              {/* Quick Actions */}
-              <Card className="p-4">
-                <h3 className="font-semibold mb-3">Actions</h3>
-                <div className="space-y-2">
-                  <Button
-                    variant={isSelectionMode ? "default" : "outline"}
-                    className="w-full"
-                    onClick={handleToggleSelectionMode}
-                  >
-                    <Wand2 className="w-4 h-4 mr-2" />
-                    {isSelectionMode ? (hasTextSelection ? 'Blur Selected Text' : 'Selection Mode Active') : 'Enable Text Selection'}
-                  </Button>
-                  {isSelectionMode && (
-                    <Button
-                      variant="ghost"
-                      className="w-full"
-                      onClick={handleCancelSelectionMode}
-                    >
-                      <X className="w-4 h-4 mr-2" />
-                      Cancel Selection Mode
-                    </Button>
-                  )}
-                  <Button
-                    variant="outline"
-                    className="w-full"
-                    onClick={() => handleToggleAllBlur(true)}
-                  >
-                    <EyeOff className="w-4 h-4 mr-2" />
-                    Blur All
-                  </Button>
-                  <Button
-                    variant="outline"
-                    className="w-full"
-                    onClick={() => handleToggleAllBlur(false)}
-                  >
-                    <Eye className="w-4 h-4 mr-2" />
-                    Show All
-                  </Button>
-                  <Button
-                    className="w-full bg-primary"
-                    onClick={handleDownload}
-                    disabled={isGenerating}
-                  >
-                    {isGenerating ? (
-                      <>
-                        <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-                        Generating...
-                      </>
-                    ) : (
-                      <>
-                        <Download className="w-4 h-4 mr-2" />
-                        Download PDF
-                      </>
-                    )}
-                  </Button>
-                  <Button
-                    variant="outline"
-                    className="w-full"
-                    onClick={handleShare}
-                    disabled={isCreatingShare || !sessionId}
-                  >
-                    {isCreatingShare ? (
-                      <>
-                        <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-                        Creating Link...
-                      </>
-                    ) : (
-                      <>
-                        <Share2 className="w-4 h-4 mr-2" />
-                        Share Link
-                      </>
-                    )}
-                  </Button>
-                  <Button variant="ghost" className="w-full" onClick={resetUpload}>
-                    Back to List
-                  </Button>
-                </div>
-              </Card>
             </div>
 
             {/* Center - PDF Viewer */}
@@ -646,44 +574,108 @@ export default function AnonymizerDashboard() {
               <Card className="p-6">
                 {/* Toolbar */}
                 <div className="mb-4 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
-                  <div className="flex gap-2">
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      disabled={currentPage === 1}
-                      onClick={() => handlePageNavigation(currentPage - 1)}
-                    >
-                      Previous
-                    </Button>
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      disabled={currentPage === numPages}
-                      onClick={() => handlePageNavigation(currentPage + 1)}
-                    >
-                      Next
-                    </Button>
-                    <div className="flex items-center px-3 py-1 bg-gray-100 rounded text-sm font-medium">
-                      Page {currentPage} of {numPages}
+                  <div className="flex gap-3 items-center">
+                    {/* Zoom Controls */}
+                    <div className="flex gap-2 items-center px-3 py-1 bg-gray-100 dark:bg-gray-700 rounded">
+                      <button
+                        onClick={() => handleScaleChange(Math.max(0.5, scale - 0.25))}
+                        className="text-lg font-medium hover:text-primary transition-colors"
+                      >
+                        -
+                      </button>
+                      <span className="text-sm font-medium min-w-[60px] text-center">
+                        {Math.round(scale * 100)}%
+                      </span>
+                      <button
+                        onClick={() => handleScaleChange(Math.min(3, scale + 0.25))}
+                        className="text-lg font-medium hover:text-primary transition-colors"
+                      >
+                        +
+                      </button>
                     </div>
+
+                    {/* Action Icons */}
+                    <button
+                      onClick={handleToggleSelectionMode}
+                      title={isSelectionMode ? "Cancel Selection Mode" : "Enable Text Selection"}
+                      className="p-2 hover:bg-gray-100 dark:hover:bg-gray-700 rounded transition-colors"
+                    >
+                      {isSelectionMode ? (
+                        <X className="w-4 h-4" />
+                      ) : (
+                        <Wand2 className="w-4 h-4" />
+                      )}
+                    </button>
+                    <button
+                      onClick={() => {
+                        const allBlurred = detections.every(d => d.blurred);
+                        handleToggleAllBlur(!allBlurred);
+                      }}
+                      title={detections.every(d => d.blurred) ? "Show All" : "Hide All"}
+                      className="p-2 hover:bg-gray-100 dark:hover:bg-gray-700 rounded transition-colors"
+                    >
+                      {detections.every(d => d.blurred) ? (
+                        <Eye className="w-4 h-4" />
+                      ) : (
+                        <EyeOff className="w-4 h-4" />
+                      )}
+                    </button>
+
+                    {/* Page Navigation - Only show if multi-page */}
+                    {numPages > 1 && (
+                      <div className="flex gap-2 items-center">
+                        <button
+                          onClick={() => handlePageNavigation(currentPage - 1)}
+                          disabled={currentPage === 1}
+                          className="text-lg font-medium hover:text-primary transition-colors disabled:opacity-30 disabled:cursor-not-allowed"
+                        >
+                          ←
+                        </button>
+                        <span className="text-sm font-medium min-w-[40px] text-center">
+                          {currentPage}/{numPages}
+                        </span>
+                        <button
+                          onClick={() => handlePageNavigation(currentPage + 1)}
+                          disabled={currentPage === numPages}
+                          className="text-lg font-medium hover:text-primary transition-colors disabled:opacity-30 disabled:cursor-not-allowed"
+                        >
+                          →
+                        </button>
+                      </div>
+                    )}
                   </div>
-                  <div className="flex gap-2 items-center">
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      onClick={() => handleScaleChange(Math.max(0.5, scale - 0.25))}
+
+                  {/* Action Buttons */}
+                  <div className="flex gap-2">
+                    <button
+                      onClick={handleDownload}
+                      disabled={isGenerating}
+                      title="Download PDF"
+                      className="p-2 hover:bg-gray-100 dark:hover:bg-gray-700 rounded transition-colors disabled:opacity-30 disabled:cursor-not-allowed"
                     >
-                      -
-                    </Button>
-                    <span className="text-sm font-medium min-w-[60px] text-center">
-                      {Math.round(scale * 100)}%
-                    </span>
+                      {isGenerating ? (
+                        <Loader2 className="w-4 h-4 animate-spin" />
+                      ) : (
+                        <Download className="w-4 h-4" />
+                      )}
+                    </button>
                     <Button
-                      variant="outline"
                       size="sm"
-                      onClick={() => handleScaleChange(Math.min(3, scale + 0.25))}
+                      className="bg-blue-600 hover:bg-blue-700 text-white dark:bg-blue-500 dark:hover:bg-blue-600"
+                      onClick={handleShare}
+                      disabled={isCreatingShare || !sessionId}
                     >
-                      +
+                      {isCreatingShare ? (
+                        <>
+                          <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                          Creating...
+                        </>
+                      ) : (
+                        <>
+                          <Share2 className="w-4 h-4 mr-2" />
+                          Share
+                        </>
+                      )}
                     </Button>
                   </div>
                 </div>
@@ -822,7 +814,7 @@ export default function AnonymizerDashboard() {
             </div>
           </div>
         )}
-      </main>
+      </div>
 
       {/* Share Link Modal */}
       <Dialog open={showShareModal} onOpenChange={setShowShareModal}>
@@ -841,13 +833,18 @@ export default function AnonymizerDashboard() {
             />
             <Button
               size="sm"
-              className="px-3"
               onClick={handleCopyLink}
             >
               {copied ? (
-                <Check className="h-4 w-4" />
+                <>
+                  <Check className="h-4 w-4 mr-2" />
+                  Copied!
+                </>
               ) : (
-                <Copy className="h-4 w-4" />
+                <>
+                  <Copy className="h-4 w-4 mr-2" />
+                  Copy
+                </>
               )}
             </Button>
           </div>
@@ -856,6 +853,6 @@ export default function AnonymizerDashboard() {
           </p>
         </DialogContent>
       </Dialog>
-    </div>
+    </DashboardLayout>
   );
 }

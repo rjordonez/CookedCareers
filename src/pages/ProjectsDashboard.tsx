@@ -1,15 +1,12 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
+import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
-import { Crown, Loader2, ExternalLink } from "lucide-react";
-import { useAuthState, useRequireAuth } from "@/hooks";
-import { useAppDispatch, useAppSelector } from "@/store/hooks";
-import {
-  setCurrentPage,
-  selectProjectParams,
-} from "@/features/projects/projectSlice";
+import { Crown, Loader2, ExternalLink, X } from "lucide-react";
+import { useAuthState, useRequireAuth, useProjectFilters } from "@/hooks";
 import { useGetProjectsQuery } from "@/features/projects/projectService";
-import DashboardNav from "@/components/DashboardNav";
+import { useCreateCheckoutSessionMutation } from "@/features/subscription/subscriptionService";
+import DashboardLayout from "@/components/DashboardLayout";
 import { UpgradeButton } from "@/components/UpgradeButton";
 import ProjectCardSkeleton from "@/components/ProjectCardSkeleton";
 
@@ -27,50 +24,178 @@ const ensureHttps = (url: string): string => {
 const ProjectsDashboard = () => {
   const { querySkipCondition, isPro, isLoadingSubscription } = useAuthState();
   const { requireAuth } = useRequireAuth();
-  const dispatch = useAppDispatch();
+  const navigate = useNavigate();
+  const [localSearchQuery, setLocalSearchQuery] = useState("");
+  const [localTechnologies, setLocalTechnologies] = useState("");
 
-  // Get pagination from Redux state
-  const pagination = useAppSelector((state) => state.projectPagination);
-  const projectParams = useAppSelector(selectProjectParams);
+  // Get filters from URL search params
+  const {
+    filters,
+    apiParams,
+    setSearchQuery: updateSearchQuery,
+    setTechnologies: updateTechnologies,
+    setCurrentPage: updateCurrentPage,
+    resetFilters: clearFilters,
+    hasActiveFilters,
+  } = useProjectFilters();
 
   // Fetch projects from API
-  const { data, isLoading, isError, error } = useGetProjectsQuery(projectParams, {
+  const { data, isLoading, isFetching, isError, error } = useGetProjectsQuery(apiParams, {
     skip: querySkipCondition,
-    refetchOnMountOrArgChange: 600, // Only refetch if data is older than 10 minutes
-    keepUnusedDataFor: 600, // Keep cached data for 10 minutes
+    refetchOnMountOrArgChange: 600,
+    keepUnusedDataFor: 600,
   });
 
-  // Detect if we're waiting for new data (page change)
-  const isPageChanging = data ? pagination.currentPage !== data.pagination.page : false;
-  const showSkeletons = isLoading || isPageChanging;
+  // Detect if we're waiting for new data
+  const isPageChanging = data ? filters.currentPage !== data.pagination.page : false;
+  const showSkeletons = isLoading || isFetching || isPageChanging;
 
-  const handleUpgrade = async () => {
-    // TODO: Implement upgrade logic with Clerk metadata
-    console.log("Upgrade to premium");
-  };
+  // Sync local state with URL params on mount
+  useEffect(() => {
+    setLocalSearchQuery(filters.searchQuery);
+    setLocalTechnologies(filters.technologies);
+  }, [filters.searchQuery, filters.technologies]);
+
+  // Debounce search query
+  useEffect(() => {
+    if (localSearchQuery === filters.searchQuery) return;
+
+    const timer = setTimeout(() => {
+      updateSearchQuery(localSearchQuery);
+    }, 500);
+
+    return () => clearTimeout(timer);
+  }, [localSearchQuery, filters.searchQuery, updateSearchQuery]);
+
+  // Debounce technologies
+  useEffect(() => {
+    if (localTechnologies === filters.technologies) return;
+
+    const timer = setTimeout(() => {
+      updateTechnologies(localTechnologies);
+    }, 500);
+
+    return () => clearTimeout(timer);
+  }, [localTechnologies, filters.technologies, updateTechnologies]);
+
+  const [createCheckoutSession] = useCreateCheckoutSessionMutation();
 
   const isBlurred = (index: number) => {
-    const globalIndex = (pagination.currentPage - 1) * pagination.itemsPerPage + index;
+    const globalIndex = (filters.currentPage - 1) * 12 + index;
     return !isPro && globalIndex >= FREE_PREVIEW_COUNT;
   };
 
-  const handleProjectClick = (projectUrl: string | undefined, isProjectBlurred: boolean) => {
+  const handleProjectClick = async (projectUrl: string | undefined, isProjectBlurred: boolean) => {
     if (!requireAuth()) return;
-    if (!isProjectBlurred && projectUrl) {
+
+    if (isProjectBlurred && !isPro) {
+      // Redirect to Stripe checkout
+      try {
+        const result = await createCheckoutSession().unwrap();
+        window.location.href = result.checkout_url;
+      } catch (error: any) {
+        console.error("Failed to create checkout session:", error);
+      }
+    } else if (!isProjectBlurred && projectUrl) {
       window.open(ensureHttps(projectUrl), '_blank');
     }
   };
 
+  const handleClearFilters = () => {
+    if (!requireAuth()) return;
+    setLocalSearchQuery("");
+    setLocalTechnologies("");
+    clearFilters();
+  };
+
+  const handleSearchChange = (value: string) => {
+    if (!requireAuth()) return;
+    setLocalSearchQuery(value);
+  };
+
+  const handleTechnologiesChange = (value: string) => {
+    if (!requireAuth()) return;
+    setLocalTechnologies(value);
+  };
+
   const handlePageChange = (page: number) => {
     if (!requireAuth()) return;
-    dispatch(setCurrentPage(page));
+    updateCurrentPage(page);
   };
 
   return (
-    <div className="min-h-screen bg-background">
-      <DashboardNav isPro={isPro} isLoadingSubscription={isLoadingSubscription} />
+    <DashboardLayout isPro={isPro} isLoadingSubscription={isLoadingSubscription}>
+      <div className="max-w-7xl mx-auto px-6 pt-4 pb-6">
+        {/* Search and Filters Bar */}
+        <div className="mb-6 space-y-3">
+          {/* Toggle Switch - Mobile Top */}
+          <div className="flex items-center justify-center md:hidden">
+            <div className="flex items-center gap-2 px-2 py-1.5 bg-muted rounded-full h-12">
+              <button
+                onClick={() => navigate('/resumes')}
+                className="px-4 py-1.5 rounded-full text-sm font-medium transition-colors hover:bg-background"
+              >
+                Resumes
+              </button>
+              <button
+                onClick={() => {}}
+                className="px-4 py-1.5 rounded-full bg-primary text-primary-foreground text-sm font-medium transition-colors"
+              >
+                Projects
+              </button>
+            </div>
+          </div>
 
-      <main className="max-w-7xl mx-auto px-6 pt-4 pb-6">
+          {/* Search and Filters Row */}
+          <div className="flex flex-col md:flex-row items-stretch md:items-center gap-2">
+            <div className="relative flex-1">
+              <input
+                type="text"
+                placeholder="Search projects... (ex. recommendation system)"
+                value={localSearchQuery}
+                onChange={(e) => handleSearchChange(e.target.value)}
+                className="w-full h-12 pl-4 pr-4 rounded-full bg-muted border-none focus:ring-2 focus:ring-primary"
+              />
+            </div>
+
+            <div className="relative flex-1">
+              <input
+                type="text"
+                placeholder="Technologies... (ex. python,react,docker)"
+                value={localTechnologies}
+                onChange={(e) => handleTechnologiesChange(e.target.value)}
+                className="w-full h-12 pl-4 pr-4 rounded-full bg-muted border-none focus:ring-2 focus:ring-primary"
+              />
+            </div>
+
+            {/* Toggle Switch - Desktop */}
+            <div className="hidden md:flex items-center gap-2 px-2 py-1.5 bg-muted rounded-full h-12 shrink-0">
+              <button
+                onClick={() => navigate('/resumes')}
+                className="px-4 py-1.5 rounded-full text-sm font-medium transition-colors hover:bg-background"
+              >
+                Resumes
+              </button>
+              <button
+                onClick={() => {}}
+                className="px-4 py-1.5 rounded-full bg-primary text-primary-foreground text-sm font-medium transition-colors"
+              >
+                Projects
+              </button>
+            </div>
+
+            {hasActiveFilters && (
+              <Button
+                variant="ghost"
+                onClick={handleClearFilters}
+                size="icon"
+                className="w-full md:w-12 h-12 rounded-full shrink-0"
+              >
+                <X className="w-4 h-4" />
+              </Button>
+            )}
+          </div>
+        </div>
         {isError && (
           <Card className="p-8 text-center">
             <p className="text-destructive mb-2">Failed to load projects</p>
@@ -96,10 +221,16 @@ const ProjectsDashboard = () => {
             ) : (
               data!.projects.map((project, index) => {
               const isProjectBlurred = isBlurred(index);
+              const hasUrl = !!project.project_url;
+              const isClickable = !isProjectBlurred && hasUrl;
               return (
               <div key={`${project.owner_id}-${index}`} className="relative">
                 <Card
-                  className="group overflow-hidden border border-border hover:shadow-xl hover:scale-105 hover:-translate-y-2 transition-all duration-300 cursor-pointer bg-card"
+                  className={`group overflow-hidden border border-border transition-all duration-300 bg-card ${
+                    isClickable
+                      ? 'cursor-pointer hover:shadow-xl hover:scale-105 hover:-translate-y-2'
+                      : 'cursor-default opacity-75'
+                  }`}
                   onClick={() => handleProjectClick(project.project_url, isProjectBlurred)}
                 >
                   <div className="aspect-[3/4] bg-gradient-to-br from-white to-gray-50 overflow-hidden relative border-b">
@@ -178,19 +309,19 @@ const ProjectsDashboard = () => {
           <div className="flex items-center justify-center gap-2">
             <Button
               variant="outline"
-              onClick={() => handlePageChange(Math.max(1, pagination.currentPage - 1))}
-              disabled={pagination.currentPage === 1 || showSkeletons}
+              onClick={() => handlePageChange(Math.max(1, filters.currentPage - 1))}
+              disabled={filters.currentPage === 1 || showSkeletons}
             >
               Previous
             </Button>
             <span className="text-sm text-muted-foreground px-4">
-              Page {pagination.currentPage} of 100+
+              Page {filters.currentPage} of 100+
             </span>
             <Button
               variant="outline"
               onClick={() => {
                 // If we're at or past page 100, loop back to page 1
-                const nextPage = pagination.currentPage >= 100 ? 1 : pagination.currentPage + 1;
+                const nextPage = filters.currentPage >= 100 ? 1 : filters.currentPage + 1;
                 handlePageChange(nextPage);
               }}
               disabled={showSkeletons}
@@ -199,8 +330,8 @@ const ProjectsDashboard = () => {
             </Button>
           </div>
         )}
-      </main>
-    </div>
+      </div>
+    </DashboardLayout>
   );
 };
 

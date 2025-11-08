@@ -1,5 +1,15 @@
 import { baseApi } from '@/lib/api';
-import type { UserResume, ListUserResumesResponse } from './userResumeTypes';
+import type {
+  UserResume,
+  ListUserResumesResponse,
+  ListResumesResponse,
+  CreateResumeBuilderResponse,
+  GetResumeBuilderResponse,
+  SaveResumeBuilderRequest,
+  SaveResumeBuilderResponse,
+  GeneratePdfResponse,
+  DeleteResumeBuilderResponse,
+} from './userResumeTypes';
 
 export const userResumeApi = baseApi.injectEndpoints({
   endpoints: (builder) => ({
@@ -10,7 +20,63 @@ export const userResumeApi = baseApi.injectEndpoints({
         return response.resumes && response.resumes.length > 0 ? response.resumes[0] : null;
       },
     }),
+    listUserResumes: builder.query<ListResumesResponse, void>({
+      query: () => '/api/user-resume/list',
+      providesTags: ['Resume'],
+    }),
+    uploadUserResume: builder.mutation<{ success: boolean; message: string }, FormData>({
+      query: (formData) => ({
+        url: '/api/user-resume/upload',
+        method: 'POST',
+        body: formData,
+      }),
+      invalidatesTags: ['Resume'],
+    }),
+
+    // Resume Builder Endpoints
+    createResumeBuilder: builder.mutation<CreateResumeBuilderResponse, { title?: string }>({
+      query: (body) => ({
+        url: '/api/resume-builder/create',
+        method: 'POST',
+        body,
+      }),
+      invalidatesTags: ['Resume'],
+    }),
+    getResumeBuilder: builder.query<GetResumeBuilderResponse, string>({
+      query: (resumeId) => `/api/resume-builder/${resumeId}`,
+      providesTags: ['Resume'],
+    }),
+    saveResumeBuilder: builder.mutation<SaveResumeBuilderResponse, { resumeId: string; data: SaveResumeBuilderRequest }>({
+      query: ({ resumeId, data }) => ({
+        url: `/api/resume-builder/${resumeId}/save`,
+        method: 'PUT',
+        body: data,
+      }),
+      invalidatesTags: ['Resume'],
+    }),
+    generateResumePdf: builder.mutation<GeneratePdfResponse, string>({
+      query: (resumeId) => ({
+        url: `/api/resume-builder/${resumeId}/generate-pdf`,
+        method: 'POST',
+      }),
+    }),
+    deleteResumeBuilder: builder.mutation<DeleteResumeBuilderResponse, string>({
+      query: (resumeId) => ({
+        url: `/api/resume-builder/${resumeId}`,
+        method: 'DELETE',
+      }),
+      invalidatesTags: ['Resume'],
+    }),
   }),
 });
 
-export const { useGetUserResumeQuery } = userResumeApi;
+export const {
+  useGetUserResumeQuery,
+  useListUserResumesQuery,
+  useUploadUserResumeMutation,
+  useCreateResumeBuilderMutation,
+  useGetResumeBuilderQuery,
+  useSaveResumeBuilderMutation,
+  useGenerateResumePdfMutation,
+  useDeleteResumeBuilderMutation,
+} = userResumeApi;

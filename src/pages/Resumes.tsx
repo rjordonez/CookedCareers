@@ -1,4 +1,5 @@
 import { useEffect, useState, useRef } from "react";
+import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Card } from "@/components/ui/card";
@@ -9,7 +10,7 @@ import { useSearchResumesQuery } from "@/features/resumes/resumeService";
 import { useCreateCheckoutSessionMutation } from "@/features/subscription/subscriptionService";
 import { ResumeDetailModal } from "@/components/ResumeDetailModal";
 import { UpgradeButton } from "@/components/UpgradeButton";
-import DashboardNav, { DashboardNavRef } from "@/components/DashboardNav";
+import DashboardLayout from "@/components/DashboardLayout";
 import ResumeCardSkeleton from "@/components/ResumeCardSkeleton";
 import type { Resume } from "@/features/resumes/resumeTypes";
 import { usePostHog } from "posthog-js/react";
@@ -19,6 +20,7 @@ const FREE_PREVIEW_COUNT = 6;
 const Resumes = () => {
   const { user, querySkipCondition, isPro, isLoadingSubscription } = useAuthState();
   const { requireAuth } = useRequireAuth();
+  const navigate = useNavigate();
   const [selectedResume, setSelectedResume] = useState<Resume | null>(null);
   const [localSearchQuery, setLocalSearchQuery] = useState("");
   const posthog = usePostHog();
@@ -161,20 +163,80 @@ const Resumes = () => {
   };
 
   return (
-    <div className="min-h-screen bg-background">
-      <DashboardNav
-        isPro={isPro}
-        isLoadingSubscription={isLoadingSubscription}
-        searchQuery={localSearchQuery}
-        onSearchChange={handleSearchChange}
-        searchPlaceholder="Search resumes by company... (ex. Google)"
-        seniority={filters.seniority || "all"}
-        onSeniorityChange={handleSeniorityChange}
-        hasActiveFilters={hasActiveFilters}
-        onClearFilters={handleClearFilters}
-      />
+    <DashboardLayout isPro={isPro} isLoadingSubscription={isLoadingSubscription}>
+      <div className="max-w-7xl mx-auto px-6 pt-4 pb-6">
+        {/* Search and Filters Bar */}
+        <div className="mb-6 space-y-3">
+          {/* Toggle Switch - Mobile Top */}
+          <div className="flex items-center justify-center md:hidden">
+            <div className="flex items-center gap-1 px-1 py-1 bg-muted rounded-full h-9">
+              <button
+                onClick={() => {}}
+                className="px-3 py-1 rounded-full bg-background text-xs font-medium transition-colors"
+              >
+                Resumes
+              </button>
+              <button
+                onClick={() => navigate('/projects')}
+                className="px-3 py-1 rounded-full text-xs font-medium transition-colors hover:bg-background/50 text-muted-foreground"
+              >
+                Projects
+              </button>
+            </div>
+          </div>
 
-      <main className="max-w-7xl mx-auto px-6 pt-4 pb-6">
+          {/* Search and Filters Row */}
+          <div className="flex flex-col md:flex-row items-stretch md:items-center gap-2">
+            <div className="relative flex-1">
+              <input
+                type="text"
+                placeholder="Search resumes by company... (ex. Google)"
+                value={localSearchQuery}
+                onChange={(e) => handleSearchChange(e.target.value)}
+                className="w-full h-12 pl-4 pr-4 rounded-full bg-muted border-none focus:ring-2 focus:ring-primary"
+              />
+            </div>
+
+            <Select value={filters.seniority || "all"} onValueChange={handleSeniorityChange}>
+              <SelectTrigger className="w-full md:w-[140px] h-12 rounded-full">
+                <SelectValue placeholder="Seniority" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">All Seniority</SelectItem>
+                <SelectItem value="intern">Intern</SelectItem>
+                <SelectItem value="junior">Junior</SelectItem>
+                <SelectItem value="senior">Senior</SelectItem>
+              </SelectContent>
+            </Select>
+
+            {/* Toggle Switch - Desktop */}
+            <div className="hidden md:flex items-center gap-1 px-1 py-1 bg-muted rounded-full h-9 shrink-0">
+              <button
+                onClick={() => {}}
+                className="px-3 py-1 rounded-full bg-background text-xs font-medium transition-colors"
+              >
+                Resumes
+              </button>
+              <button
+                onClick={() => navigate('/projects')}
+                className="px-3 py-1 rounded-full text-xs font-medium transition-colors hover:bg-background/50 text-muted-foreground"
+              >
+                Projects
+              </button>
+            </div>
+
+            {hasActiveFilters && (
+              <Button
+                variant="ghost"
+                onClick={handleClearFilters}
+                size="icon"
+                className="w-full md:w-12 h-12 rounded-full shrink-0"
+              >
+                <X className="w-4 h-4" />
+              </Button>
+            )}
+          </div>
+        </div>
 
         {isError && (
           <Card className="p-8 text-center">
@@ -206,10 +268,10 @@ const Resumes = () => {
               return (
               <div key={resume.id} className="relative h-full group">
                 <Card
-                  className="overflow-hidden border-0 bg-muted rounded-2xl hover:shadow-xl hover:scale-105 hover:-translate-y-2 transition-all duration-300 cursor-pointer h-full"
+                  className="overflow-hidden border-0 bg-white dark:bg-white rounded-2xl hover:shadow-xl hover:scale-105 hover:-translate-y-2 transition-all duration-300 cursor-pointer h-full"
                   onClick={() => handleResumeClick(resume, index)}
                 >
-                  <div className="aspect-[253/320] bg-white overflow-hidden relative flex items-center justify-center">
+                  <div className="aspect-[253/320] bg-white dark:bg-white overflow-hidden relative flex items-center justify-center">
                     {resume.file_url && resume.file_url.toLowerCase().endsWith('.pdf') ? (
                       <div className={`w-full h-full bg-white overflow-hidden relative ${isBlurred ? 'blur-md' : ''}`}>
                         <object
@@ -241,12 +303,12 @@ const Resumes = () => {
                   </div>
                   <div className="p-4">
                     <div className="flex items-start justify-between gap-2 mb-2">
-                      <h3 className="font-semibold text-sm leading-tight">
+                      <h3 className="font-semibold text-sm leading-tight text-black dark:text-black">
                         {resume.title || resume.name || 'Untitled Resume'}
                       </h3>
                     </div>
                     {resume.education && resume.education.length > 0 && resume.education[0].institution && (
-                      <p className="text-xs text-muted-foreground mb-3">{resume.education[0].institution}</p>
+                      <p className="text-xs text-gray-600 dark:text-gray-600 mb-3">{resume.education[0].institution}</p>
                     )}
                     <div className="flex flex-wrap gap-2 items-center justify-between">
                       <div className="flex flex-wrap gap-2 items-center">
@@ -281,7 +343,7 @@ const Resumes = () => {
                             resume.skills.slice(0, 3).map((skill, idx) => (
                               <span
                                 key={idx}
-                                className="text-xs px-2 py-1 rounded-md bg-secondary text-foreground"
+                                className="text-xs px-2 py-1 rounded-md bg-gray-100 dark:bg-gray-100 text-black dark:text-black"
                               >
                                 {skill}
                               </span>
@@ -324,7 +386,7 @@ const Resumes = () => {
             </Button>
           </div>
         )}
-      </main>
+      </div>
 
       <ResumeDetailModal
         resume={selectedResume}
@@ -332,7 +394,7 @@ const Resumes = () => {
         onClose={() => setSelectedResume(null)}
         isPremium={isPro}
       />
-    </div>
+    </DashboardLayout>
   );
 };
 

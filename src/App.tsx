@@ -7,8 +7,11 @@ import Index from "./pages/Index";
 import Auth from "./pages/Auth";
 import Dashboard from "./pages/Dashboard";
 import Resumes from "./pages/Resumes";
+import ResumeBuilder from "./pages/ResumeBuilder";
 import ProjectsDashboard from "./pages/ProjectsDashboard";
 import AnonymizerDashboard from "./pages/AnonymizerDashboard";
+import ATSChecker from "./pages/ATSChecker";
+import ResumeReviewRequest from "./pages/ResumeReviewRequest";
 import ResumeReviewDashboard from "./pages/ResumeReviewDashboard";
 import ResumeReviewDetail from "./pages/ResumeReviewDetail";
 import DevReviewPanel from "./pages/DevReviewPanel";
@@ -36,9 +39,12 @@ const App = () => (
             <Route path="/auth/*" element={<Auth />} />
             <Route path="/dashboard" element={<Dashboard />} />
             <Route path="/resumes" element={<Resumes />} />
+            <Route path="/resume-builder" element={<ResumeBuilder />} />
             <Route path="/projects" element={<ProjectsDashboard />} />
             <Route path="/anonymizer" element={<AnonymizerDashboard />} />
-            <Route path="/resume-review" element={<ResumeReviewDashboard />} />
+            <Route path="/ats-checker" element={<ATSChecker />} />
+            <Route path="/resume-review" element={<ResumeReviewRequest />} />
+            <Route path="/resume-review/dashboard" element={<ResumeReviewDashboard />} />
             <Route path="/resume-review/:id" element={<ResumeReviewDetail />} />
             <Route path="/dev-review" element={<DevReviewPanel />} />
             <Route path="/dev-review/:id" element={<DevReviewDetailPanel />} />

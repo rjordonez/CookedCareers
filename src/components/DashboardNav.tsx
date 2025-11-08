@@ -44,7 +44,7 @@ const DashboardNav = ({
         <div className="flex flex-wrap items-center justify-between gap-4">
           {/* Left: Logo + Navigation */}
           <div className="flex items-center gap-2 md:gap-6">
-            <Link to="/resumes" className="flex items-center gap-2">
+            <Link to="/dashboard" className="flex items-center gap-2">
               <div className="relative w-[36px] h-[36px] shrink-0">
                 {/* Grey paper layer (offset bottom-right) */}
                 <div className="absolute w-8 h-8 rounded-xl bg-gray-300 bottom-0 right-0"></div>
@@ -56,14 +56,14 @@ const DashboardNav = ({
             </Link>
 
             <div className="flex items-center gap-3 md:gap-6">
-              {/* <Link
+              <Link
                 to="/dashboard"
                 className={`text-sm font-semibold transition-colors ${
                   isDashboardPage ? 'text-foreground' : 'text-muted-foreground hover:text-foreground'
                 }`}
               >
                 Dashboard
-              </Link> */}
+              </Link>
               <Link
                 to="/resumes"
                 className={`text-sm font-semibold transition-colors ${
