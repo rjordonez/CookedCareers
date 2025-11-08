@@ -199,7 +199,7 @@ function SubmissionCard({
   const [pdfFile, setPdfFile] = useState<Blob | null>(null);
   const [loadingPdf, setLoadingPdf] = useState(true);
   const { data: annotationsData } = useGetAnnotationsQuery(submission.id, {
-    skip: submission.status !== 'completed' || !submission.paid,
+    skip: submission.status !== 'completed' || (!submission.paid && submission.total_price > 0),
   });
 
   const annotations = annotationsData?.annotations || [];
@@ -278,8 +278,8 @@ function SubmissionCard({
                     renderAnnotationLayer={false}
                   />
 
-                  {/* Annotation Overlays - Only show if paid and completed */}
-                  {submission.status === 'completed' && submission.paid && firstPageAnnotations.map((annotation: any) => (
+                  {/* Annotation Overlays - Show if paid or free and completed */}
+                  {submission.status === 'completed' && (submission.paid || submission.total_price === 0) && firstPageAnnotations.map((annotation: any) => (
                     <div
                       key={annotation.id}
                       className="absolute bg-yellow-300/40 border-2 border-yellow-400"
@@ -324,7 +324,11 @@ function SubmissionCard({
                   Pending
                 </Badge>
               )}
-              {submission.paid ? (
+              {submission.total_price === 0 ? (
+                <Badge variant="outline" className="border-green-500 text-green-500 text-xs">
+                  Free
+                </Badge>
+              ) : submission.paid ? (
                 <Badge variant="default" className="bg-blue-500 hover:bg-blue-600 text-xs">
                   <DollarSign className="w-3 h-3 mr-1" />
                   Paid
@@ -340,7 +344,7 @@ function SubmissionCard({
 
           {/* Action Buttons */}
           <div className="flex gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
-            {submission.status === 'completed' && submission.paid && (
+            {submission.status === 'completed' && (submission.paid || submission.total_price === 0) && (
               <Button
                 variant="secondary"
                 size="sm"
