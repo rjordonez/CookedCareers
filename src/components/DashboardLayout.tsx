@@ -180,7 +180,7 @@ const DashboardLayout = ({
 
         {/* Create Resume Button */}
         <div className="p-4">
-          <Link to="/dashboard">
+          <Link to="/resume-builder">
             <Button className="w-full bg-primary hover:bg-primary/90 text-primary-foreground rounded-lg h-10">
               <Plus className="w-4 h-4 mr-2" />
               Create Resume

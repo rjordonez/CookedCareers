@@ -1,13 +1,14 @@
 import { useState, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Document, Page } from 'react-pdf';
-import { Loader2, FileText, Download, Plus } from 'lucide-react';
+import { Loader2, FileText, Download, Plus, File } from 'lucide-react';
 import { useAuth } from '@clerk/clerk-react';
 import { useAuthState, useRequireAuth } from '@/hooks';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
 import { useUploadUserResumeMutation, useListUserResumesQuery } from '@/features/user-resume/userResumeService';
 import DashboardLayout from '@/components/DashboardLayout';
+import { UserResumePdfModal } from '@/components/UserResumePdfModal';
 import 'react-pdf/dist/Page/AnnotationLayer.css';
 import 'react-pdf/dist/Page/TextLayer.css';
 
@@ -18,6 +19,8 @@ const Dashboard = () => {
   const { getToken } = useAuth();
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [isDragging, setIsDragging] = useState(false);
+  const [selectedResume, setSelectedResume] = useState<{ url: string; filename: string } | null>(null);
+  const [isPdfModalOpen, setIsPdfModalOpen] = useState(false);
   const [uploadResume, { isLoading: isUploading }] = useUploadUserResumeMutation();
   const {
     data: resumesData,
@@ -83,9 +86,20 @@ const Dashboard = () => {
     }
   };
 
-  const handleViewDetails = (resumeId: string) => {
-    // Navigate to resume details or editor page
-    navigate(`/resumes/${resumeId}`);
+  const handleViewDetails = (resume: {
+    id: string;
+    filename: string;
+    file_url: string;
+    file_type: string | null;
+  }) => {
+    // If it's a builder resume, navigate to resume builder with the ID
+    if (resume.file_type === 'builder') {
+      navigate(`/resume-builder?id=${resume.id}`);
+    } else {
+      // For uploaded PDFs, open the modal
+      setSelectedResume({ url: resume.file_url, filename: resume.filename });
+      setIsPdfModalOpen(true);
+    }
   };
 
   const handleDownload = async (url: string, filename: string) => {
@@ -209,6 +223,17 @@ const Dashboard = () => {
           </div>
         )}
       </div>
+
+      {/* PDF Modal for viewing uploaded resumes */}
+      <UserResumePdfModal
+        resumeUrl={selectedResume?.url || null}
+        resumeFilename={selectedResume?.filename || ''}
+        isOpen={isPdfModalOpen}
+        onClose={() => {
+          setIsPdfModalOpen(false);
+          setSelectedResume(null);
+        }}
+      />
     </DashboardLayout>
   );
 };
@@ -228,15 +253,28 @@ function ResumeCard({
     created_at: string;
     updated_at: string;
   };
-  onView: (id: string) => void;
+  onView: (resume: {
+    id: string;
+    filename: string;
+    file_url: string;
+    file_type: string | null;
+  }) => void;
   onDownload: (url: string, filename: string) => void;
   getToken: () => Promise<string | null>;
 }) {
+  const isBuilderResume = resume.file_type === 'builder';
   const [pdfFile, setPdfFile] = useState<Blob | null>(null);
-  const [loadingPdf, setLoadingPdf] = useState(true);
+  const [loadingPdf, setLoadingPdf] = useState(!isBuilderResume);
 
-  // Fetch PDF with authentication
+  // Fetch PDF with authentication (only for non-builder resumes)
   useEffect(() => {
+    // Skip PDF fetch for builder resumes
+    if (isBuilderResume) {
+      setLoadingPdf(false);
+      setPdfFile(null);
+      return;
+    }
+
     const fetchPdf = async () => {
       setLoadingPdf(true);
       try {
@@ -262,7 +300,7 @@ function ResumeCard({
     };
 
     fetchPdf();
-  }, [resume, getToken]);
+  }, [resume, getToken, isBuilderResume]);
 
   const formatDate = (dateString: string) => {
     return new Date(dateString).toLocaleDateString('en-US', {
@@ -276,15 +314,23 @@ function ResumeCard({
     <div className="relative h-full group">
       <Card
         className="overflow-hidden border-0 bg-muted rounded-2xl hover:shadow-xl hover:scale-105 hover:-translate-y-2 transition-all duration-300 cursor-pointer h-full"
-        onClick={() => onView(resume.id)}
+        onClick={() => onView(resume)}
       >
-        {/* PDF Preview */}
+        {/* Preview */}
         <div className="aspect-[253/320] bg-gradient-to-br from-gray-100 to-gray-200 overflow-hidden relative">
-          {loadingPdf || !pdfFile ? (
+          {isBuilderResume ? (
+            // Builder resume preview
+            <div className="w-full h-full flex items-center justify-center bg-gradient-to-br from-primary/10 to-primary/5">
+              <div className="text-center p-6">
+                <File className="w-16 h-16 mx-auto mb-3 text-primary" />
+                <p className="text-sm font-medium text-muted-foreground">Builder Resume</p>
+              </div>
+            </div>
+          ) : loadingPdf ? (
             <div className="w-full h-full flex items-center justify-center">
               <Loader2 className="w-8 h-8 text-primary animate-spin" />
             </div>
-          ) : (
+          ) : pdfFile && pdfFile.type === 'application/pdf' ? (
             <div className="w-full h-full bg-white overflow-hidden relative flex items-center justify-center">
               <div className="relative inline-block" style={{ transform: 'scale(0.4)', transformOrigin: 'center' }}>
                 <Document
@@ -299,6 +345,9 @@ function ResumeCard({
                       <p>Preview unavailable</p>
                     </div>
                   }
+                  onLoadError={(error) => {
+                    console.error('PDF load error:', error);
+                  }}
                 >
                   <Page
                     pageNumber={1}
@@ -308,6 +357,10 @@ function ResumeCard({
                   />
                 </Document>
               </div>
+            </div>
+          ) : (
+            <div className="w-full h-full flex items-center justify-center">
+              <p className="text-sm text-muted-foreground">Preview unavailable</p>
             </div>
           )}
         </div>
@@ -323,21 +376,23 @@ function ResumeCard({
             </p>
           </div>
 
-          {/* Action Buttons */}
-          <div className="flex gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
-            <Button
-              variant="secondary"
-              size="sm"
-              className="text-xs flex-1"
-              onClick={(e) => {
-                e.stopPropagation();
-                onDownload(resume.file_url, resume.filename);
-              }}
-            >
-              <Download className="w-3 h-3 mr-1" />
-              Download
-            </Button>
-          </div>
+          {/* Action Buttons - Only show download for uploaded PDFs */}
+          {!isBuilderResume && (
+            <div className="flex gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
+              <Button
+                variant="secondary"
+                size="sm"
+                className="text-xs flex-1"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  onDownload(resume.file_url, resume.filename);
+                }}
+              >
+                <Download className="w-3 h-3 mr-1" />
+                Download
+              </Button>
+            </div>
+          )}
         </div>
       </Card>
     </div>
