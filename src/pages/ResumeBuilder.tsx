@@ -10,6 +10,7 @@ import List from '@editorjs/list';
 import Paragraph from '@editorjs/paragraph';
 import Underline from '@editorjs/underline';
 import Delimiter from '@editorjs/delimiter';
+import JobEntry from '@/components/EditorJSBlocks/JobEntry';
 import { Save, Eye, Download, Loader2 } from 'lucide-react';
 import {
   useCreateResumeBuilderMutation,
@@ -77,17 +78,76 @@ const ResumeBuilder = () => {
               level: 2,
             },
           },
+          // Job 1
           {
-            type: 'header',
+            type: 'jobEntry',
             data: {
-              text: 'Job Title - Company Name',
-              level: 3,
+              title: 'Job Title - Company Name',
+              date: 'Date Range',
             },
           },
           {
-            type: 'paragraph',
+            type: 'list',
             data: {
-              text: 'Date Range',
+              style: 'unordered',
+              items: [
+                'Achievement or responsibility 1',
+                'Achievement or responsibility 2',
+                'Achievement or responsibility 3',
+              ],
+            },
+          },
+          // Job 2
+          {
+            type: 'jobEntry',
+            data: {
+              title: 'Job Title - Company Name',
+              date: 'Date Range',
+            },
+          },
+          {
+            type: 'list',
+            data: {
+              style: 'unordered',
+              items: [
+                'Achievement or responsibility 1',
+                'Achievement or responsibility 2',
+                'Achievement or responsibility 3',
+              ],
+            },
+          },
+          {
+            type: 'header',
+            data: {
+              text: 'Projects',
+              level: 2,
+            },
+          },
+          // Project 1
+          {
+            type: 'jobEntry',
+            data: {
+              title: 'Project Name',
+              date: 'Date Range',
+            },
+          },
+          {
+            type: 'list',
+            data: {
+              style: 'unordered',
+              items: [
+                'Achievement or responsibility 1',
+                'Achievement or responsibility 2',
+                'Achievement or responsibility 3',
+              ],
+            },
+          },
+          // Project 2
+          {
+            type: 'jobEntry',
+            data: {
+              title: 'Project Name',
+              date: 'Date Range',
             },
           },
           {
@@ -159,6 +219,9 @@ const ResumeBuilder = () => {
             config: {
               defaultStyle: 'unordered',
             },
+          },
+          jobEntry: {
+            class: JobEntry,
           },
           underline: Underline,
           delimiter: Delimiter,
@@ -266,48 +329,104 @@ const ResumeBuilder = () => {
   return (
     <DashboardLayout isPro={isPro} isLoadingSubscription={isLoadingSubscription}>
       <style>{`
-        /* Editor.js custom styles for resume formatting */
+        /* Global Editor.js styles for resume formatting */
+        .codex-editor__redactor {
+          font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Helvetica Neue', Arial, sans-serif !important;
+        }
+
+        /* All text elements */
         .ce-paragraph,
         .ce-header,
         .cdx-list {
+          font-size: 0.875rem !important;
+          font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Helvetica Neue', Arial, sans-serif !important;
           text-align: left !important;
         }
+
+        /* Name/Title - Level 1 Header */
         .ce-header[data-level="1"] {
-          font-size: 1.875rem;
-          font-weight: 700;
-          margin-bottom: 0.5rem;
+          font-weight: 700 !important;
+          margin-bottom: 0.25rem !important;
+          margin-top: 0 !important;
         }
+
+        /* Section Headers - Level 2 Header */
         .ce-header[data-level="2"] {
-          font-size: 1.5rem;
-          font-weight: 600;
-          margin-top: 1.5rem;
-          margin-bottom: 0.5rem;
+          font-weight: 700 !important;
+          margin-top: 0.25rem !important;
+          margin-bottom: 0.25rem !important;
+          text-transform: uppercase !important;
+          letter-spacing: 0.5px !important;
         }
+
+        /* Underline for section headers */
+        .ce-block .ce-header[data-level="2"] {
+          border-bottom: 2px solid #000 !important;
+          padding-bottom: 0.125rem !important;
+        }
+
+        /* Job Title/Subsection - Level 3 Header */
         .ce-header[data-level="3"] {
-          font-size: 1.25rem;
-          font-weight: 600;
-          margin-top: 1rem;
-          margin-bottom: 0.25rem;
+          font-weight: 600 !important;
+          margin-top: 0.5rem !important;
+          margin-bottom: 0.125rem !important;
+          overflow: hidden !important;
         }
+
+        /* Paragraphs */
+        .ce-paragraph {
+          margin-top: 0.125rem !important;
+          margin-bottom: 0.125rem !important;
+        }
+
+        /* Lists */
         .cdx-list {
-          padding-left: 1.5rem;
+          padding-left: 1.25rem !important;
+          margin: 0.125rem 0 !important;
         }
+
+        .cdx-list__item {
+          margin-bottom: 0.125rem !important;
+          padding: 0 !important;
+        }
+
         /* Delimiter - style as horizontal line instead of *** */
         .ce-delimiter {
-          margin: 1.5rem 0;
-          line-height: 0;
-          text-align: center;
-          position: relative;
-          color: transparent;
+          margin: 0 !important;
+          padding: 0 !important;
+          line-height: 0 !important;
+          text-align: center !important;
+          position: relative !important;
+          color: transparent !important;
         }
+
         .ce-delimiter::before {
-          content: '';
-          display: block;
-          border-top: 1px solid #d1d5db;
-          width: 100%;
+          content: '' !important;
+          display: block !important;
+          border-top: 1px solid #d1d5db !important;
+          width: 100% !important;
         }
+
         .ce-delimiter .ce-delimiter__content {
-          display: none;
+          display: none !important;
+        }
+
+        /* Remove spacing from delimiter block wrapper */
+        .ce-block--delimiter {
+          margin-bottom: 0 !important;
+          padding-bottom: 0 !important;
+        }
+
+        /* Remove top spacing from blocks following delimiter */
+        .ce-block--delimiter + .ce-block {
+          margin-top: 0 !important;
+          padding-top: 0 !important;
+        }
+
+        /* Job Entry block spacing */
+        .job-entry-block {
+          margin: 0 !important;
+          padding: 0 !important;
         }
       `}</style>
       <div className="max-w-7xl mx-auto px-6 pt-8 pb-6">
