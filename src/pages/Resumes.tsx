@@ -169,16 +169,16 @@ const Resumes = () => {
         <div className="mb-6 space-y-3">
           {/* Toggle Switch - Mobile Top */}
           <div className="flex items-center justify-center md:hidden">
-            <div className="flex items-center gap-2 px-2 py-1.5 bg-muted rounded-full h-12">
+            <div className="flex items-center gap-1 px-1 py-1 bg-muted rounded-full h-9">
               <button
                 onClick={() => {}}
-                className="px-4 py-1.5 rounded-full bg-primary text-primary-foreground text-sm font-medium transition-colors"
+                className="px-3 py-1 rounded-full bg-background text-xs font-medium transition-colors"
               >
                 Resumes
               </button>
               <button
                 onClick={() => navigate('/projects')}
-                className="px-4 py-1.5 rounded-full text-sm font-medium transition-colors hover:bg-background"
+                className="px-3 py-1 rounded-full text-xs font-medium transition-colors hover:bg-background/50 text-muted-foreground"
               >
                 Projects
               </button>
@@ -210,16 +210,16 @@ const Resumes = () => {
             </Select>
 
             {/* Toggle Switch - Desktop */}
-            <div className="hidden md:flex items-center gap-2 px-2 py-1.5 bg-muted rounded-full h-12 shrink-0">
+            <div className="hidden md:flex items-center gap-1 px-1 py-1 bg-muted rounded-full h-9 shrink-0">
               <button
                 onClick={() => {}}
-                className="px-4 py-1.5 rounded-full bg-primary text-primary-foreground text-sm font-medium transition-colors"
+                className="px-3 py-1 rounded-full bg-background text-xs font-medium transition-colors"
               >
                 Resumes
               </button>
               <button
                 onClick={() => navigate('/projects')}
-                className="px-4 py-1.5 rounded-full text-sm font-medium transition-colors hover:bg-background"
+                className="px-3 py-1 rounded-full text-xs font-medium transition-colors hover:bg-background/50 text-muted-foreground"
               >
                 Projects
               </button>
@@ -268,10 +268,10 @@ const Resumes = () => {
               return (
               <div key={resume.id} className="relative h-full group">
                 <Card
-                  className="overflow-hidden border-0 bg-muted rounded-2xl hover:shadow-xl hover:scale-105 hover:-translate-y-2 transition-all duration-300 cursor-pointer h-full"
+                  className="overflow-hidden border-0 bg-white dark:bg-white rounded-2xl hover:shadow-xl hover:scale-105 hover:-translate-y-2 transition-all duration-300 cursor-pointer h-full"
                   onClick={() => handleResumeClick(resume, index)}
                 >
-                  <div className="aspect-[253/320] bg-white overflow-hidden relative flex items-center justify-center">
+                  <div className="aspect-[253/320] bg-white dark:bg-white overflow-hidden relative flex items-center justify-center">
                     {resume.file_url && resume.file_url.toLowerCase().endsWith('.pdf') ? (
                       <div className={`w-full h-full bg-white overflow-hidden relative ${isBlurred ? 'blur-md' : ''}`}>
                         <object
@@ -303,12 +303,12 @@ const Resumes = () => {
                   </div>
                   <div className="p-4">
                     <div className="flex items-start justify-between gap-2 mb-2">
-                      <h3 className="font-semibold text-sm leading-tight">
+                      <h3 className="font-semibold text-sm leading-tight text-black dark:text-black">
                         {resume.title || resume.name || 'Untitled Resume'}
                       </h3>
                     </div>
                     {resume.education && resume.education.length > 0 && resume.education[0].institution && (
-                      <p className="text-xs text-muted-foreground mb-3">{resume.education[0].institution}</p>
+                      <p className="text-xs text-gray-600 dark:text-gray-600 mb-3">{resume.education[0].institution}</p>
                     )}
                     <div className="flex flex-wrap gap-2 items-center justify-between">
                       <div className="flex flex-wrap gap-2 items-center">
@@ -343,7 +343,7 @@ const Resumes = () => {
                             resume.skills.slice(0, 3).map((skill, idx) => (
                               <span
                                 key={idx}
-                                className="text-xs px-2 py-1 rounded-md bg-secondary text-foreground"
+                                className="text-xs px-2 py-1 rounded-md bg-gray-100 dark:bg-gray-100 text-black dark:text-black"
                               >
                                 {skill}
                               </span>

@@ -440,34 +440,27 @@ const ResumeBuilder = () => {
           </div>
 
           {/* Toolbar */}
-          <div className="flex gap-2">
-            <Button
-              variant="outline"
-              size="sm"
+          <div className="flex gap-2 items-center">
+            <button
               onClick={handlePreview}
               disabled={!isReady}
+              title={showPreview ? 'Hide Preview' : 'Preview'}
+              className="p-2 hover:bg-gray-100 dark:hover:bg-gray-700 rounded transition-colors disabled:opacity-30 disabled:cursor-not-allowed"
             >
-              <Eye className="w-4 h-4 mr-2" />
-              {showPreview ? 'Hide Preview' : 'Preview'}
-            </Button>
-            <Button
-              variant="outline"
-              size="sm"
+              <Eye className="w-4 h-4" />
+            </button>
+            <button
               onClick={handleExport}
               disabled={!isReady || isGeneratingPdf}
+              title="Export PDF"
+              className="p-2 hover:bg-gray-100 dark:hover:bg-gray-700 rounded transition-colors disabled:opacity-30 disabled:cursor-not-allowed"
             >
               {isGeneratingPdf ? (
-                <>
-                  <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-                  Generating PDF...
-                </>
+                <Loader2 className="w-4 h-4 animate-spin" />
               ) : (
-                <>
-                  <Download className="w-4 h-4 mr-2" />
-                  Export PDF
-                </>
+                <Download className="w-4 h-4" />
               )}
-            </Button>
+            </button>
             <Button
               size="sm"
               onClick={handleSave}

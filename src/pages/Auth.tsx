@@ -10,8 +10,8 @@ const Auth = () => {
             card: 'shadow-lg',
           }
         }}
-        forceRedirectUrl="/dashboard"
-        signUpForceRedirectUrl="/dashboard"
+        forceRedirectUrl="/resumes"
+        signUpForceRedirectUrl="/resumes"
       />
     </div>
   );
