@@ -183,18 +183,43 @@ export default function DevReviewPanel() {
                         <p className="text-xs text-muted-foreground mb-1">Submitted</p>
                         <p className="text-sm">{formatDate(submission.submitted_at)}</p>
                       </div>
+                      <div className="grid grid-cols-2 gap-4">
+                        <div>
+                          <p className="text-xs text-muted-foreground mb-1">Reviewer Type</p>
+                          <Badge variant="outline" className="text-xs">
+                            {(submission as any).reviewer_type?.replace('_', ' ') || 'Team'}
+                          </Badge>
+                        </div>
+                        <div>
+                          <p className="text-xs text-muted-foreground mb-1">Delivery</p>
+                          <Badge variant="outline" className="text-xs">
+                            {(submission as any).delivery_speed === 'express' ? '1 day' : '3 days'}
+                          </Badge>
+                        </div>
+                      </div>
                       <div>
                         <p className="text-xs text-muted-foreground mb-1">Payment Status</p>
-                        {submission.paid ? (
-                          <Badge variant="default" className="bg-green-500 hover:bg-green-600">
-                            <DollarSign className="w-3 h-3 mr-1" />
-                            Paid
-                          </Badge>
-                        ) : (
-                          <Badge variant="secondary">
-                            Unpaid
-                          </Badge>
-                        )}
+                        <div className="flex items-center gap-2">
+                          {(submission as any).total_price === 0 ? (
+                            <Badge variant="outline" className="border-green-500 text-green-500">
+                              Free
+                            </Badge>
+                          ) : submission.paid ? (
+                            <Badge variant="default" className="bg-green-500 hover:bg-green-600">
+                              <DollarSign className="w-3 h-3 mr-1" />
+                              Paid
+                            </Badge>
+                          ) : (
+                            <Badge variant="secondary">
+                              Unpaid
+                            </Badge>
+                          )}
+                          {(submission as any).total_price > 0 && (
+                            <span className="text-sm font-medium">
+                              ${(submission as any).total_price?.toFixed(2)}
+                            </span>
+                          )}
+                        </div>
                       </div>
                       <div className="flex gap-2">
                         <Button

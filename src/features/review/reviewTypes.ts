@@ -9,12 +9,19 @@ export interface ReviewSubmissionSummary {
   submitted_at: string;
   completed_at: string | null;
   paid: boolean;
+  total_price: number;
 }
 
 export interface ReviewSubmissionDetail extends ReviewSubmissionSummary {
   user_id: string;
   storage_path: string;
   notes: string | null;
+  review_context: string | null;
+  reviewer_type: string;
+  delivery_speed: string;
+  base_price: number;
+  delivery_fee: number;
+  total_price: number;
   created_at: string;
   updated_at: string;
   stripe_session_id: string | null;

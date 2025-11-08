@@ -298,7 +298,7 @@ export default function DevReviewDetailPanel() {
             {/* Submission Info */}
             <Card className="p-4">
               <h3 className="font-semibold mb-3">Submission Details</h3>
-              <div className="space-y-2">
+              <div className="space-y-3">
                 <div>
                   <p className="text-xs text-muted-foreground">Filename</p>
                   <p className="text-sm font-medium break-words">{submission.filename}</p>
@@ -307,6 +307,30 @@ export default function DevReviewDetailPanel() {
                   <p className="text-xs text-muted-foreground">Status</p>
                   <Badge variant="secondary">Reviewing</Badge>
                 </div>
+                <div>
+                  <p className="text-xs text-muted-foreground">Reviewer Type</p>
+                  <p className="text-sm font-medium capitalize">{submission.reviewer_type?.replace('_', ' ')}</p>
+                </div>
+                <div>
+                  <p className="text-xs text-muted-foreground">Delivery Speed</p>
+                  <p className="text-sm font-medium capitalize">
+                    {submission.delivery_speed === 'standard' ? 'Standard (3 days)' : 'Express (1 day)'}
+                  </p>
+                </div>
+                <div>
+                  <p className="text-xs text-muted-foreground">Total Cost</p>
+                  <p className="text-sm font-medium">
+                    ${submission.total_price?.toFixed(2) || '0.00'}
+                  </p>
+                </div>
+                {submission.review_context && (
+                  <div>
+                    <p className="text-xs text-muted-foreground">User's Context</p>
+                    <p className="text-sm text-muted-foreground italic border-l-2 border-primary pl-2 mt-1">
+                      {submission.review_context}
+                    </p>
+                  </div>
+                )}
               </div>
             </Card>
 

@@ -12,8 +12,8 @@ import DashboardLayout from '@/components/DashboardLayout';
 import {
   useSubmitReviewMutation,
   useCreateReviewCheckoutMutation,
-  useListSubmissionsQuery,
 } from '@/features/review/reviewService';
+import { useListUserResumesQuery } from '@/features/user-resume/userResumeService';
 
 export default function ResumeReviewRequest() {
   const navigate = useNavigate();
@@ -33,11 +33,11 @@ export default function ResumeReviewRequest() {
   const [submitReview, { isLoading: isSubmitting }] = useSubmitReviewMutation();
   const [createReviewCheckout, { isLoading: isCreatingCheckout }] = useCreateReviewCheckoutMutation();
 
-  const { data: submissionsData } = useListSubmissionsQuery(undefined, {
+  const { data: resumesData } = useListUserResumesQuery(undefined, {
     skip: querySkipCondition,
   });
 
-  const existingResumes = submissionsData?.submissions || [];
+  const existingResumes = resumesData?.resumes || [];
 
   const reviewerOptions = [
     { value: 'team', label: 'Cooked Career Team', price: 0, priceDisplay: 'Free', description: 'Professional review by our team' },
@@ -119,8 +119,8 @@ export default function ResumeReviewRequest() {
     const formData = new FormData();
 
     if (useExisting) {
-      // Use existing resume - send the submission ID
-      formData.append('existing_submission_id', selectedExistingResume);
+      // Use existing resume - send the user resume ID
+      formData.append('existing_resume_id', selectedExistingResume);
     } else {
       // Upload new file
       formData.append('file', selectedFile!);

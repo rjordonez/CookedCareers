@@ -62,10 +62,12 @@ export default function ResumeReviewDetail() {
       try {
         const token = await getToken();
 
-        // If completed and unpaid: show reviewed PDF (blurred) - preview with annotations
-        // If completed and paid: show original PDF + interactive overlays
+        // If completed and unpaid (and not free): show reviewed PDF (blurred) - preview with annotations
+        // If completed and paid or free: show reviewed PDF with annotations
         // If pending: show original
-        const pdfUrl = submission?.status === 'completed' && !submission?.paid && submission?.reviewed_file_url
+        const pdfUrl = submission?.status === 'completed' && !submission?.paid && submission?.total_price > 0 && submission?.reviewed_file_url
+          ? submission.reviewed_file_url
+          : submission?.status === 'completed' && (submission?.paid || submission?.total_price === 0) && submission?.reviewed_file_url
           ? submission.reviewed_file_url
           : submission.file_url;
 
@@ -246,7 +248,7 @@ export default function ResumeReviewDetail() {
             </Card>
 
             {/* Actions Card */}
-            {submission?.status === 'completed' && submission?.paid && submission?.reviewed_file_url && (
+            {submission?.status === 'completed' && (submission?.paid || submission?.total_price === 0) && submission?.reviewed_file_url && (
               <Card className="p-4">
                 <h3 className="font-semibold mb-3">Actions</h3>
                 <div className="space-y-2">
@@ -320,8 +322,8 @@ export default function ResumeReviewDetail() {
                 <div className="border-2 rounded-lg overflow-auto max-h-[800px] bg-gray-100">
                   <div className="flex justify-center p-4">
                     <div className="relative inline-block">
-                      {/* Blur the PDF if completed but not paid */}
-                      <div className={submission?.status === 'completed' && !submission?.paid ? 'blur-sm' : ''}>
+                      {/* Blur the PDF if completed but not paid (and not free) */}
+                      <div className={submission?.status === 'completed' && !submission?.paid && submission?.total_price > 0 ? 'blur-sm' : ''}>
                         <Document
                           file={pdfFile}
                           onLoadSuccess={({ numPages }) => setNumPages(numPages)}
@@ -344,8 +346,8 @@ export default function ResumeReviewDetail() {
                             renderAnnotationLayer={false}
                           />
 
-                          {/* Annotation Overlays - Only show if paid */}
-                          {submission?.paid && currentPageAnnotations.map((annotation) => (
+                          {/* Annotation Overlays - Show if paid or free */}
+                          {(submission?.paid || submission?.total_price === 0) && currentPageAnnotations.map((annotation) => (
                             <div
                               key={annotation.id}
                               className="absolute bg-yellow-300/40 border-2 border-yellow-400 cursor-pointer hover:bg-yellow-300/60 transition-all group"
@@ -368,8 +370,8 @@ export default function ResumeReviewDetail() {
                         </Document>
                       </div>
 
-                      {/* Paywall Overlay - Show if completed but not paid */}
-                      {submission?.status === 'completed' && !submission?.paid && (
+                      {/* Paywall Overlay - Show if completed but not paid (and not free) */}
+                      {submission?.status === 'completed' && !submission?.paid && submission?.total_price > 0 && (
                         <PaywallOverlay
                           onPayClick={handlePayClick}
                           isLoading={isCreatingCheckout}
@@ -391,8 +393,8 @@ export default function ResumeReviewDetail() {
               </p>
             </Card>
 
-            {/* Reviewer Notes - Below PDF - Only show if paid */}
-            {submission?.notes && submission?.paid && (
+            {/* Reviewer Notes - Below PDF - Show if paid or free */}
+            {submission?.notes && (submission?.paid || submission?.total_price === 0) && (
               <Card className="p-6 mt-6">
                 <h3 className="font-semibold mb-3 text-lg">Reviewer Notes</h3>
                 <div className="prose prose-sm max-w-none">
