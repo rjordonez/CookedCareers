@@ -24,6 +24,8 @@ export interface ProjectsResponse {
 }
 
 export interface ProjectsParams {
+  q?: string;
+  technologies?: string;
   page?: number;
   limit?: number;
 }

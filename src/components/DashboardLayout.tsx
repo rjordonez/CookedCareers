@@ -29,8 +29,7 @@ const DashboardLayout = ({
 
   const navItems = [
     { path: "/dashboard", label: "Dashboard" },
-    { path: "/resumes", label: "Resumes" },
-    { path: "/projects", label: "Projects" },
+    { path: "/resumes", label: "Library" },
     { path: "/anonymizer", label: "Anonymizer" },
     { path: "/ats-checker", label: "ATS Checker" },
     { path: "/resume-review", label: "Review" },
@@ -42,6 +41,9 @@ const DashboardLayout = ({
     }
     if (path === "/ats-checker") {
       return location.pathname === path || location.pathname.startsWith(`${path}/`);
+    }
+    if (path === "/resumes") {
+      return location.pathname === "/resumes" || location.pathname === "/projects";
     }
     return location.pathname === path;
   };

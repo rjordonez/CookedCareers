@@ -7,4 +7,5 @@ export { usePDFViewer } from './usePDFViewer';
 
 // Existing hooks
 export { useResumeFilters } from './useResumeFilters';
+export { useProjectFilters } from './useProjectFilters';
 export { useAppDispatch } from './useAppDispatch';

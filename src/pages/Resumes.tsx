@@ -1,4 +1,5 @@
 import { useEffect, useState, useRef } from "react";
+import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Card } from "@/components/ui/card";
@@ -19,6 +20,7 @@ const FREE_PREVIEW_COUNT = 6;
 const Resumes = () => {
   const { user, querySkipCondition, isPro, isLoadingSubscription } = useAuthState();
   const { requireAuth } = useRequireAuth();
+  const navigate = useNavigate();
   const [selectedResume, setSelectedResume] = useState<Resume | null>(null);
   const [localSearchQuery, setLocalSearchQuery] = useState("");
   const posthog = usePostHog();
@@ -187,6 +189,22 @@ const Resumes = () => {
                 <SelectItem value="senior">Senior</SelectItem>
               </SelectContent>
             </Select>
+
+            {/* Toggle Switch */}
+            <div className="flex items-center gap-2 px-2 py-1.5 bg-muted rounded-full h-12 shrink-0">
+              <button
+                onClick={() => {}}
+                className="px-4 py-1.5 rounded-full bg-primary text-primary-foreground text-sm font-medium transition-colors"
+              >
+                Resumes
+              </button>
+              <button
+                onClick={() => navigate('/projects')}
+                className="px-4 py-1.5 rounded-full text-sm font-medium transition-colors hover:bg-background"
+              >
+                Projects
+              </button>
+            </div>
 
             {hasActiveFilters && (
               <Button
