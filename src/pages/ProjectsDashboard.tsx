@@ -127,8 +127,27 @@ const ProjectsDashboard = () => {
     <DashboardLayout isPro={isPro} isLoadingSubscription={isLoadingSubscription}>
       <div className="max-w-7xl mx-auto px-6 pt-4 pb-6">
         {/* Search and Filters Bar */}
-        <div className="mb-6">
-          <div className="flex items-center gap-2">
+        <div className="mb-6 space-y-3">
+          {/* Toggle Switch - Mobile Top */}
+          <div className="flex items-center justify-center md:hidden">
+            <div className="flex items-center gap-2 px-2 py-1.5 bg-muted rounded-full h-12">
+              <button
+                onClick={() => navigate('/resumes')}
+                className="px-4 py-1.5 rounded-full text-sm font-medium transition-colors hover:bg-background"
+              >
+                Resumes
+              </button>
+              <button
+                onClick={() => {}}
+                className="px-4 py-1.5 rounded-full bg-primary text-primary-foreground text-sm font-medium transition-colors"
+              >
+                Projects
+              </button>
+            </div>
+          </div>
+
+          {/* Search and Filters Row */}
+          <div className="flex flex-col md:flex-row items-stretch md:items-center gap-2">
             <div className="relative flex-1">
               <input
                 type="text"
@@ -149,8 +168,8 @@ const ProjectsDashboard = () => {
               />
             </div>
 
-            {/* Toggle Switch */}
-            <div className="flex items-center gap-2 px-2 py-1.5 bg-muted rounded-full h-12 shrink-0">
+            {/* Toggle Switch - Desktop */}
+            <div className="hidden md:flex items-center gap-2 px-2 py-1.5 bg-muted rounded-full h-12 shrink-0">
               <button
                 onClick={() => navigate('/resumes')}
                 className="px-4 py-1.5 rounded-full text-sm font-medium transition-colors hover:bg-background"
@@ -170,7 +189,7 @@ const ProjectsDashboard = () => {
                 variant="ghost"
                 onClick={handleClearFilters}
                 size="icon"
-                className="w-12 h-12 rounded-full shrink-0"
+                className="w-full md:w-12 h-12 rounded-full shrink-0"
               >
                 <X className="w-4 h-4" />
               </Button>
