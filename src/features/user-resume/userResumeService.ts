@@ -24,7 +24,7 @@ export const userResumeApi = baseApi.injectEndpoints({
       query: () => '/api/user-resume/list',
       providesTags: ['Resume'],
     }),
-    uploadUserResume: builder.mutation<{ success: boolean; message: string }, FormData>({
+    uploadUserResume: builder.mutation<{ success: boolean; message: string; resume_id: string; file_url: string }, FormData>({
       query: (formData) => ({
         url: '/api/user-resume/upload',
         method: 'POST',
