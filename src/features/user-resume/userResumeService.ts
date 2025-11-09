@@ -54,10 +54,11 @@ export const userResumeApi = baseApi.injectEndpoints({
       }),
       invalidatesTags: ['Resume'],
     }),
-    generateResumePdf: builder.mutation<GeneratePdfResponse, string>({
-      query: (resumeId) => ({
-        url: `/api/resume-builder/${resumeId}/generate-pdf`,
+    generateResumePdf: builder.mutation<GeneratePdfResponse, { resumeId: string; html: string }>({
+      query: (args) => ({
+        url: `/api/resume-builder/${args.resumeId}/generate-pdf`,
         method: 'POST',
+        body: { html: args.html },
       }),
     }),
     deleteResumeBuilder: builder.mutation<DeleteResumeBuilderResponse, string>({
