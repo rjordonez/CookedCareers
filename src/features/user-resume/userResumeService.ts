@@ -24,7 +24,7 @@ export const userResumeApi = baseApi.injectEndpoints({
       query: () => '/api/user-resume/list',
       providesTags: ['Resume'],
     }),
-    uploadUserResume: builder.mutation<{ success: boolean; message: string }, FormData>({
+    uploadUserResume: builder.mutation<{ success: boolean; message: string; resume_id: string; file_url: string }, FormData>({
       query: (formData) => ({
         url: '/api/user-resume/upload',
         method: 'POST',
@@ -54,10 +54,11 @@ export const userResumeApi = baseApi.injectEndpoints({
       }),
       invalidatesTags: ['Resume'],
     }),
-    generateResumePdf: builder.mutation<GeneratePdfResponse, string>({
-      query: (resumeId) => ({
-        url: `/api/resume-builder/${resumeId}/generate-pdf`,
+    generateResumePdf: builder.mutation<GeneratePdfResponse, { resumeId: string; html: string }>({
+      query: (args) => ({
+        url: `/api/resume-builder/${args.resumeId}/generate-pdf`,
         method: 'POST',
+        body: { html: args.html },
       }),
     }),
     deleteResumeBuilder: builder.mutation<DeleteResumeBuilderResponse, string>({

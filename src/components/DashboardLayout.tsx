@@ -174,14 +174,14 @@ const DashboardLayout = ({
             </SheetHeader>
 
             {/* Create Resume Button */}
-            {/* <div className="p-4">
-              <Link to="/dashboard" onClick={() => setMobileMenuOpen(false)}>
+            <div className="p-4">
+              <Link to="/resume-builder" onClick={() => setMobileMenuOpen(false)}>
                 <Button className="w-full bg-primary hover:bg-primary/90 text-primary-foreground rounded-lg h-10">
                   <Plus className="w-4 h-4 mr-2" />
                   Create Resume
                 </Button>
               </Link>
-            </div> */}
+            </div>
 
             {/* Navigation Links */}
             <nav className="flex-1 p-4 pt-0">
@@ -261,14 +261,14 @@ const DashboardLayout = ({
         </div>
 
         {/* Create Resume Button */}
-        {/* <div className="p-4">
+        <div className="p-4">
           <Link to="/resume-builder">
             <Button className="w-full bg-primary hover:bg-primary/90 text-primary-foreground rounded-lg h-10">
               <Plus className="w-4 h-4 mr-2" />
               Create Resume
             </Button>
           </Link>
-        </div> */}
+        </div>
 
         {/* Navigation Links */}
         <nav className="flex-1 p-4 pt-0">

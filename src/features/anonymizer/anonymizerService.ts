@@ -16,11 +16,11 @@ import type {
 
 export const anonymizerApi = baseApi.injectEndpoints({
   endpoints: (builder) => ({
-    detectPII: builder.mutation<DetectPIIResponse, FormData>({
-      query: (formData) => ({
+    detectPII: builder.mutation<DetectPIIResponse, { user_resume_id: string }>({
+      query: (data) => ({
         url: '/api/anonymizer/detect-pii',
         method: 'POST',
-        body: formData,
+        body: data,
       }),
       invalidatesTags: ['Anonymizer'],
     }),

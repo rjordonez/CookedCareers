@@ -37,6 +37,7 @@ import {
   useSaveSessionMutation,
   useCreateShareLinkMutation,
 } from '@/features/anonymizer/anonymizerService';
+import { useUploadUserResumeMutation } from '@/features/user-resume/userResumeService';
 import SessionsList from '@/components/SessionsList';
 import {
   PII_TYPE_COLORS,
@@ -67,6 +68,7 @@ export default function AnonymizerDashboard() {
     (state) => state.anonymizer
   );
 
+  const [uploadUserResume, { isLoading: isUploading }] = useUploadUserResumeMutation();
   const [detectPII, { isLoading: isDetecting }] = useDetectPIIMutation();
   const [generateAnonymizedPDF, { isLoading: isGenerating }] =
     useGenerateAnonymizedPDFMutation();
@@ -181,10 +183,19 @@ export default function AnonymizerDashboard() {
     setPdfFile(file);
 
     try {
+      // Step 1: Upload the file to get a resume_id
       const formData = new FormData();
       formData.append('file', file);
 
-      const result = await detectPII(formData).unwrap();
+      const uploadResult = await uploadUserResume(formData).unwrap();
+
+      if (!uploadResult.success || !uploadResult.resume_id) {
+        console.error('Failed to upload file');
+        return;
+      }
+
+      // Step 2: Detect PII using the resume_id
+      const result = await detectPII({ user_resume_id: uploadResult.resume_id }).unwrap();
 
       if (result.success) {
         dispatch(setFileId(result.file_id));
@@ -492,11 +503,11 @@ export default function AnonymizerDashboard() {
           onChange={handleFileUpload}
           className="hidden"
           id="pdf-upload"
-          disabled={isDetecting}
+          disabled={isUploading || isDetecting}
         />
 
         {/* Sessions List View */}
-        {view === 'list' && !isDetecting && !isRestoringSession && (
+        {view === 'list' && !isUploading && !isDetecting && !isRestoringSession && (
           <SessionsList
             onSelectSession={handleSelectSession}
             onUploadNew={handleUploadNew}
@@ -506,14 +517,16 @@ export default function AnonymizerDashboard() {
         )}
 
         {/* Loading State */}
-        {(isDetecting || isRestoringSession) && (
+        {(isUploading || isDetecting || isRestoringSession) && (
           <Card className="p-12 text-center">
             <Loader2 className="w-16 h-16 mx-auto mb-6 text-primary animate-spin" />
             <h2 className="text-2xl font-semibold mb-3">
-              {isDetecting ? 'Analyzing Your Resume' : 'Loading...'}
+              {isUploading ? 'Uploading Your Resume' : isDetecting ? 'Analyzing Your Resume' : 'Loading...'}
             </h2>
             <p className="text-muted-foreground max-w-md mx-auto">
-              {isDetecting
+              {isUploading
+                ? "Uploading your document to secure storage..."
+                : isDetecting
                 ? "We're scanning your document for personal information like names, emails, phone numbers, and addresses. This will only take a moment..."
                 : 'Please wait...'}
             </p>
@@ -521,7 +534,7 @@ export default function AnonymizerDashboard() {
         )}
 
         {/* Main Content */}
-        {view === 'editor' && pdfFile && !isDetecting && !isRestoringSession && (
+        {view === 'editor' && pdfFile && !isUploading && !isDetecting && !isRestoringSession && (
           <div className="grid grid-cols-12 gap-6">
             {/* Left Sidebar - Controls */}
             <div className="col-span-12 lg:col-span-3 space-y-4">

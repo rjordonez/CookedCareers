@@ -18,6 +18,7 @@ import {
   useSaveResumeBuilderMutation,
   useGenerateResumePdfMutation,
 } from '@/features/user-resume/userResumeService';
+import { renderResumeToHTML } from '@/utils/resumeRenderer';
 
 const ResumeBuilder = () => {
   const { isPro, isLoadingSubscription } = useAuthState();
@@ -288,6 +289,10 @@ const ResumeBuilder = () => {
     try {
       const outputData = await editorRef.current.save();
 
+      // DEBUG: Log what we're actually sending
+      console.log('📄 Editor.js data:', outputData);
+      console.log('📄 Number of blocks:', outputData.blocks.length);
+
       // Extract title from first header block
       const firstBlock = outputData.blocks[0];
       const title = firstBlock?.type === 'header' ? firstBlock.data.text : 'Untitled Resume';
@@ -310,8 +315,17 @@ const ResumeBuilder = () => {
         },
       }).unwrap();
 
-      // Generate PDF
-      const result = await generatePdf(currentResumeId).unwrap();
+      // NEW: Render Editor.js data to styled HTML
+      const styledHTML = renderResumeToHTML(outputData);
+
+      // DEBUG: Log the HTML we're sending
+      console.log('📄 HTML being sent to backend:', styledHTML.substring(0, 500) + '...');
+
+      // Generate PDF from HTML (backend just converts HTML → PDF)
+      const result = await generatePdf({
+        resumeId: currentResumeId,
+        html: styledHTML,
+      }).unwrap();
 
       // Download the PDF
       const link = document.createElement('a');
