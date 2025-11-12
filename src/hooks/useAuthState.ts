@@ -28,10 +28,17 @@ export const useAuthState = () => {
   // Fetch subscription status once
   const {
     data: subscriptionData,
-    isLoading: isLoadingSubscription
+    isLoading: isLoadingSubscription,
+    error: subscriptionError
   } = useGetSubscriptionStatusQuery(undefined, {
     skip: querySkipCondition,
   });
+
+  // Log subscription errors
+  if (subscriptionError) {
+    console.error('🔴 useAuthState: Subscription query failed');
+    console.error('Error details:', subscriptionError);
+  }
 
   const isPro = subscriptionData?.is_pro ?? false;
 
