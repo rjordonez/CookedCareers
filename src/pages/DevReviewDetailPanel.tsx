@@ -347,8 +347,8 @@ export default function DevReviewDetailPanel() {
                       className="p-2 border rounded-lg hover:bg-accent cursor-pointer group"
                       onClick={() => setCurrentPage(annotation.page_number + 1)}
                     >
-                      <div className="flex items-start justify-between">
-                        <div className="flex-1">
+                      <div className="flex items-start justify-between gap-2">
+                        <div className="flex-1 min-w-0">
                           <p className="text-xs text-muted-foreground">Page {annotation.page_number + 1}</p>
                           {annotation.content.selectedText && (
                             <p className="text-xs font-medium text-primary truncate">
@@ -360,13 +360,13 @@ export default function DevReviewDetailPanel() {
                         <Button
                           variant="ghost"
                           size="sm"
-                          className="opacity-0 group-hover:opacity-100 ml-2"
+                          className="shrink-0 h-8 w-8 p-0 hover:bg-destructive hover:text-destructive-foreground"
                           onClick={(e) => {
                             e.stopPropagation();
                             handleDeleteAnnotation(annotation.id);
                           }}
                         >
-                          <Trash2 className="w-3 h-3" />
+                          <Trash2 className="w-4 h-4" />
                         </Button>
                       </div>
                     </div>
@@ -543,9 +543,21 @@ export default function DevReviewDetailPanel() {
                           }}
                           title={annotation.content.comment}
                         >
+                          {/* Comment Tooltip */}
                           <div className="absolute -top-2 left-0 bg-yellow-500 text-white text-xs px-3 py-2 rounded shadow-lg max-w-xs max-h-48 overflow-y-auto break-words opacity-0 group-hover:opacity-100 transition-opacity pointer-events-auto z-20 transform -translate-y-full">
                             {annotation.content.comment}
                           </div>
+                          {/* Delete Button */}
+                          <button
+                            className="absolute -top-2 -right-2 bg-red-500 hover:bg-red-600 text-white rounded-full w-6 h-6 flex items-center justify-center shadow-lg opacity-0 group-hover:opacity-100 transition-opacity z-20"
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              handleDeleteAnnotation(annotation.id);
+                            }}
+                            title="Delete annotation"
+                          >
+                            <X className="w-4 h-4" />
+                          </button>
                         </div>
                       ))}
                     </Document>
