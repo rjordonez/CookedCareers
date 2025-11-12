@@ -10,6 +10,13 @@ export const subscriptionApi = baseApi.injectEndpoints({
     getSubscriptionStatus: builder.query<SubscriptionInfo, void>({
       query: () => '/api/subscriptions/status',
       providesTags: ['Subscription'],
+      transformErrorResponse: (response, meta, arg) => {
+        console.error('❌ Subscription Status Error:');
+        console.error('Status:', response.status);
+        console.error('Response Data:', response.data);
+        console.error('Full Error:', response);
+        return response;
+      },
     }),
 
     createCheckoutSession: builder.mutation<CheckoutSessionResponse, void>({

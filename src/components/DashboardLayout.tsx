@@ -43,6 +43,7 @@ const DashboardLayout = ({
   };
 
   const navItems = [
+    { path: "/dashboard", label: "Dashboard", icon: LayoutDashboard },
     { path: "/resumes", label: "Library", icon: Library },
     { path: "/anonymizer", label: "Anonymizer", icon: Shield },
     { path: "/ats-checker", label: "ATS Checker", icon: FileCheck },
