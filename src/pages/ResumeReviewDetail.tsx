@@ -350,7 +350,7 @@ export default function ResumeReviewDetail() {
                           {(submission?.paid || submission?.total_price === 0) && currentPageAnnotations.map((annotation) => (
                             <div
                               key={annotation.id}
-                              className="absolute bg-yellow-300/40 border-2 border-yellow-400 cursor-pointer hover:bg-yellow-300/60 transition-all group"
+                              className="absolute cursor-pointer hover:bg-yellow-300/60 transition-all group"
                               style={{
                                 left: `${annotation.position.x * scale}px`,
                                 top: `${annotation.position.y * scale}px`,
@@ -364,7 +364,6 @@ export default function ResumeReviewDetail() {
                               <div className="absolute -top-8 left-0 bg-yellow-500 text-white text-xs px-2 py-1 rounded shadow-lg max-w-xs whitespace-normal opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none z-20">
                                 {annotation.content.comment}
                               </div>
-                              <MessageSquare className="w-3 h-3 text-yellow-600 absolute top-0 right-0 -mt-1 -mr-1 bg-white rounded-full p-0.5" />
                             </div>
                           ))}
                         </Document>
