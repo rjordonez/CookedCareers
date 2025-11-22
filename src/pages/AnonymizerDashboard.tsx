@@ -92,6 +92,29 @@ export default function AnonymizerDashboard() {
     return () => document.removeEventListener('selectionchange', handleSelectionChange);
   }, []);
 
+  // Auto-blur text selection when user releases mouse in selection mode
+  useEffect(() => {
+    const handleMouseUp = () => {
+      if (!isSelectionMode) return;
+
+      const selection = window.getSelection();
+      if (selection && selection.toString().trim().length > 0) {
+        // Small delay to ensure selection is complete
+        setTimeout(() => {
+          handleBlurSelection();
+          // Stay in selection mode so user can continue highlighting
+        }, 100);
+      }
+    };
+
+    if (isSelectionMode && pdfContainerRef.current) {
+      pdfContainerRef.current.addEventListener('mouseup', handleMouseUp);
+      return () => {
+        pdfContainerRef.current?.removeEventListener('mouseup', handleMouseUp);
+      };
+    }
+  }, [isSelectionMode, scale, currentPage, dispatch]);
+
   // Load session data when selected
   useEffect(() => {
     if (sessionData?.success && sessionData.session) {
@@ -392,10 +415,11 @@ export default function AnonymizerDashboard() {
 
   const handleToggleSelectionMode = () => {
     if (!requireAuth()) return;
-    if (isSelectionMode && hasTextSelection) {
-      handleBlurSelection();
-    } else {
-      setIsSelectionMode(!isSelectionMode);
+    setIsSelectionMode(!isSelectionMode);
+    if (isSelectionMode) {
+      // Exiting selection mode - clear any selection
+      window.getSelection()?.removeAllRanges();
+      setHasTextSelection(false);
     }
   };
 
@@ -610,7 +634,7 @@ export default function AnonymizerDashboard() {
                     {/* Action Icons */}
                     <button
                       onClick={handleToggleSelectionMode}
-                      title={isSelectionMode ? "Cancel Selection Mode" : "Enable Text Selection"}
+                      title={isSelectionMode ? "Exit Selection Mode" : "Highlight & Blur Custom Text"}
                       className="p-2 hover:bg-gray-100 dark:hover:bg-gray-700 rounded transition-colors"
                     >
                       {isSelectionMode ? (
@@ -697,7 +721,7 @@ export default function AnonymizerDashboard() {
                 <div className="border-2 rounded-lg overflow-auto max-h-[800px] bg-gray-100 relative">
                   {isSelectionMode && (
                     <div className="absolute top-2 left-2 bg-primary text-primary-foreground px-3 py-1 rounded-md text-sm font-medium z-10">
-                      Selection Mode: Highlight text to blur
+                      Selection Mode: Highlight text to automatically blur it
                     </div>
                   )}
                   <div className="flex justify-center p-4">
@@ -820,8 +844,7 @@ export default function AnonymizerDashboard() {
 
                 {/* Help Text */}
                 <p className="text-sm text-gray-500 mt-4 text-center">
-                  Click on any blurred area to toggle visibility • Use the sidebar to
-                  control individual fields
+                  Click blurred areas to toggle visibility • Click the wand icon, then highlight text to blur custom areas • Use the sidebar to replace text
                 </p>
               </Card>
             </div>

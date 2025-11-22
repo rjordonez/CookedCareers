@@ -1,12 +1,11 @@
 import { useState, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Upload, Loader2, ChevronDown } from 'lucide-react';
+import { Upload, Loader2 } from 'lucide-react';
 import { useAuthState, useRequireAuth } from '@/hooks';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
-import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import DashboardLayout from '@/components/DashboardLayout';
 import {
@@ -27,7 +26,6 @@ export default function ResumeReviewRequest() {
   const [context, setContext] = useState('');
   const [reviewer, setReviewer] = useState('team');
   const [speed, setSpeed] = useState('standard');
-  const [shouldPayNow, setShouldPayNow] = useState(false);
   const [isDragging, setIsDragging] = useState(false);
 
   const [submitReview, { isLoading: isSubmitting }] = useSubmitReviewMutation();
@@ -140,14 +138,14 @@ export default function ResumeReviewRequest() {
       if (result.success) {
         const totalCost = calculateTotal();
 
-        // If there's a cost AND user chose to pay now, redirect to checkout
-        if (totalCost > 0 && shouldPayNow) {
+        // If there's a cost, redirect to checkout
+        if (totalCost > 0) {
           const checkoutResult = await createReviewCheckout(result.submission_id).unwrap();
           if (checkoutResult.checkout_url) {
             window.location.href = checkoutResult.checkout_url;
           }
         } else {
-          // Free submission OR pay later, redirect to dashboard
+          // Free submission, redirect to dashboard
           navigate('/resume-review/dashboard');
         }
       } else {
@@ -299,110 +297,45 @@ export default function ResumeReviewRequest() {
           {/* Reviewer Selection */}
           <Card className="p-6">
             <Label className="text-base font-semibold mb-4 block">Choose Your Reviewer</Label>
-            <RadioGroup value={reviewer} onValueChange={setReviewer}>
-              <div className="space-y-3">
+            <Select value={reviewer} onValueChange={setReviewer}>
+              <SelectTrigger className="w-full h-12">
+                <SelectValue placeholder="Select a reviewer" />
+              </SelectTrigger>
+              <SelectContent>
                 {reviewerOptions.map((option) => (
-                  <div
-                    key={option.value}
-                    className={`flex items-start space-x-3 p-4 rounded-lg border-2 cursor-pointer transition-colors ${
-                      reviewer === option.value
-                        ? 'border-primary bg-primary/5'
-                        : 'border-muted hover:border-primary/50'
-                    }`}
-                    onClick={() => setReviewer(option.value)}
-                  >
-                    <RadioGroupItem value={option.value} id={option.value} className="mt-1" />
-                    <div className="flex-1">
-                      <Label htmlFor={option.value} className="font-semibold cursor-pointer">
-                        {option.label}
-                      </Label>
-                      <p className="text-sm text-muted-foreground mt-1">
-                        {option.description}
-                      </p>
+                  <SelectItem key={option.value} value={option.value}>
+                    <div className="flex items-center justify-between w-full">
+                      <div>
+                        <span className="font-semibold">{option.label}</span>
+                        <span className="text-sm text-muted-foreground ml-2">- {option.description}</span>
+                      </div>
+                      <span className="font-bold ml-4">{option.priceDisplay}</span>
                     </div>
-                    <div className="text-right">
-                      <p className="font-bold text-lg">{option.priceDisplay}</p>
-                    </div>
-                  </div>
+                  </SelectItem>
                 ))}
-              </div>
-            </RadioGroup>
+              </SelectContent>
+            </Select>
           </Card>
 
           {/* Speed Selection */}
           <Card className="p-6">
             <Label className="text-base font-semibold mb-4 block">Delivery Speed</Label>
-            <RadioGroup value={speed} onValueChange={setSpeed}>
-              <div className="space-y-3">
+            <Select value={speed} onValueChange={setSpeed}>
+              <SelectTrigger className="w-full h-12">
+                <SelectValue placeholder="Select delivery speed" />
+              </SelectTrigger>
+              <SelectContent>
                 {speedOptions.map((option) => (
-                  <div
-                    key={option.value}
-                    className={`flex items-center justify-between p-4 rounded-lg border-2 cursor-pointer transition-colors ${
-                      speed === option.value
-                        ? 'border-primary bg-primary/5'
-                        : 'border-muted hover:border-primary/50'
-                    }`}
-                    onClick={() => setSpeed(option.value)}
-                  >
-                    <div className="flex items-center space-x-3">
-                      <RadioGroupItem value={option.value} id={`speed-${option.value}`} />
-                      <Label htmlFor={`speed-${option.value}`} className="font-semibold cursor-pointer">
-                        {option.label}
-                      </Label>
+                  <SelectItem key={option.value} value={option.value}>
+                    <div className="flex items-center justify-between w-full">
+                      <span className="font-semibold">{option.label}</span>
+                      <span className="font-bold ml-4">{option.priceDisplay}</span>
                     </div>
-                    <p className="font-bold text-lg">{option.priceDisplay}</p>
-                  </div>
+                  </SelectItem>
                 ))}
-              </div>
-            </RadioGroup>
+              </SelectContent>
+            </Select>
           </Card>
-
-          {/* Payment Timing - Only show if there's a cost */}
-          {calculateTotal() > 0 && (
-            <Card className="p-6">
-              <Label className="text-base font-semibold mb-4 block">Payment Timing</Label>
-              <RadioGroup value={shouldPayNow ? 'now' : 'later'} onValueChange={(val) => setShouldPayNow(val === 'now')}>
-                <div className="space-y-3">
-                  <div
-                    className={`flex items-start space-x-3 p-4 rounded-lg border-2 cursor-pointer transition-colors ${
-                      !shouldPayNow
-                        ? 'border-primary bg-primary/5'
-                        : 'border-muted hover:border-primary/50'
-                    }`}
-                    onClick={() => setShouldPayNow(false)}
-                  >
-                    <RadioGroupItem value="later" id="pay-later" className="mt-1" />
-                    <div className="flex-1">
-                      <Label htmlFor="pay-later" className="font-semibold cursor-pointer">
-                        Pay After Review
-                      </Label>
-                      <p className="text-sm text-muted-foreground mt-1">
-                        Submit now, pay only after you receive and approve the review
-                      </p>
-                    </div>
-                  </div>
-                  <div
-                    className={`flex items-start space-x-3 p-4 rounded-lg border-2 cursor-pointer transition-colors ${
-                      shouldPayNow
-                        ? 'border-primary bg-primary/5'
-                        : 'border-muted hover:border-primary/50'
-                    }`}
-                    onClick={() => setShouldPayNow(true)}
-                  >
-                    <RadioGroupItem value="now" id="pay-now" className="mt-1" />
-                    <div className="flex-1">
-                      <Label htmlFor="pay-now" className="font-semibold cursor-pointer">
-                        Pay Now
-                      </Label>
-                      <p className="text-sm text-muted-foreground mt-1">
-                        Complete payment immediately to prioritize your review
-                      </p>
-                    </div>
-                  </div>
-                </div>
-              </RadioGroup>
-            </Card>
-          )}
 
           {/* Total and Submit */}
           <Card className="p-6 bg-muted">
@@ -422,7 +355,7 @@ export default function ResumeReviewRequest() {
                   <Loader2 className="w-5 h-5 mr-2 animate-spin" />
                   Submitting...
                 </>
-              ) : shouldPayNow && calculateTotal() > 0 ? (
+              ) : calculateTotal() > 0 ? (
                 'Submit & Pay Now'
               ) : (
                 'Submit Request'
