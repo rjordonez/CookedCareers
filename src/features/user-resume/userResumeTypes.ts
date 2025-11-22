@@ -20,6 +20,9 @@ export interface UserResumeItem {
   filename: string;
   file_url: string;
   file_type: string | null;
+  resume_source?: 'builder' | 'upload'; // Identifies source of resume
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  builder_content?: any; // Editor.js JSON data for builder resumes
   created_at: string;
   updated_at: string;
 }
