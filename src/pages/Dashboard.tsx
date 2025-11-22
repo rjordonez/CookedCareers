@@ -9,6 +9,7 @@ import { Card } from '@/components/ui/card';
 import { useUploadUserResumeMutation, useListUserResumesQuery } from '@/features/user-resume/userResumeService';
 import DashboardLayout from '@/components/DashboardLayout';
 import { UserResumePdfModal } from '@/components/UserResumePdfModal';
+import { renderResumeToHTML } from '@/utils/resumeRenderer';
 import 'react-pdf/dist/Page/AnnotationLayer.css';
 import 'react-pdf/dist/Page/TextLayer.css';
 
@@ -91,9 +92,12 @@ const Dashboard = () => {
     filename: string;
     file_url: string;
     file_type: string | null;
+    resume_source?: 'builder' | 'upload';
   }) => {
-    // If it's a builder resume, navigate to resume builder with the ID
-    if (resume.file_type === 'builder') {
+    // Check resume_source first (new field), fallback to file_type for backward compatibility
+    const isBuilder = resume.resume_source === 'builder' || resume.file_type === 'builder';
+
+    if (isBuilder) {
       navigate(`/resume-builder?id=${resume.id}`);
     } else {
       // For uploaded PDFs, open the modal
@@ -250,6 +254,8 @@ function ResumeCard({
     filename: string;
     file_url: string;
     file_type: string | null;
+    resume_source?: 'builder' | 'upload';
+    builder_content?: any;
     created_at: string;
     updated_at: string;
   };
@@ -258,18 +264,21 @@ function ResumeCard({
     filename: string;
     file_url: string;
     file_type: string | null;
+    resume_source?: 'builder' | 'upload';
   }) => void;
   onDownload: (url: string, filename: string) => void;
   getToken: () => Promise<string | null>;
 }) {
-  const isBuilderResume = resume.file_type === 'builder';
+  // Check resume_source first (new field), fallback to file_type for backward compatibility
+  const isBuilderResume = resume.resume_source === 'builder' || resume.file_type === 'builder';
+  const hasPdfUrl = resume.file_url && resume.file_url.trim() !== '';
   const [pdfFile, setPdfFile] = useState<Blob | null>(null);
-  const [loadingPdf, setLoadingPdf] = useState(!isBuilderResume);
+  const [loadingPdf, setLoadingPdf] = useState(hasPdfUrl);
 
-  // Fetch PDF with authentication (only for non-builder resumes)
+  // Fetch PDF with authentication (for resumes with file_url)
   useEffect(() => {
-    // Skip PDF fetch for builder resumes
-    if (isBuilderResume) {
+    // Skip PDF fetch if there's no file_url
+    if (!hasPdfUrl) {
       setLoadingPdf(false);
       setPdfFile(null);
       return;
@@ -300,7 +309,7 @@ function ResumeCard({
     };
 
     fetchPdf();
-  }, [resume, getToken, isBuilderResume]);
+  }, [resume, getToken, hasPdfUrl]);
 
   const formatDate = (dateString: string) => {
     return new Date(dateString).toLocaleDateString('en-US', {
@@ -318,15 +327,7 @@ function ResumeCard({
       >
         {/* Preview */}
         <div className="aspect-[253/320] bg-gradient-to-br from-gray-100 to-gray-200 overflow-hidden relative">
-          {isBuilderResume ? (
-            // Builder resume preview
-            <div className="w-full h-full flex items-center justify-center bg-gradient-to-br from-primary/10 to-primary/5">
-              <div className="text-center p-6">
-                <File className="w-16 h-16 mx-auto mb-3 text-primary" />
-                <p className="text-sm font-medium text-muted-foreground">Builder Resume</p>
-              </div>
-            </div>
-          ) : loadingPdf ? (
+          {loadingPdf ? (
             <div className="w-full h-full flex items-center justify-center">
               <Loader2 className="w-8 h-8 text-primary animate-spin" />
             </div>
@@ -356,6 +357,29 @@ function ResumeCard({
                     renderAnnotationLayer={false}
                   />
                 </Document>
+              </div>
+            </div>
+          ) : isBuilderResume && resume.builder_content ? (
+            // Builder resume with content - render HTML preview
+            <div className="w-full h-full bg-white overflow-hidden relative">
+              <div
+                className="absolute inset-0 p-2 text-[6px] overflow-hidden"
+                style={{
+                  transform: 'scale(0.25)',
+                  transformOrigin: 'top left',
+                  width: '400%',
+                  height: '400%'
+                }}
+                dangerouslySetInnerHTML={{ __html: renderResumeToHTML(resume.builder_content) }}
+              />
+            </div>
+          ) : isBuilderResume ? (
+            // Builder resume without content
+            <div className="w-full h-full flex items-center justify-center bg-gradient-to-br from-primary/10 to-primary/5">
+              <div className="text-center p-6">
+                <File className="w-16 h-16 mx-auto mb-3 text-primary" />
+                <p className="text-sm font-medium text-muted-foreground">Builder Resume</p>
+                <p className="text-xs text-muted-foreground mt-1">No content yet</p>
               </div>
             </div>
           ) : (

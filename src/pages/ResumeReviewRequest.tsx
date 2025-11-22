@@ -26,7 +26,6 @@ export default function ResumeReviewRequest() {
   const [context, setContext] = useState('');
   const [reviewer, setReviewer] = useState('team');
   const [speed, setSpeed] = useState('standard');
-  const [shouldPayNow, setShouldPayNow] = useState(false);
   const [isDragging, setIsDragging] = useState(false);
 
   const [submitReview, { isLoading: isSubmitting }] = useSubmitReviewMutation();
@@ -139,14 +138,14 @@ export default function ResumeReviewRequest() {
       if (result.success) {
         const totalCost = calculateTotal();
 
-        // If there's a cost AND user chose to pay now, redirect to checkout
-        if (totalCost > 0 && shouldPayNow) {
+        // If there's a cost, redirect to checkout
+        if (totalCost > 0) {
           const checkoutResult = await createReviewCheckout(result.submission_id).unwrap();
           if (checkoutResult.checkout_url) {
             window.location.href = checkoutResult.checkout_url;
           }
         } else {
-          // Free submission OR pay later, redirect to dashboard
+          // Free submission, redirect to dashboard
           navigate('/resume-review/dashboard');
         }
       } else {
@@ -338,36 +337,6 @@ export default function ResumeReviewRequest() {
             </Select>
           </Card>
 
-          {/* Payment Timing - Only show if there's a cost */}
-          {calculateTotal() > 0 && (
-            <Card className="p-6">
-              <Label className="text-base font-semibold mb-4 block">Payment Timing</Label>
-              <Select value={shouldPayNow ? 'now' : 'later'} onValueChange={(val) => setShouldPayNow(val === 'now')}>
-                <SelectTrigger className="w-full h-12">
-                  <SelectValue placeholder="Select payment timing" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="later">
-                    <div>
-                      <div className="font-semibold">Pay After Review</div>
-                      <div className="text-sm text-muted-foreground">
-                        Submit now, pay only after you receive and approve the review
-                      </div>
-                    </div>
-                  </SelectItem>
-                  <SelectItem value="now">
-                    <div>
-                      <div className="font-semibold">Pay Now</div>
-                      <div className="text-sm text-muted-foreground">
-                        Complete payment immediately to prioritize your review
-                      </div>
-                    </div>
-                  </SelectItem>
-                </SelectContent>
-              </Select>
-            </Card>
-          )}
-
           {/* Total and Submit */}
           <Card className="p-6 bg-muted">
             <div className="flex items-center justify-between mb-4">
@@ -386,7 +355,7 @@ export default function ResumeReviewRequest() {
                   <Loader2 className="w-5 h-5 mr-2 animate-spin" />
                   Submitting...
                 </>
-              ) : shouldPayNow && calculateTotal() > 0 ? (
+              ) : calculateTotal() > 0 ? (
                 'Submit & Pay Now'
               ) : (
                 'Submit Request'

@@ -11,7 +11,7 @@ import Paragraph from '@editorjs/paragraph';
 import Underline from '@editorjs/underline';
 import Delimiter from '@editorjs/delimiter';
 import JobEntry from '@/components/EditorJSBlocks/JobEntry';
-import { Save, Eye, Download, Loader2 } from 'lucide-react';
+import { Save, Download, Loader2 } from 'lucide-react';
 import {
   useCreateResumeBuilderMutation,
   useGetResumeBuilderQuery,
@@ -26,7 +26,6 @@ const ResumeBuilder = () => {
   const [searchParams] = useSearchParams();
   const editorRef = useRef<EditorJS | null>(null);
   const [isReady, setIsReady] = useState(false);
-  const [showPreview, setShowPreview] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
   const resumeIdFromUrl = searchParams.get('id');
   const [resumeId, setResumeId] = useState<string | null>(resumeIdFromUrl);
@@ -279,10 +278,6 @@ const ResumeBuilder = () => {
     }
   };
 
-  const handlePreview = () => {
-    setShowPreview(!showPreview);
-  };
-
   const handleExport = async () => {
     if (!editorRef.current) return;
 
@@ -456,14 +451,6 @@ const ResumeBuilder = () => {
           {/* Toolbar */}
           <div className="flex gap-2 items-center">
             <button
-              onClick={handlePreview}
-              disabled={!isReady}
-              title={showPreview ? 'Hide Preview' : 'Preview'}
-              className="p-2 hover:bg-gray-100 dark:hover:bg-gray-700 rounded transition-colors disabled:opacity-30 disabled:cursor-not-allowed"
-            >
-              <Eye className="w-4 h-4" />
-            </button>
-            <button
               onClick={handleExport}
               disabled={!isReady || isGeneratingPdf}
               title="Export PDF"
@@ -487,33 +474,13 @@ const ResumeBuilder = () => {
         </div>
 
         {/* Editor Container */}
-        <div className={`grid gap-6 ${showPreview ? 'grid-cols-1 lg:grid-cols-2' : 'grid-cols-1'}`}>
-          {/* Editor */}
-          <Card className="p-8">
-            <div
-              id="editorjs"
-              className="max-w-none min-h-[800px]"
-              style={{ textAlign: 'left' }}
-            />
-          </Card>
-
-          {/* Preview Panel */}
-          {showPreview && (
-            <Card className="p-8 bg-white">
-              <div className="mb-4 border-b pb-2">
-                <h3 className="font-semibold">Live Preview</h3>
-                <p className="text-xs text-muted-foreground">
-                  This is how your resume will look
-                </p>
-              </div>
-              <div className="prose prose-sm max-w-none">
-                <p className="text-sm text-muted-foreground">
-                  Preview will be rendered here...
-                </p>
-              </div>
-            </Card>
-          )}
-        </div>
+        <Card className="p-8">
+          <div
+            id="editorjs"
+            className="max-w-none min-h-[800px]"
+            style={{ textAlign: 'left' }}
+          />
+        </Card>
       </div>
     </DashboardLayout>
   );
