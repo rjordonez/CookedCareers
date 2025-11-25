@@ -9,6 +9,9 @@ import type {
   SaveResumeBuilderResponse,
   GeneratePdfResponse,
   DeleteResumeBuilderResponse,
+  DeleteResumeResponse,
+  RenameResumeRequest,
+  RenameResumeResponse,
 } from './userResumeTypes';
 
 export const userResumeApi = baseApi.injectEndpoints({
@@ -68,6 +71,23 @@ export const userResumeApi = baseApi.injectEndpoints({
       }),
       invalidatesTags: ['Resume'],
     }),
+
+    // Unified Resume Management Endpoints (works for both upload and builder)
+    deleteResume: builder.mutation<DeleteResumeResponse, string>({
+      query: (resumeId) => ({
+        url: `/api/user-resume/${resumeId}`,
+        method: 'DELETE',
+      }),
+      invalidatesTags: ['Resume'],
+    }),
+    renameResume: builder.mutation<RenameResumeResponse, { resumeId: string; data: RenameResumeRequest }>({
+      query: ({ resumeId, data }) => ({
+        url: `/api/user-resume/${resumeId}`,
+        method: 'PATCH',
+        body: data,
+      }),
+      invalidatesTags: ['Resume'],
+    }),
   }),
 });
 
@@ -80,4 +100,6 @@ export const {
   useSaveResumeBuilderMutation,
   useGenerateResumePdfMutation,
   useDeleteResumeBuilderMutation,
+  useDeleteResumeMutation,
+  useRenameResumeMutation,
 } = userResumeApi;

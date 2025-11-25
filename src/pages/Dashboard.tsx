@@ -1,12 +1,34 @@
 import { useState, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Document, Page } from 'react-pdf';
-import { Loader2, FileText, Download, Plus, File } from 'lucide-react';
+import { Loader2, FileText, Download, Plus, File, Trash2, Pencil, MoreVertical, X, Check } from 'lucide-react';
 import { useAuth } from '@clerk/clerk-react';
 import { useAuthState, useRequireAuth } from '@/hooks';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
-import { useUploadUserResumeMutation, useListUserResumesQuery } from '@/features/user-resume/userResumeService';
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from '@/components/ui/dropdown-menu';
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from '@/components/ui/alert-dialog';
+import { Input } from '@/components/ui/input';
+import {
+  useUploadUserResumeMutation,
+  useListUserResumesQuery,
+  useDeleteResumeMutation,
+  useRenameResumeMutation,
+} from '@/features/user-resume/userResumeService';
 import DashboardLayout from '@/components/DashboardLayout';
 import { UserResumePdfModal } from '@/components/UserResumePdfModal';
 import { renderResumeToHTML } from '@/utils/resumeRenderer';
@@ -22,7 +44,12 @@ const Dashboard = () => {
   const [isDragging, setIsDragging] = useState(false);
   const [selectedResume, setSelectedResume] = useState<{ url: string; filename: string } | null>(null);
   const [isPdfModalOpen, setIsPdfModalOpen] = useState(false);
+  const [deleteConfirmId, setDeleteConfirmId] = useState<string | null>(null);
+  const [renamingId, setRenamingId] = useState<string | null>(null);
+  const [renameValue, setRenameValue] = useState('');
   const [uploadResume, { isLoading: isUploading }] = useUploadUserResumeMutation();
+  const [deleteResume, { isLoading: isDeleting }] = useDeleteResumeMutation();
+  const [renameResume, { isLoading: isRenaming }] = useRenameResumeMutation();
   const {
     data: resumesData,
     isLoading: isLoadingResumes,
@@ -32,6 +59,36 @@ const Dashboard = () => {
   });
 
   const resumes = resumesData?.resumes || [];
+
+  const handleDeleteResume = async (resumeId: string) => {
+    try {
+      await deleteResume(resumeId).unwrap();
+      setDeleteConfirmId(null);
+    } catch (error) {
+      console.error('Delete error:', error);
+    }
+  };
+
+  const handleStartRename = (resumeId: string, currentFilename: string) => {
+    setRenamingId(resumeId);
+    setRenameValue(currentFilename);
+  };
+
+  const handleCancelRename = () => {
+    setRenamingId(null);
+    setRenameValue('');
+  };
+
+  const handleConfirmRename = async (resumeId: string) => {
+    if (!renameValue.trim()) return;
+    try {
+      await renameResume({ resumeId, data: { filename: renameValue.trim() } }).unwrap();
+      setRenamingId(null);
+      setRenameValue('');
+    } catch (error) {
+      console.error('Rename error:', error);
+    }
+  };
 
   const handleFileSelect = async (file: File) => {
     if (!requireAuth()) return;
@@ -211,6 +268,14 @@ const Dashboard = () => {
                 resume={resume}
                 onView={handleViewDetails}
                 onDownload={handleDownload}
+                onDelete={(id) => setDeleteConfirmId(id)}
+                onStartRename={handleStartRename}
+                onCancelRename={handleCancelRename}
+                onConfirmRename={handleConfirmRename}
+                isRenaming={renamingId === resume.id}
+                renameValue={renameValue}
+                setRenameValue={setRenameValue}
+                isRenamingLoading={isRenaming}
                 getToken={getToken}
               />
             ))
@@ -238,6 +303,35 @@ const Dashboard = () => {
           setSelectedResume(null);
         }}
       />
+
+      {/* Delete Confirmation Dialog */}
+      <AlertDialog open={!!deleteConfirmId} onOpenChange={() => setDeleteConfirmId(null)}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Delete Resume</AlertDialogTitle>
+            <AlertDialogDescription>
+              Are you sure you want to delete this resume? This action cannot be undone.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel disabled={isDeleting}>Cancel</AlertDialogCancel>
+            <AlertDialogAction
+              onClick={() => deleteConfirmId && handleDeleteResume(deleteConfirmId)}
+              disabled={isDeleting}
+              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+            >
+              {isDeleting ? (
+                <>
+                  <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                  Deleting...
+                </>
+              ) : (
+                'Delete'
+              )}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </DashboardLayout>
   );
 };
@@ -247,6 +341,14 @@ function ResumeCard({
   resume,
   onView,
   onDownload,
+  onDelete,
+  onStartRename,
+  onCancelRename,
+  onConfirmRename,
+  isRenaming,
+  renameValue,
+  setRenameValue,
+  isRenamingLoading,
   getToken,
 }: {
   resume: {
@@ -267,6 +369,14 @@ function ResumeCard({
     resume_source?: 'builder' | 'upload';
   }) => void;
   onDownload: (url: string, filename: string) => void;
+  onDelete: (id: string) => void;
+  onStartRename: (id: string, currentFilename: string) => void;
+  onCancelRename: () => void;
+  onConfirmRename: (id: string) => void;
+  isRenaming: boolean;
+  renameValue: string;
+  setRenameValue: (value: string) => void;
+  isRenamingLoading: boolean;
   getToken: () => Promise<string | null>;
 }) {
   // Check resume_source first (new field), fallback to file_type for backward compatibility
@@ -391,32 +501,114 @@ function ResumeCard({
 
         {/* Card Info */}
         <div className="p-4 space-y-3">
-          <div>
-            <h3 className="font-semibold text-sm leading-tight truncate mb-1">
-              {resume.filename}
-            </h3>
-            <p className="text-xs text-muted-foreground">
-              {formatDate(resume.created_at)}
-            </p>
-          </div>
-
-          {/* Action Buttons - Only show download for uploaded PDFs */}
-          {!isBuilderResume && (
-            <div className="flex gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
-              <Button
-                variant="secondary"
-                size="sm"
-                className="text-xs flex-1"
-                onClick={(e) => {
-                  e.stopPropagation();
-                  onDownload(resume.file_url, resume.filename);
-                }}
-              >
-                <Download className="w-3 h-3 mr-1" />
-                Download
-              </Button>
+          <div className="flex items-start justify-between gap-2">
+            <div className="flex-1 min-w-0">
+              {isRenaming ? (
+                <div className="flex items-center gap-1">
+                  <Input
+                    value={renameValue}
+                    onChange={(e) => setRenameValue(e.target.value)}
+                    className="h-7 text-sm"
+                    autoFocus
+                    onClick={(e) => e.stopPropagation()}
+                    onKeyDown={(e) => {
+                      e.stopPropagation();
+                      if (e.key === 'Enter') {
+                        onConfirmRename(resume.id);
+                      } else if (e.key === 'Escape') {
+                        onCancelRename();
+                      }
+                    }}
+                  />
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    className="h-7 w-7 shrink-0"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      onConfirmRename(resume.id);
+                    }}
+                    disabled={isRenamingLoading}
+                  >
+                    {isRenamingLoading ? (
+                      <Loader2 className="w-3 h-3 animate-spin" />
+                    ) : (
+                      <Check className="w-3 h-3 text-green-600" />
+                    )}
+                  </Button>
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    className="h-7 w-7 shrink-0"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      onCancelRename();
+                    }}
+                    disabled={isRenamingLoading}
+                  >
+                    <X className="w-3 h-3 text-red-600" />
+                  </Button>
+                </div>
+              ) : (
+                <>
+                  <h3 className="font-semibold text-sm leading-tight truncate mb-1">
+                    {resume.filename}
+                  </h3>
+                  <p className="text-xs text-muted-foreground">
+                    {formatDate(resume.created_at)}
+                  </p>
+                </>
+              )}
             </div>
-          )}
+
+            {/* Actions Menu */}
+            {!isRenaming && (
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    className="h-7 w-7 shrink-0 opacity-0 group-hover:opacity-100 transition-opacity"
+                    onClick={(e) => e.stopPropagation()}
+                  >
+                    <MoreVertical className="w-4 h-4" />
+                  </Button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent align="end">
+                  <DropdownMenuItem
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      onStartRename(resume.id, resume.filename);
+                    }}
+                  >
+                    <Pencil className="w-4 h-4 mr-2" />
+                    Rename
+                  </DropdownMenuItem>
+                  {!isBuilderResume && (
+                    <DropdownMenuItem
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        onDownload(resume.file_url, resume.filename);
+                      }}
+                    >
+                      <Download className="w-4 h-4 mr-2" />
+                      Download
+                    </DropdownMenuItem>
+                  )}
+                  <DropdownMenuItem
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      onDelete(resume.id);
+                    }}
+                    className="text-destructive focus:text-destructive"
+                  >
+                    <Trash2 className="w-4 h-4 mr-2" />
+                    Delete
+                  </DropdownMenuItem>
+                </DropdownMenuContent>
+              </DropdownMenu>
+            )}
+          </div>
         </div>
       </Card>
     </div>

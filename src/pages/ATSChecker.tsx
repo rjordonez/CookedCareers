@@ -7,7 +7,7 @@ import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import DashboardLayout from '@/components/DashboardLayout';
-import { useListSubmissionsQuery } from '@/features/review/reviewService';
+import { useListUserResumesQuery } from '@/features/user-resume/userResumeService';
 import { useAnalyzeResumeMutation } from '@/features/ats/atsService';
 import type { ATSSuggestion } from '@/features/ats/atsTypes';
 
@@ -25,13 +25,13 @@ export default function ATSChecker() {
   const [atsScore, setAtsScore] = useState(0);
   const [suggestions, setSuggestions] = useState<ATSSuggestion[]>([]);
 
-  const { data: submissionsData } = useListSubmissionsQuery(undefined, {
+  const { data: resumesData } = useListUserResumesQuery(undefined, {
     skip: querySkipCondition,
   });
 
   const [analyzeResume, { isLoading: isAnalyzing }] = useAnalyzeResumeMutation();
 
-  const existingResumes = submissionsData?.submissions || [];
+  const existingResumes = resumesData?.resumes || [];
 
   const handleFileSelect = (file: File) => {
     if (!requireAuth()) return;
@@ -88,7 +88,7 @@ export default function ATSChecker() {
     const formData = new FormData();
 
     if (useExisting) {
-      formData.append('existing_submission_id', selectedExistingResume);
+      formData.append('existing_resume_id', selectedExistingResume);
     } else {
       formData.append('file', selectedFile!);
     }
