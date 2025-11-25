@@ -223,7 +223,7 @@ const Dashboard = () => {
               className="hidden"
               disabled={isUploading}
             />
-            <div className="aspect-[253/320] flex items-center justify-center bg-gradient-to-br from-gray-50 to-gray-100">
+            <div className="aspect-[253/320] flex items-center justify-center bg-gradient-to-br from-gray-50 to-gray-100 dark:from-gray-800 dark:to-gray-900">
               {isUploading ? (
                 <div className="text-center">
                   <Loader2 className="w-12 h-12 mx-auto mb-3 text-primary animate-spin" />
@@ -234,7 +234,7 @@ const Dashboard = () => {
                   <div className="w-16 h-16 mx-auto mb-4 rounded-full bg-primary/10 flex items-center justify-center">
                     <Plus className="w-8 h-8 text-primary" />
                   </div>
-                  <h3 className="text-lg font-semibold mb-2">
+                  <h3 className="text-lg font-semibold mb-2 text-foreground">
                     Upload Resume
                   </h3>
                   <p className="text-sm text-muted-foreground">
