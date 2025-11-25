@@ -1,5 +1,6 @@
 import { useState, useRef } from 'react';
-import { Upload, Loader2, CheckCircle2, AlertCircle, TrendingUp } from 'lucide-react';
+import { useNavigate } from 'react-router-dom';
+import { Upload, Loader2, CheckCircle2, AlertCircle, TrendingUp, Edit } from 'lucide-react';
 import { useAuthState, useRequireAuth } from '@/hooks';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
@@ -7,11 +8,12 @@ import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import DashboardLayout from '@/components/DashboardLayout';
-import { useListUserResumesQuery } from '@/features/user-resume/userResumeService';
+import { useListUserResumesQuery, useUploadUserResumeMutation, useCreateResumeBuilderMutation } from '@/features/user-resume/userResumeService';
 import { useAnalyzeResumeMutation } from '@/features/ats/atsService';
 import type { ATSSuggestion } from '@/features/ats/atsTypes';
 
 export default function ATSChecker() {
+  const navigate = useNavigate();
   const { querySkipCondition, isPro, isLoadingSubscription } = useAuthState();
   const { requireAuth } = useRequireAuth();
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -24,12 +26,15 @@ export default function ATSChecker() {
   const [hasAnalyzed, setHasAnalyzed] = useState(false);
   const [atsScore, setAtsScore] = useState(0);
   const [suggestions, setSuggestions] = useState<ATSSuggestion[]>([]);
+  const [analyzedResumeId, setAnalyzedResumeId] = useState<string | null>(null);
 
   const { data: resumesData } = useListUserResumesQuery(undefined, {
     skip: querySkipCondition,
   });
 
   const [analyzeResume, { isLoading: isAnalyzing }] = useAnalyzeResumeMutation();
+  const [uploadResume, { isLoading: isUploading }] = useUploadUserResumeMutation();
+  const [createResumeBuilder, { isLoading: isCreatingBuilder }] = useCreateResumeBuilderMutation();
 
   const existingResumes = resumesData?.resumes || [];
 
@@ -109,12 +114,49 @@ export default function ATSChecker() {
         setAtsScore(result.score);
         setSuggestions(result.suggestions);
         setHasAnalyzed(true);
+
+        // Store the resume ID for editing later
+        if (useExisting) {
+          setAnalyzedResumeId(selectedExistingResume);
+        } else {
+          // If analyzing a new upload, we need to upload it first to get an ID
+          const uploadFormData = new FormData();
+          uploadFormData.append('file', selectedFile!);
+
+          try {
+            const uploadResult = await uploadResume(uploadFormData).unwrap();
+            if (uploadResult.success) {
+              setAnalyzedResumeId(uploadResult.resume_id);
+            }
+          } catch (error) {
+            console.error('Upload error:', error);
+            // Still show results even if upload fails
+          }
+        }
       } else {
         alert('Failed to analyze resume');
       }
     } catch (error) {
       console.error('Analysis error:', error);
       alert('An error occurred while analyzing your resume');
+    }
+  };
+
+  const handleEditResume = async () => {
+    if (!requireAuth()) return;
+
+    // Create a new resume builder entry
+    try {
+      const result = await createResumeBuilder({ title: 'Edited Resume' }).unwrap();
+      if (result.success && result.resume_id) {
+        // Navigate to resume builder with the new ID
+        navigate(`/resume-builder?id=${result.resume_id}`);
+      } else {
+        alert('Failed to create resume builder');
+      }
+    } catch (error) {
+      console.error('Create builder error:', error);
+      alert('An error occurred while creating the resume builder');
     }
   };
 
@@ -335,6 +377,37 @@ export default function ATSChecker() {
                 <p className="text-center text-sm text-muted-foreground">
                   Your resume scores {atsScore} out of 100 for ATS compatibility
                 </p>
+              </Card>
+
+              {/* Edit Resume CTA */}
+              <Card className="p-6 bg-primary/5 border-primary/20">
+                <div className="text-center space-y-4">
+                  <div className="flex items-center justify-center gap-2">
+                    <Edit className="w-5 h-5 text-primary" />
+                    <h2 className="text-xl font-semibold">Want to Improve Your Resume?</h2>
+                  </div>
+                  <p className="text-sm text-muted-foreground">
+                    Use our resume builder to make changes based on the suggestions below and optimize for ATS systems.
+                  </p>
+                  <Button
+                    onClick={handleEditResume}
+                    disabled={isCreatingBuilder}
+                    className="w-full sm:w-auto"
+                    size="lg"
+                  >
+                    {isCreatingBuilder ? (
+                      <>
+                        <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                        Creating...
+                      </>
+                    ) : (
+                      <>
+                        <Edit className="w-4 h-4 mr-2" />
+                        Edit Resume
+                      </>
+                    )}
+                  </Button>
+                </div>
               </Card>
 
               {/* Suggestions Section */}
