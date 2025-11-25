@@ -1,8 +1,10 @@
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { BrowserRouter, Routes, Route } from "react-router-dom";
+import { BrowserRouter, Routes, Route, useLocation } from "react-router-dom";
 import { Analytics } from "@vercel/analytics/react";
 import { AuthProvider } from "./components/AuthProvider";
+import { usePostHog } from "posthog-js/react";
+import { useEffect } from "react";
 import Index from "./pages/Index";
 import Auth from "./pages/Auth";
 import Dashboard from "./pages/Dashboard";
@@ -29,11 +31,25 @@ pdfjs.GlobalWorkerOptions.workerSrc = '/pdf.worker.min.mjs';
 
 const queryClient = new QueryClient();
 
+function PostHogPageView() {
+  const location = useLocation();
+  const posthog = usePostHog();
+
+  useEffect(() => {
+    if (posthog) {
+      posthog.capture('$pageview');
+    }
+  }, [location, posthog]);
+
+  return null;
+}
+
 const App = () => (
   <QueryClientProvider client={queryClient}>
     <AuthProvider>
       <TooltipProvider>
         <BrowserRouter>
+          <PostHogPageView />
           <Routes>
             <Route path="/" element={<Index />} />
             <Route path="/auth/*" element={<Auth />} />

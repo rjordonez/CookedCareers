@@ -85,6 +85,11 @@ export default function ATSChecker() {
       return;
     }
 
+    if (!jobDescription.trim()) {
+      alert('Please enter a job description');
+      return;
+    }
+
     const formData = new FormData();
 
     if (useExisting) {
@@ -241,10 +246,10 @@ export default function ATSChecker() {
             </div>
           </Card>
 
-          {/* Job Description (Optional) */}
+          {/* Job Description */}
           <Card className="p-6">
             <Label className="text-base font-semibold mb-4 block">
-              Job Description (Optional)
+              Job Description <span className="text-red-500">*</span>
             </Label>
             <p className="text-sm text-muted-foreground mb-4">
               Paste the job description to get tailored feedback on how well your resume matches the role.
@@ -254,13 +259,14 @@ export default function ATSChecker() {
               value={jobDescription}
               onChange={(e) => setJobDescription(e.target.value)}
               className="min-h-[150px]"
+              required
             />
           </Card>
 
           {/* Analyze Button */}
           <Button
             onClick={handleAnalyze}
-            disabled={(!selectedFile && !selectedExistingResume) || isAnalyzing}
+            disabled={(!selectedFile && !selectedExistingResume) || !jobDescription.trim() || isAnalyzing}
             className="w-full h-12 text-base font-semibold"
           >
             {isAnalyzing ? (
