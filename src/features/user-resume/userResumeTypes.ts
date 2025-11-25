@@ -49,6 +49,17 @@ export interface DeleteResumeResponse {
   message: string;
 }
 
+export interface RenameResumeRequest {
+  filename: string;
+}
+
+export interface RenameResumeResponse {
+  success: boolean;
+  message: string;
+  resume_id: string;
+  filename: string;
+}
+
 export interface GetResumeHtmlResponse {
   success: boolean;
   html: string;
