@@ -61,113 +61,25 @@ const ResumeBuilder = () => {
       // Use existing resume data if available, otherwise use default template
       const defaultData: OutputData = {
         blocks: [
+          // Header
           {
             type: 'header',
             data: {
-              text: 'Your Name',
+              text: 'Your Resume',
               level: 1,
             },
           },
           {
             type: 'paragraph',
             data: {
-              text: 'Email: your.email@example.com | Phone: (123) 456-7890 | Location: City, State',
+              text: '123-456-7890 | jake@su.edu | linkedin.com/in/jake | github.com/jake',
             },
           },
           {
             type: 'delimiter',
             data: {},
           },
-          {
-            type: 'header',
-            data: {
-              text: 'Experience',
-              level: 2,
-            },
-          },
-          // Job 1
-          {
-            type: 'jobEntry',
-            data: {
-              title: 'Job Title - Company Name',
-              date: 'Date Range',
-            },
-          },
-          {
-            type: 'list',
-            data: {
-              style: 'unordered',
-              items: [
-                'Achievement or responsibility 1',
-                'Achievement or responsibility 2',
-                'Achievement or responsibility 3',
-              ],
-            },
-          },
-          // Job 2
-          {
-            type: 'jobEntry',
-            data: {
-              title: 'Job Title - Company Name',
-              date: 'Date Range',
-            },
-          },
-          {
-            type: 'list',
-            data: {
-              style: 'unordered',
-              items: [
-                'Achievement or responsibility 1',
-                'Achievement or responsibility 2',
-                'Achievement or responsibility 3',
-              ],
-            },
-          },
-          {
-            type: 'header',
-            data: {
-              text: 'Projects',
-              level: 2,
-            },
-          },
-          // Project 1
-          {
-            type: 'jobEntry',
-            data: {
-              title: 'Project Name',
-              date: 'Date Range',
-            },
-          },
-          {
-            type: 'list',
-            data: {
-              style: 'unordered',
-              items: [
-                'Achievement or responsibility 1',
-                'Achievement or responsibility 2',
-                'Achievement or responsibility 3',
-              ],
-            },
-          },
-          // Project 2
-          {
-            type: 'jobEntry',
-            data: {
-              title: 'Project Name',
-              date: 'Date Range',
-            },
-          },
-          {
-            type: 'list',
-            data: {
-              style: 'unordered',
-              items: [
-                'Achievement or responsibility 1',
-                'Achievement or responsibility 2',
-                'Achievement or responsibility 3',
-              ],
-            },
-          },
+          // Education
           {
             type: 'header',
             data: {
@@ -176,16 +88,50 @@ const ResumeBuilder = () => {
             },
           },
           {
-            type: 'paragraph',
+            type: 'jobEntry',
             data: {
-              text: 'Degree - University Name | Graduation Year',
+              title: 'Southwestern University',
+              date: 'Georgetown, TX',
             },
           },
           {
+            type: 'paragraph',
+            data: {
+              text: '<i>Bachelor of Arts in Computer Science, Minor in Business</i> | Aug. 2018 - May 2021',
+            },
+          },
+          {
+            type: 'jobEntry',
+            data: {
+              title: 'Blinn College',
+              date: 'Bryan, TX',
+            },
+          },
+          {
+            type: 'paragraph',
+            data: {
+              text: "<i>Associate's in Liberal Arts</i> | Aug. 2014 - May 2018",
+            },
+          },
+          // Experience
+          {
             type: 'header',
             data: {
-              text: 'Skills',
+              text: 'Experience',
               level: 2,
+            },
+          },
+          {
+            type: 'jobEntry',
+            data: {
+              title: 'Undergraduate Research Assistant - Texas A&M University',
+              date: 'June 2020 - Present',
+            },
+          },
+          {
+            type: 'paragraph',
+            data: {
+              text: '<i>College Station, TX</i>',
             },
           },
           {
@@ -193,10 +139,139 @@ const ResumeBuilder = () => {
             data: {
               style: 'unordered',
               items: [
-                'Skill 1',
-                'Skill 2',
-                'Skill 3',
+                'Developed a REST API using FastAPI and PostgreSQL to store data from learning management systems',
+                'Developed a full-stack web application using Flask, React, PostgreSQL and Docker to analyze GitHub data',
+                'Explored ways to visualize GitHub collaboration in a classroom setting',
               ],
+            },
+          },
+          {
+            type: 'jobEntry',
+            data: {
+              title: 'Information Technology Support Specialist - Southwestern University',
+              date: 'Sep. 2018 - Present',
+            },
+          },
+          {
+            type: 'paragraph',
+            data: {
+              text: '<i>Georgetown, TX</i>',
+            },
+          },
+          {
+            type: 'list',
+            data: {
+              style: 'unordered',
+              items: [
+                'Communicate with managers to set up campus computers used on campus',
+                'Assess and troubleshoot computer problems brought by students, faculty and staff',
+                'Maintain upkeep of computers, classroom equipment, and 200 printers across campus',
+              ],
+            },
+          },
+          {
+            type: 'jobEntry',
+            data: {
+              title: 'Artificial Intelligence Research Assistant - Southwestern University',
+              date: 'May 2019 - July 2019',
+            },
+          },
+          {
+            type: 'paragraph',
+            data: {
+              text: '<i>Georgetown, TX</i>',
+            },
+          },
+          {
+            type: 'list',
+            data: {
+              style: 'unordered',
+              items: [
+                'Explored methods to generate video game dungeons based off of The Legend of Zelda',
+                'Developed a game in Java to test the generated dungeons',
+                'Contributed 50K+ lines of code to an established codebase via Git',
+                'Conducted a human subject study to determine which video game dungeon generation technique is enjoyable',
+                'Wrote an 8-page paper and gave multiple presentations on-campus',
+                'Presented virtually to the World Conference on Computational Intelligence',
+              ],
+            },
+          },
+          // Projects
+          {
+            type: 'header',
+            data: {
+              text: 'Projects',
+              level: 2,
+            },
+          },
+          {
+            type: 'jobEntry',
+            data: {
+              title: 'Gitlytics | Python, Flask, React, PostgreSQL, Docker',
+              date: 'June 2020 - Present',
+            },
+          },
+          {
+            type: 'list',
+            data: {
+              style: 'unordered',
+              items: [
+                'Developed a full-stack web application using with Flask serving a REST API with React as the frontend',
+                "Implemented GitHub OAuth to get data from user's repositories",
+                'Visualized GitHub data to show collaboration',
+                'Used Celery and Redis for asynchronous tasks',
+              ],
+            },
+          },
+          {
+            type: 'jobEntry',
+            data: {
+              title: 'Simple Paintball | Spigot API, Java, Maven, TravisCI, Git',
+              date: 'May 2018 - May 2020',
+            },
+          },
+          {
+            type: 'list',
+            data: {
+              style: 'unordered',
+              items: [
+                'Developed a Minecraft server plugin to entertain kids during free time for a previous job',
+                'Published plugin to websites gaining 2K+ downloads and an average 4.5/5-star review',
+                'Implemented continuous delivery using TravisCI to build the plugin upon new a release',
+                'Collaborated with Minecraft server administrators to suggest features and get feedback about the plugin',
+              ],
+            },
+          },
+          // Technical Skills
+          {
+            type: 'header',
+            data: {
+              text: 'Technical Skills',
+              level: 2,
+            },
+          },
+          {
+            type: 'paragraph',
+            data: {
+              text: '<b>Languages:</b> Java, Python, C/C++, SQL (Postgres), JavaScript, HTML/CSS, R',
+            },
+          },
+          {
+            type: 'paragraph',
+            data: {
+              text: '<b>Frameworks:</b> React, Node.js, Flask, JUnit, WordPress, Material-UI, FastAPI',
+            },
+          },
+          {
+            type: 'paragraph',
+            data: {
+              text: '<b>Developer Tools:</b> Git, Docker, TravisCI, Google Cloud Platform, VS Code, Visual Studio, PyCharm, IntelliJ, Eclipse',
+            },
+          },
+          {
+            type: 'paragraph',
+            data: {
+              text: '<b>Libraries:</b> pandas, NumPy, Matplotlib',
             },
           },
         ],
