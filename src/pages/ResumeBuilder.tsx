@@ -18,7 +18,7 @@ import {
   useSaveResumeBuilderMutation,
   useGenerateResumePdfMutation,
 } from '@/features/user-resume/userResumeService';
-import { renderResumeToHTML } from '@/utils/resumeRenderer';
+import { getEditorStyles, wrapWithResumeStyles } from '@/utils/resumeStyles';
 import ATSCheckerSidebar, { type ATSData } from '@/components/ATSCheckerSidebar';
 
 const ResumeBuilder = () => {
@@ -291,10 +291,6 @@ const ResumeBuilder = () => {
     try {
       const outputData = await editorRef.current.save();
 
-      // DEBUG: Log what we're actually sending
-      console.log('📄 Editor.js data:', outputData);
-      console.log('📄 Number of blocks:', outputData.blocks.length);
-
       // Extract title from first header block
       const firstBlock = outputData.blocks[0];
       const title = firstBlock?.type === 'header' ? firstBlock.data.text : 'Untitled Resume';
@@ -317,11 +313,28 @@ const ResumeBuilder = () => {
         },
       }).unwrap();
 
-      // NEW: Render Editor.js data to styled HTML
-      const styledHTML = renderResumeToHTML(outputData);
+      // Capture the actual DOM from the editor (what the user sees)
+      const editorElement = document.querySelector('#editorjs .codex-editor__redactor');
+      if (!editorElement) {
+        console.error('Could not find editor element');
+        return;
+      }
 
-      // DEBUG: Log the HTML we're sending
-      console.log('📄 HTML being sent to backend:', styledHTML.substring(0, 500) + '...');
+      // Clone the content to avoid modifying the original
+      const clonedContent = editorElement.cloneNode(true) as HTMLElement;
+
+      // Remove contenteditable attributes and editor-specific elements
+      clonedContent.querySelectorAll('[contenteditable]').forEach(el => {
+        el.removeAttribute('contenteditable');
+      });
+
+      // Remove any editor UI elements (like toolbars, placeholders)
+      clonedContent.querySelectorAll('.ce-toolbar, .ce-inline-toolbar, .ce-placeholder').forEach(el => {
+        el.remove();
+      });
+
+      // Wrap with shared styles for PDF generation
+      const styledHTML = wrapWithResumeStyles(clonedContent.innerHTML);
 
       // Generate PDF from HTML (backend just converts HTML → PDF)
       const result = await generatePdf({
@@ -344,107 +357,7 @@ const ResumeBuilder = () => {
 
   return (
     <DashboardLayout isPro={isPro} isLoadingSubscription={isLoadingSubscription}>
-      <style>{`
-        /* Global Editor.js styles for resume formatting */
-        .codex-editor__redactor {
-          font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Helvetica Neue', Arial, sans-serif !important;
-        }
-
-        /* All text elements */
-        .ce-paragraph,
-        .ce-header,
-        .cdx-list {
-          font-size: 0.875rem !important;
-          font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Helvetica Neue', Arial, sans-serif !important;
-          text-align: left !important;
-        }
-
-        /* Name/Title - Level 1 Header */
-        .ce-header[data-level="1"] {
-          font-weight: 700 !important;
-          margin-bottom: 0.25rem !important;
-          margin-top: 0 !important;
-        }
-
-        /* Section Headers - Level 2 Header */
-        .ce-header[data-level="2"] {
-          font-weight: 700 !important;
-          margin-top: 0.25rem !important;
-          margin-bottom: 0.25rem !important;
-          text-transform: uppercase !important;
-          letter-spacing: 0.5px !important;
-        }
-
-        /* Underline for section headers */
-        .ce-block .ce-header[data-level="2"] {
-          border-bottom: 2px solid #000 !important;
-          padding-bottom: 0.125rem !important;
-        }
-
-        /* Job Title/Subsection - Level 3 Header */
-        .ce-header[data-level="3"] {
-          font-weight: 600 !important;
-          margin-top: 0.5rem !important;
-          margin-bottom: 0.125rem !important;
-          overflow: hidden !important;
-        }
-
-        /* Paragraphs */
-        .ce-paragraph {
-          margin-top: 0.125rem !important;
-          margin-bottom: 0.125rem !important;
-        }
-
-        /* Lists */
-        .cdx-list {
-          padding-left: 1.25rem !important;
-          margin: 0.125rem 0 !important;
-        }
-
-        .cdx-list__item {
-          margin-bottom: 0.125rem !important;
-          padding: 0 !important;
-        }
-
-        /* Delimiter - style as horizontal line instead of *** */
-        .ce-delimiter {
-          margin: 0 !important;
-          padding: 0 !important;
-          line-height: 0 !important;
-          text-align: center !important;
-          position: relative !important;
-          color: transparent !important;
-        }
-
-        .ce-delimiter::before {
-          content: '' !important;
-          display: block !important;
-          border-top: 1px solid #d1d5db !important;
-          width: 100% !important;
-        }
-
-        .ce-delimiter .ce-delimiter__content {
-          display: none !important;
-        }
-
-        /* Remove spacing from delimiter block wrapper */
-        .ce-block--delimiter {
-          margin-bottom: 0 !important;
-          padding-bottom: 0 !important;
-        }
-
-        /* Remove top spacing from blocks following delimiter */
-        .ce-block--delimiter + .ce-block {
-          margin-top: 0 !important;
-          padding-top: 0 !important;
-        }
-
-        /* Job Entry block spacing */
-        .job-entry-block {
-          margin: 0 !important;
-          padding: 0 !important;
-        }
-      `}</style>
+      <style>{getEditorStyles()}</style>
       <div className="max-w-7xl mx-auto px-6 pt-8 pb-6">
         {/* Header */}
         <div className="mb-6 flex items-center justify-between">
