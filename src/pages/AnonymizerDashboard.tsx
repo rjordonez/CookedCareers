@@ -1,6 +1,6 @@
 import { useState, useRef, useEffect, useCallback } from 'react';
 import { Document, Page } from 'react-pdf';
-import { Download, Eye, EyeOff, Loader2, Wand2, X, Share2, Copy, Check } from 'lucide-react';
+import { Download, Eye, EyeOff, Loader2, X, Share2, Copy, Check } from 'lucide-react';
 import { useAuthState, useRequireAuth } from '@/hooks';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
@@ -631,18 +631,15 @@ export default function AnonymizerDashboard() {
                       </button>
                     </div>
 
-                    {/* Action Icons */}
-                    <button
+                    {/* Blur Tool Button */}
+                    <Button
+                      variant={isSelectionMode ? "default" : "outline"}
+                      size="sm"
                       onClick={handleToggleSelectionMode}
                       title={isSelectionMode ? "Exit Selection Mode" : "Highlight & Blur Custom Text"}
-                      className="p-2 hover:bg-gray-100 dark:hover:bg-gray-700 rounded transition-colors"
                     >
-                      {isSelectionMode ? (
-                        <X className="w-4 h-4" />
-                      ) : (
-                        <Wand2 className="w-4 h-4" />
-                      )}
-                    </button>
+                      {isSelectionMode ? 'Done' : 'Blur Tool'}
+                    </Button>
                     <button
                       onClick={() => {
                         const allBlurred = detections.every(d => d.blurred);

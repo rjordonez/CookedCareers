@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from 'react';
-import { useSearchParams } from 'react-router-dom';
+import { useSearchParams, useLocation } from 'react-router-dom';
 import { useAuthState, useRequireAuth } from '@/hooks';
 import DashboardLayout from '@/components/DashboardLayout';
 import { Button } from '@/components/ui/button';
@@ -11,22 +11,29 @@ import Paragraph from '@editorjs/paragraph';
 import Underline from '@editorjs/underline';
 import Delimiter from '@editorjs/delimiter';
 import JobEntry from '@/components/EditorJSBlocks/JobEntry';
-import { Save, Download, Loader2 } from 'lucide-react';
+import { Save, Download, Loader2, FileSearch } from 'lucide-react';
 import {
   useCreateResumeBuilderMutation,
   useGetResumeBuilderQuery,
   useSaveResumeBuilderMutation,
   useGenerateResumePdfMutation,
 } from '@/features/user-resume/userResumeService';
-import { renderResumeToHTML } from '@/utils/resumeRenderer';
+import { getEditorStyles, wrapWithResumeStyles } from '@/utils/resumeStyles';
+import ATSCheckerSidebar, { type ATSData } from '@/components/ATSCheckerSidebar';
 
 const ResumeBuilder = () => {
   const { isPro, isLoadingSubscription } = useAuthState();
   const { requireAuth } = useRequireAuth();
   const [searchParams] = useSearchParams();
+  const location = useLocation();
   const editorRef = useRef<EditorJS | null>(null);
   const [isReady, setIsReady] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
+
+  // Get ATS data from navigation state (when coming from ATS Checker page)
+  const atsDataFromState = (location.state as { atsData?: ATSData } | null)?.atsData || null;
+  const [isATSSidebarOpen, setIsATSSidebarOpen] = useState(!!atsDataFromState);
+
   const resumeIdFromUrl = searchParams.get('id');
   const [resumeId, setResumeId] = useState<string | null>(resumeIdFromUrl);
 
@@ -54,113 +61,21 @@ const ResumeBuilder = () => {
       // Use existing resume data if available, otherwise use default template
       const defaultData: OutputData = {
         blocks: [
+          // Header
           {
             type: 'header',
             data: {
-              text: 'Your Name',
+              text: 'Your Resume',
               level: 1,
             },
           },
           {
             type: 'paragraph',
             data: {
-              text: 'Email: your.email@example.com | Phone: (123) 456-7890 | Location: City, State',
+              text: '123-456-7890 | jake@su.edu | linkedin.com/in/jake | github.com/jake',
             },
           },
-          {
-            type: 'delimiter',
-            data: {},
-          },
-          {
-            type: 'header',
-            data: {
-              text: 'Experience',
-              level: 2,
-            },
-          },
-          // Job 1
-          {
-            type: 'jobEntry',
-            data: {
-              title: 'Job Title - Company Name',
-              date: 'Date Range',
-            },
-          },
-          {
-            type: 'list',
-            data: {
-              style: 'unordered',
-              items: [
-                'Achievement or responsibility 1',
-                'Achievement or responsibility 2',
-                'Achievement or responsibility 3',
-              ],
-            },
-          },
-          // Job 2
-          {
-            type: 'jobEntry',
-            data: {
-              title: 'Job Title - Company Name',
-              date: 'Date Range',
-            },
-          },
-          {
-            type: 'list',
-            data: {
-              style: 'unordered',
-              items: [
-                'Achievement or responsibility 1',
-                'Achievement or responsibility 2',
-                'Achievement or responsibility 3',
-              ],
-            },
-          },
-          {
-            type: 'header',
-            data: {
-              text: 'Projects',
-              level: 2,
-            },
-          },
-          // Project 1
-          {
-            type: 'jobEntry',
-            data: {
-              title: 'Project Name',
-              date: 'Date Range',
-            },
-          },
-          {
-            type: 'list',
-            data: {
-              style: 'unordered',
-              items: [
-                'Achievement or responsibility 1',
-                'Achievement or responsibility 2',
-                'Achievement or responsibility 3',
-              ],
-            },
-          },
-          // Project 2
-          {
-            type: 'jobEntry',
-            data: {
-              title: 'Project Name',
-              date: 'Date Range',
-            },
-          },
-          {
-            type: 'list',
-            data: {
-              style: 'unordered',
-              items: [
-                'Achievement or responsibility 1',
-                'Achievement or responsibility 2',
-                'Achievement or responsibility 3',
-              ],
-            },
-          },
+          // Education
           {
             type: 'header',
             data: {
@@ -169,16 +84,50 @@ const ResumeBuilder = () => {
             },
           },
           {
-            type: 'paragraph',
+            type: 'jobEntry',
             data: {
-              text: 'Degree - University Name | Graduation Year',
+              title: 'Southwestern University',
+              date: 'Georgetown, TX',
             },
           },
           {
+            type: 'paragraph',
+            data: {
+              text: '<i>Bachelor of Arts in Computer Science, Minor in Business</i> | Aug. 2018 - May 2021',
+            },
+          },
+          {
+            type: 'jobEntry',
+            data: {
+              title: 'Blinn College',
+              date: 'Bryan, TX',
+            },
+          },
+          {
+            type: 'paragraph',
+            data: {
+              text: "<i>Associate's in Liberal Arts</i> | Aug. 2014 - May 2018",
+            },
+          },
+          // Experience
+          {
             type: 'header',
             data: {
-              text: 'Skills',
+              text: 'Experience',
               level: 2,
+            },
+          },
+          {
+            type: 'jobEntry',
+            data: {
+              title: 'Undergraduate Research Assistant - Texas A&M University',
+              date: 'June 2020 - Present',
+            },
+          },
+          {
+            type: 'paragraph',
+            data: {
+              text: '<i>College Station, TX</i>',
             },
           },
           {
@@ -186,10 +135,139 @@ const ResumeBuilder = () => {
             data: {
               style: 'unordered',
               items: [
-                'Skill 1',
-                'Skill 2',
-                'Skill 3',
+                'Developed a REST API using FastAPI and PostgreSQL to store data from learning management systems',
+                'Developed a full-stack web application using Flask, React, PostgreSQL and Docker to analyze GitHub data',
+                'Explored ways to visualize GitHub collaboration in a classroom setting',
               ],
+            },
+          },
+          {
+            type: 'jobEntry',
+            data: {
+              title: 'Information Technology Support Specialist - Southwestern University',
+              date: 'Sep. 2018 - Present',
+            },
+          },
+          {
+            type: 'paragraph',
+            data: {
+              text: '<i>Georgetown, TX</i>',
+            },
+          },
+          {
+            type: 'list',
+            data: {
+              style: 'unordered',
+              items: [
+                'Communicate with managers to set up campus computers used on campus',
+                'Assess and troubleshoot computer problems brought by students, faculty and staff',
+                'Maintain upkeep of computers, classroom equipment, and 200 printers across campus',
+              ],
+            },
+          },
+          {
+            type: 'jobEntry',
+            data: {
+              title: 'Artificial Intelligence Research Assistant - Southwestern University',
+              date: 'May 2019 - July 2019',
+            },
+          },
+          {
+            type: 'paragraph',
+            data: {
+              text: '<i>Georgetown, TX</i>',
+            },
+          },
+          {
+            type: 'list',
+            data: {
+              style: 'unordered',
+              items: [
+                'Explored methods to generate video game dungeons based off of The Legend of Zelda',
+                'Developed a game in Java to test the generated dungeons',
+                'Contributed 50K+ lines of code to an established codebase via Git',
+                'Conducted a human subject study to determine which video game dungeon generation technique is enjoyable',
+                'Wrote an 8-page paper and gave multiple presentations on-campus',
+                'Presented virtually to the World Conference on Computational Intelligence',
+              ],
+            },
+          },
+          // Projects
+          {
+            type: 'header',
+            data: {
+              text: 'Projects',
+              level: 2,
+            },
+          },
+          {
+            type: 'jobEntry',
+            data: {
+              title: 'Gitlytics | Python, Flask, React, PostgreSQL, Docker',
+              date: 'June 2020 - Present',
+            },
+          },
+          {
+            type: 'list',
+            data: {
+              style: 'unordered',
+              items: [
+                'Developed a full-stack web application using with Flask serving a REST API with React as the frontend',
+                "Implemented GitHub OAuth to get data from user's repositories",
+                'Visualized GitHub data to show collaboration',
+                'Used Celery and Redis for asynchronous tasks',
+              ],
+            },
+          },
+          {
+            type: 'jobEntry',
+            data: {
+              title: 'Simple Paintball | Spigot API, Java, Maven, TravisCI, Git',
+              date: 'May 2018 - May 2020',
+            },
+          },
+          {
+            type: 'list',
+            data: {
+              style: 'unordered',
+              items: [
+                'Developed a Minecraft server plugin to entertain kids during free time for a previous job',
+                'Published plugin to websites gaining 2K+ downloads and an average 4.5/5-star review',
+                'Implemented continuous delivery using TravisCI to build the plugin upon new a release',
+                'Collaborated with Minecraft server administrators to suggest features and get feedback about the plugin',
+              ],
+            },
+          },
+          // Technical Skills
+          {
+            type: 'header',
+            data: {
+              text: 'Technical Skills',
+              level: 2,
+            },
+          },
+          {
+            type: 'paragraph',
+            data: {
+              text: '<b>Languages:</b> Java, Python, C/C++, SQL (Postgres), JavaScript, HTML/CSS, R',
+            },
+          },
+          {
+            type: 'paragraph',
+            data: {
+              text: '<b>Frameworks:</b> React, Node.js, Flask, JUnit, WordPress, Material-UI, FastAPI',
+            },
+          },
+          {
+            type: 'paragraph',
+            data: {
+              text: '<b>Developer Tools:</b> Git, Docker, TravisCI, Google Cloud Platform, VS Code, Visual Studio, PyCharm, IntelliJ, Eclipse',
+            },
+          },
+          {
+            type: 'paragraph',
+            data: {
+              text: '<b>Libraries:</b> pandas, NumPy, Matplotlib',
             },
           },
         ],
@@ -284,10 +362,6 @@ const ResumeBuilder = () => {
     try {
       const outputData = await editorRef.current.save();
 
-      // DEBUG: Log what we're actually sending
-      console.log('📄 Editor.js data:', outputData);
-      console.log('📄 Number of blocks:', outputData.blocks.length);
-
       // Extract title from first header block
       const firstBlock = outputData.blocks[0];
       const title = firstBlock?.type === 'header' ? firstBlock.data.text : 'Untitled Resume';
@@ -310,11 +384,29 @@ const ResumeBuilder = () => {
         },
       }).unwrap();
 
-      // NEW: Render Editor.js data to styled HTML
-      const styledHTML = renderResumeToHTML(outputData);
+      // Capture the actual DOM from the editor (what the user sees)
+      const editorElement = document.querySelector('#editorjs .codex-editor__redactor');
+      if (!editorElement) {
+        console.error('Could not find editor element');
+        return;
+      }
 
-      // DEBUG: Log the HTML we're sending
-      console.log('📄 HTML being sent to backend:', styledHTML.substring(0, 500) + '...');
+      // Clone the content to avoid modifying the original
+      const clonedContent = editorElement.cloneNode(true) as HTMLElement;
+
+      // Remove contenteditable attributes and editor-specific elements
+      clonedContent.querySelectorAll('[contenteditable]').forEach(el => {
+        el.removeAttribute('contenteditable');
+      });
+
+      // Remove any editor UI elements (like toolbars, placeholders)
+      clonedContent.querySelectorAll('.ce-toolbar, .ce-inline-toolbar, .ce-placeholder').forEach(el => {
+        el.remove();
+      });
+
+      // Wrap content in #editorjs div so scoped styles apply, then wrap with PDF styles
+      const htmlWithWrapper = `<div id="editorjs">${clonedContent.innerHTML}</div>`;
+      const styledHTML = wrapWithResumeStyles(htmlWithWrapper);
 
       // Generate PDF from HTML (backend just converts HTML → PDF)
       const result = await generatePdf({
@@ -337,107 +429,7 @@ const ResumeBuilder = () => {
 
   return (
     <DashboardLayout isPro={isPro} isLoadingSubscription={isLoadingSubscription}>
-      <style>{`
-        /* Global Editor.js styles for resume formatting */
-        .codex-editor__redactor {
-          font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Helvetica Neue', Arial, sans-serif !important;
-        }
-
-        /* All text elements */
-        .ce-paragraph,
-        .ce-header,
-        .cdx-list {
-          font-size: 0.875rem !important;
-          font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Helvetica Neue', Arial, sans-serif !important;
-          text-align: left !important;
-        }
-
-        /* Name/Title - Level 1 Header */
-        .ce-header[data-level="1"] {
-          font-weight: 700 !important;
-          margin-bottom: 0.25rem !important;
-          margin-top: 0 !important;
-        }
-
-        /* Section Headers - Level 2 Header */
-        .ce-header[data-level="2"] {
-          font-weight: 700 !important;
-          margin-top: 0.25rem !important;
-          margin-bottom: 0.25rem !important;
-          text-transform: uppercase !important;
-          letter-spacing: 0.5px !important;
-        }
-
-        /* Underline for section headers */
-        .ce-block .ce-header[data-level="2"] {
-          border-bottom: 2px solid #000 !important;
-          padding-bottom: 0.125rem !important;
-        }
-
-        /* Job Title/Subsection - Level 3 Header */
-        .ce-header[data-level="3"] {
-          font-weight: 600 !important;
-          margin-top: 0.5rem !important;
-          margin-bottom: 0.125rem !important;
-          overflow: hidden !important;
-        }
-
-        /* Paragraphs */
-        .ce-paragraph {
-          margin-top: 0.125rem !important;
-          margin-bottom: 0.125rem !important;
-        }
-
-        /* Lists */
-        .cdx-list {
-          padding-left: 1.25rem !important;
-          margin: 0.125rem 0 !important;
-        }
-
-        .cdx-list__item {
-          margin-bottom: 0.125rem !important;
-          padding: 0 !important;
-        }
-
-        /* Delimiter - style as horizontal line instead of *** */
-        .ce-delimiter {
-          margin: 0 !important;
-          padding: 0 !important;
-          line-height: 0 !important;
-          text-align: center !important;
-          position: relative !important;
-          color: transparent !important;
-        }
-
-        .ce-delimiter::before {
-          content: '' !important;
-          display: block !important;
-          border-top: 1px solid #d1d5db !important;
-          width: 100% !important;
-        }
-
-        .ce-delimiter .ce-delimiter__content {
-          display: none !important;
-        }
-
-        /* Remove spacing from delimiter block wrapper */
-        .ce-block--delimiter {
-          margin-bottom: 0 !important;
-          padding-bottom: 0 !important;
-        }
-
-        /* Remove top spacing from blocks following delimiter */
-        .ce-block--delimiter + .ce-block {
-          margin-top: 0 !important;
-          padding-top: 0 !important;
-        }
-
-        /* Job Entry block spacing */
-        .job-entry-block {
-          margin: 0 !important;
-          padding: 0 !important;
-        }
-      `}</style>
+      <style>{getEditorStyles()}</style>
       <div className="max-w-7xl mx-auto px-6 pt-8 pb-6">
         {/* Header */}
         <div className="mb-6 flex items-center justify-between">
@@ -450,6 +442,15 @@ const ResumeBuilder = () => {
 
           {/* Toolbar */}
           <div className="flex gap-2 items-center">
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => setIsATSSidebarOpen(true)}
+              disabled={!isReady}
+            >
+              <FileSearch className="w-4 h-4 mr-2" />
+              ATS Check
+            </Button>
             <button
               onClick={handleExport}
               disabled={!isReady || isGeneratingPdf}
@@ -473,15 +474,34 @@ const ResumeBuilder = () => {
           </div>
         </div>
 
-        {/* Editor Container */}
-        <Card className="p-8">
-          <div
-            id="editorjs"
-            className="max-w-none min-h-[800px]"
-            style={{ textAlign: 'left' }}
-          />
-        </Card>
+        {/* Editor Container - Letter size page */}
+        <div className="flex justify-center">
+          <Card
+            className="px-6 shadow-lg"
+            style={{
+              width: '816px',
+              paddingTop: '24px',
+              paddingBottom: '24px',
+            }}
+          >
+            <div
+              id="editorjs"
+              className="max-w-none"
+              style={{
+                textAlign: 'left',
+              }}
+            />
+          </Card>
+        </div>
       </div>
+
+      {/* ATS Checker Sidebar */}
+      <ATSCheckerSidebar
+        isOpen={isATSSidebarOpen}
+        onClose={() => setIsATSSidebarOpen(false)}
+        resumeId={resumeId}
+        initialData={atsDataFromState}
+      />
     </DashboardLayout>
   );
 };

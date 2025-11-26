@@ -27,7 +27,7 @@ export function renderResumeToHTML(editorData: EditorData): string {
   <style>
     @page {
       size: Letter;
-      margin: 1in;
+      margin: 0.75in 0;
     }
 
     body {
@@ -36,7 +36,7 @@ export function renderResumeToHTML(editorData: EditorData): string {
       line-height: 1.4;
       color: #000;
       margin: 0;
-      padding: 0;
+      padding: 0 1.5rem;
     }
 
     /* Name/Title - Level 1 Header */
