@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from 'react';
-import { useSearchParams } from 'react-router-dom';
+import { useSearchParams, useLocation } from 'react-router-dom';
 import { useAuthState, useRequireAuth } from '@/hooks';
 import DashboardLayout from '@/components/DashboardLayout';
 import { Button } from '@/components/ui/button';
@@ -11,7 +11,7 @@ import Paragraph from '@editorjs/paragraph';
 import Underline from '@editorjs/underline';
 import Delimiter from '@editorjs/delimiter';
 import JobEntry from '@/components/EditorJSBlocks/JobEntry';
-import { Save, Download, Loader2 } from 'lucide-react';
+import { Save, Download, Loader2, FileSearch } from 'lucide-react';
 import {
   useCreateResumeBuilderMutation,
   useGetResumeBuilderQuery,
@@ -19,14 +19,21 @@ import {
   useGenerateResumePdfMutation,
 } from '@/features/user-resume/userResumeService';
 import { renderResumeToHTML } from '@/utils/resumeRenderer';
+import ATSCheckerSidebar, { type ATSData } from '@/components/ATSCheckerSidebar';
 
 const ResumeBuilder = () => {
   const { isPro, isLoadingSubscription } = useAuthState();
   const { requireAuth } = useRequireAuth();
   const [searchParams] = useSearchParams();
+  const location = useLocation();
   const editorRef = useRef<EditorJS | null>(null);
   const [isReady, setIsReady] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
+
+  // Get ATS data from navigation state (when coming from ATS Checker page)
+  const atsDataFromState = (location.state as { atsData?: ATSData } | null)?.atsData || null;
+  const [isATSSidebarOpen, setIsATSSidebarOpen] = useState(!!atsDataFromState);
+
   const resumeIdFromUrl = searchParams.get('id');
   const [resumeId, setResumeId] = useState<string | null>(resumeIdFromUrl);
 
@@ -450,6 +457,15 @@ const ResumeBuilder = () => {
 
           {/* Toolbar */}
           <div className="flex gap-2 items-center">
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => setIsATSSidebarOpen(true)}
+              disabled={!isReady}
+            >
+              <FileSearch className="w-4 h-4 mr-2" />
+              ATS Check
+            </Button>
             <button
               onClick={handleExport}
               disabled={!isReady || isGeneratingPdf}
@@ -482,6 +498,14 @@ const ResumeBuilder = () => {
           />
         </Card>
       </div>
+
+      {/* ATS Checker Sidebar */}
+      <ATSCheckerSidebar
+        isOpen={isATSSidebarOpen}
+        onClose={() => setIsATSSidebarOpen(false)}
+        resumeId={resumeId}
+        initialData={atsDataFromState}
+      />
     </DashboardLayout>
   );
 };

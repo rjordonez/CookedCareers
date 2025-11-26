@@ -8,7 +8,7 @@ import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import DashboardLayout from '@/components/DashboardLayout';
-import { useListUserResumesQuery, useUploadUserResumeMutation, useCreateResumeBuilderMutation } from '@/features/user-resume/userResumeService';
+import { useListUserResumesQuery, useUploadUserResumeMutation } from '@/features/user-resume/userResumeService';
 import { useAnalyzeResumeMutation } from '@/features/ats/atsService';
 import type { ATSSuggestion } from '@/features/ats/atsTypes';
 
@@ -27,6 +27,7 @@ export default function ATSChecker() {
   const [atsScore, setAtsScore] = useState(0);
   const [suggestions, setSuggestions] = useState<ATSSuggestion[]>([]);
   const [analyzedResumeId, setAnalyzedResumeId] = useState<string | null>(null);
+  const [isBuilderResume, setIsBuilderResume] = useState(false);
 
   const { data: resumesData } = useListUserResumesQuery(undefined, {
     skip: querySkipCondition,
@@ -34,7 +35,6 @@ export default function ATSChecker() {
 
   const [analyzeResume, { isLoading: isAnalyzing }] = useAnalyzeResumeMutation();
   const [uploadResume, { isLoading: isUploading }] = useUploadUserResumeMutation();
-  const [createResumeBuilder, { isLoading: isCreatingBuilder }] = useCreateResumeBuilderMutation();
 
   const existingResumes = resumesData?.resumes || [];
 
@@ -118,7 +118,12 @@ export default function ATSChecker() {
         // Store the resume ID for editing later
         if (useExisting) {
           setAnalyzedResumeId(selectedExistingResume);
+          // Check if it's a builder resume
+          const selectedResume = existingResumes.find(r => r.id === selectedExistingResume);
+          setIsBuilderResume(selectedResume?.resume_source === 'builder');
         } else {
+          // Newly uploaded files are always upload type, not builder
+          setIsBuilderResume(false);
           // If analyzing a new upload, we need to upload it first to get an ID
           const uploadFormData = new FormData();
           uploadFormData.append('file', selectedFile!);
@@ -142,21 +147,20 @@ export default function ATSChecker() {
     }
   };
 
-  const handleEditResume = async () => {
+  const handleEditResume = () => {
     if (!requireAuth()) return;
 
-    // Create a new resume builder entry
-    try {
-      const result = await createResumeBuilder({ title: 'Edited Resume' }).unwrap();
-      if (result.success && result.resume_id) {
-        // Navigate to resume builder with the new ID
-        navigate(`/resume-builder?id=${result.resume_id}`);
-      } else {
-        alert('Failed to create resume builder');
-      }
-    } catch (error) {
-      console.error('Create builder error:', error);
-      alert('An error occurred while creating the resume builder');
+    if (analyzedResumeId) {
+      // Navigate to the resume builder with the analyzed resume's ID and ATS results
+      navigate(`/resume-builder?id=${analyzedResumeId}`, {
+        state: {
+          atsData: {
+            jobDescription,
+            score: atsScore,
+            suggestions,
+          },
+        },
+      });
     }
   };
 
@@ -379,36 +383,29 @@ export default function ATSChecker() {
                 </p>
               </Card>
 
-              {/* Edit Resume CTA */}
-              <Card className="p-6 bg-primary/5 border-primary/20">
-                <div className="text-center space-y-4">
-                  <div className="flex items-center justify-center gap-2">
-                    <Edit className="w-5 h-5 text-primary" />
-                    <h2 className="text-xl font-semibold">Want to Improve Your Resume?</h2>
+              {/* Edit Resume CTA - Only show for builder resumes */}
+              {isBuilderResume && (
+                <Card className="p-6 bg-primary/5 border-primary/20">
+                  <div className="text-center space-y-4">
+                    <div className="flex items-center justify-center gap-2">
+                      <Edit className="w-5 h-5 text-primary" />
+                      <h2 className="text-xl font-semibold">Want to Improve Your Resume?</h2>
+                    </div>
+                    <p className="text-sm text-muted-foreground">
+                      Use our resume builder to make changes based on the suggestions below and optimize for ATS systems.
+                    </p>
+                    <Button
+                      onClick={handleEditResume}
+                      disabled={!analyzedResumeId}
+                      className="w-full sm:w-auto"
+                      size="lg"
+                    >
+                      <Edit className="w-4 h-4 mr-2" />
+                      Edit Resume
+                    </Button>
                   </div>
-                  <p className="text-sm text-muted-foreground">
-                    Use our resume builder to make changes based on the suggestions below and optimize for ATS systems.
-                  </p>
-                  <Button
-                    onClick={handleEditResume}
-                    disabled={isCreatingBuilder}
-                    className="w-full sm:w-auto"
-                    size="lg"
-                  >
-                    {isCreatingBuilder ? (
-                      <>
-                        <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-                        Creating...
-                      </>
-                    ) : (
-                      <>
-                        <Edit className="w-4 h-4 mr-2" />
-                        Edit Resume
-                      </>
-                    )}
-                  </Button>
-                </div>
-              </Card>
+                </Card>
+              )}
 
               {/* Suggestions Section */}
               <Card className="p-6">
