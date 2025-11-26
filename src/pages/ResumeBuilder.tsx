@@ -75,10 +75,6 @@ const ResumeBuilder = () => {
               text: '123-456-7890 | jake@su.edu | linkedin.com/in/jake | github.com/jake',
             },
           },
-          {
-            type: 'delimiter',
-            data: {},
-          },
           // Education
           {
             type: 'header',
@@ -408,8 +404,9 @@ const ResumeBuilder = () => {
         el.remove();
       });
 
-      // Wrap with shared styles for PDF generation
-      const styledHTML = wrapWithResumeStyles(clonedContent.innerHTML);
+      // Wrap content in #editorjs div so scoped styles apply, then wrap with PDF styles
+      const htmlWithWrapper = `<div id="editorjs">${clonedContent.innerHTML}</div>`;
+      const styledHTML = wrapWithResumeStyles(htmlWithWrapper);
 
       // Generate PDF from HTML (backend just converts HTML → PDF)
       const result = await generatePdf({
@@ -477,14 +474,25 @@ const ResumeBuilder = () => {
           </div>
         </div>
 
-        {/* Editor Container */}
-        <Card className="p-8">
-          <div
-            id="editorjs"
-            className="max-w-none min-h-[800px]"
-            style={{ textAlign: 'left' }}
-          />
-        </Card>
+        {/* Editor Container - Letter size page */}
+        <div className="flex justify-center">
+          <Card
+            className="px-6 shadow-lg"
+            style={{
+              width: '816px',
+              paddingTop: '24px',
+              paddingBottom: '24px',
+            }}
+          >
+            <div
+              id="editorjs"
+              className="max-w-none"
+              style={{
+                textAlign: 'left',
+              }}
+            />
+          </Card>
+        </div>
       </div>
 
       {/* ATS Checker Sidebar */}

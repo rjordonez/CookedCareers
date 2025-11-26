@@ -5,7 +5,7 @@
 export const resumeStyles = `
   @page {
     size: Letter;
-    margin: 0.75in;
+    margin: 0.25in 0;
   }
 
   * {
@@ -13,11 +13,28 @@ export const resumeStyles = `
   }
 
   body {
-    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Helvetica Neue', Arial, sans-serif;
+    font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', sans-serif;
     font-size: 0.875rem;
     line-height: 1.4;
     color: #000;
     margin: 0;
+    padding: 0 1.5rem;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+  }
+
+  /* Editor.js block wrappers - remove default spacing */
+  .ce-block {
+    padding: 0;
+    margin: 0;
+  }
+
+  .ce-block__content {
+    max-width: 100%;
+    margin: 0;
+  }
+
+  .codex-editor__redactor {
     padding: 0;
   }
 
@@ -26,6 +43,7 @@ export const resumeStyles = `
     font-size: 1.25rem;
     font-weight: 700;
     margin: 0 0 0.25rem 0;
+    padding: 0;
     text-align: left;
   }
 
@@ -34,10 +52,11 @@ export const resumeStyles = `
     font-size: 0.875rem;
     font-weight: 700;
     margin: 0.25rem 0 0.25rem 0;
+    padding: 0;
+    padding-bottom: 0.125rem;
     text-transform: uppercase;
     letter-spacing: 0.5px;
     border-bottom: 2px solid #000;
-    padding-bottom: 0.125rem;
   }
 
   /* Job Title/Subsection - Level 3 Header */
@@ -45,11 +64,13 @@ export const resumeStyles = `
     font-size: 0.875rem;
     font-weight: 600;
     margin: 0.5rem 0 0.125rem 0;
+    padding: 0;
   }
 
   /* Paragraphs */
   p, .ce-paragraph {
     margin: 0.125rem 0;
+    padding: 0;
     font-size: 0.875rem;
   }
 
@@ -85,6 +106,7 @@ export const resumeStyles = `
     margin: 0;
     padding: 0;
     line-height: 0;
+    color: transparent;
   }
 
   .ce-delimiter::before {
@@ -96,6 +118,16 @@ export const resumeStyles = `
 
   .ce-delimiter .ce-delimiter__content {
     display: none;
+  }
+
+  .ce-block--delimiter {
+    margin: 0;
+    padding: 0;
+  }
+
+  .ce-block--delimiter + .ce-block {
+    margin-top: 0;
+    padding-top: 0;
   }
 
   /* Job Entry block - title on left, date on right */
@@ -118,64 +150,118 @@ export const resumeStyles = `
     margin-left: 1rem;
     text-align: right;
   }
+
+  .job-entry-block {
+    margin: 0;
+    padding: 0;
+  }
 `;
 
 /**
  * Editor-specific styles that only apply to the Editor.js UI
  * These handle contentEditable and Editor.js-specific classes
+ * All styles scoped to #editorjs to isolate from app global styles
  */
 export const editorSpecificStyles = `
-  .codex-editor__redactor {
-    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Helvetica Neue', Arial, sans-serif !important;
+  /* Reset global styles within the editor */
+  #editorjs {
+    all: initial;
+    display: block;
+    font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', sans-serif;
+    font-size: 0.875rem;
+    line-height: 1.4;
+    color: #000;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
   }
 
-  .ce-paragraph,
-  .ce-header,
-  .cdx-list {
+  #editorjs * {
+    box-sizing: border-box;
+  }
+
+  #editorjs .codex-editor__redactor {
+    font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', sans-serif !important;
+    padding-left: 0 !important;
+    padding-right: 0 !important;
+    padding-bottom: 0 !important;
+    min-height: auto !important;
+  }
+
+  #editorjs .codex-editor {
+    min-height: auto !important;
+  }
+
+  #editorjs .codex-editor__redactor::after {
+    display: none !important;
+  }
+
+  #editorjs .ce-block__content {
+    max-width: 100% !important;
+    margin-left: 0 !important;
+    margin-right: 0 !important;
+  }
+
+  #editorjs .ce-toolbar__content {
+    max-width: 100% !important;
+  }
+
+  #editorjs .ce-paragraph,
+  #editorjs .ce-header,
+  #editorjs .cdx-list {
     font-size: 0.875rem !important;
-    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Helvetica Neue', Arial, sans-serif !important;
+    font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', sans-serif !important;
     text-align: left !important;
   }
 
-  .ce-header[data-level="1"] {
+  #editorjs .ce-header[data-level="1"] {
+    font-size: 1.25rem !important;
     font-weight: 700 !important;
-    margin-bottom: 0.25rem !important;
-    margin-top: 0 !important;
+    margin: 0 0 0.25rem 0 !important;
+    padding: 0 !important;
   }
 
-  .ce-header[data-level="2"] {
+  #editorjs .ce-header[data-level="2"] {
+    font-size: 0.875rem !important;
     font-weight: 700 !important;
-    margin-top: 0.25rem !important;
-    margin-bottom: 0.25rem !important;
+    margin: 0.25rem 0 !important;
+    padding: 0 !important;
+    padding-bottom: 0.125rem !important;
     text-transform: uppercase !important;
     letter-spacing: 0.5px !important;
     border-bottom: 2px solid #000 !important;
-    padding-bottom: 0.125rem !important;
   }
 
-  .ce-header[data-level="3"] {
+  #editorjs .ce-header[data-level="3"] {
+    font-size: 0.875rem !important;
     font-weight: 600 !important;
-    margin-top: 0.5rem !important;
-    margin-bottom: 0.125rem !important;
+    margin: 0.5rem 0 0.125rem 0 !important;
+    padding: 0 !important;
     overflow: hidden !important;
   }
 
-  .ce-paragraph {
-    margin-top: 0.125rem !important;
-    margin-bottom: 0.125rem !important;
+  #editorjs .ce-paragraph {
+    margin: 0.125rem 0 !important;
+    padding: 0 !important;
+    font-size: 0.875rem !important;
   }
 
-  .cdx-list {
+  #editorjs .cdx-list {
     padding-left: 1.25rem !important;
     margin: 0.125rem 0 !important;
+    font-size: 0.875rem !important;
   }
 
-  .cdx-list__item {
+  #editorjs .cdx-list__item {
     margin-bottom: 0.125rem !important;
     padding: 0 !important;
   }
 
-  .ce-delimiter {
+  #editorjs .ce-block {
+    padding: 0 !important;
+    margin: 0 !important;
+  }
+
+  #editorjs .ce-delimiter {
     margin: 0 !important;
     padding: 0 !important;
     line-height: 0 !important;
@@ -184,33 +270,33 @@ export const editorSpecificStyles = `
     color: transparent !important;
   }
 
-  .ce-delimiter::before {
+  #editorjs .ce-delimiter::before {
     content: '' !important;
     display: block !important;
     border-top: 1px solid #d1d5db !important;
     width: 100% !important;
   }
 
-  .ce-delimiter .ce-delimiter__content {
+  #editorjs .ce-delimiter .ce-delimiter__content {
     display: none !important;
   }
 
-  .ce-block--delimiter {
+  #editorjs .ce-block--delimiter {
     margin-bottom: 0 !important;
     padding-bottom: 0 !important;
   }
 
-  .ce-block--delimiter + .ce-block {
+  #editorjs .ce-block--delimiter + .ce-block {
     margin-top: 0 !important;
     padding-top: 0 !important;
   }
 
-  .job-entry-block {
+  #editorjs .job-entry-block {
     margin: 0 !important;
     padding: 0 !important;
   }
 
-  .job-entry-block > div {
+  #editorjs .job-entry-block > div {
     display: flex !important;
     justify-content: space-between !important;
     align-items: baseline !important;
@@ -218,13 +304,13 @@ export const editorSpecificStyles = `
     margin-bottom: 0.125rem !important;
   }
 
-  .job-entry-block > div > div:first-child {
+  #editorjs .job-entry-block > div > div:first-child {
     font-weight: 600 !important;
     font-size: 0.875rem !important;
     flex: 1 !important;
   }
 
-  .job-entry-block > div > div:last-child {
+  #editorjs .job-entry-block > div > div:last-child {
     font-size: 0.875rem !important;
     margin-left: 1rem !important;
     text-align: right !important;
@@ -239,7 +325,8 @@ export function getEditorStyles(): string {
 }
 
 /**
- * Wrap HTML content with the shared resume styles for PDF export
+ * Wrap HTML content with styles for PDF export
+ * Uses the same styles as the builder so PDF matches exactly
  */
 export function wrapWithResumeStyles(htmlContent: string): string {
   return `
@@ -247,9 +334,20 @@ export function wrapWithResumeStyles(htmlContent: string): string {
 <html>
 <head>
   <meta charset="UTF-8">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
   <style>
+    /* Set root font size to match the app */
+    html {
+      font-size: 16px;
+    }
     ${resumeStyles}
     ${editorSpecificStyles}
+    /* Ensure body padding applies for PDF */
+    body {
+      padding: 0 24px !important;
+    }
   </style>
 </head>
 <body>
